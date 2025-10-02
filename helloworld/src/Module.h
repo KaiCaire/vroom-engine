@@ -1,80 +1,62 @@
 #pragma once
 
-#include "Globals.h"
+#include <string>
+#include <SDL3/SDL.h>
 
-class Application;
-class PhysBody;
+
 
 class Module
 {
-private:
-	bool enabled;
-
 public:
-	Application* App;
 
-	Module(Application* parent, bool start_enabled = true) : App(parent), enabled(start_enabled)
+	Module() : active(false)
 	{
 	}
 
-	virtual ~Module()
+	void Init()
 	{
+		active = true;
 	}
 
-	bool IsEnabled() const
-	{
-		return enabled;
-	}
-
-	void Enable()
-	{
-		if (enabled == false)
-		{
-			enabled = true;
-			Start();
-		}
-	}
-
-	void Disable()
-	{
-		if (enabled == true)
-		{
-			enabled = false;
-			CleanUp();
-		}
-	}
-
-	virtual bool Init()
+	// Called before render is available
+	virtual bool Awake()
 	{
 		return true;
 	}
 
+	// Called before the first frame
 	virtual bool Start()
 	{
 		return true;
 	}
 
-	virtual update_status PreUpdate()
+	// Called each loop iteration
+	virtual bool PreUpdate()
 	{
-		return UPDATE_CONTINUE;
+		return true;
 	}
 
-	virtual update_status Update()
+	// Called each loop iteration
+	virtual bool Update(float dt)
 	{
-		return UPDATE_CONTINUE;
+		return true;
 	}
 
-	virtual update_status PostUpdate()
+	// Called each loop iteration
+	virtual bool PostUpdate()
 	{
-		return UPDATE_CONTINUE;
+		return true;
 	}
 
+	// Called before quitting
 	virtual bool CleanUp()
 	{
 		return true;
 	}
 
-	virtual void OnCollision(PhysBody* bodyA, PhysBody* bodyB, int dir)
-	{
-	}
+
+public:
+
+	std::string name;
+	bool active;
 };

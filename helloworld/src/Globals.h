@@ -1,6 +1,6 @@
 #pragma once
 #include <stdio.h>
-
+#include "../vcpkg_installed/vcpkg/pkgs/sdl3_x64-windows/include/SDL3/SDL.h"
 
 #define LOG(format, ...) log(__FILE__, __LINE__, format, __VA_ARGS__);
 
@@ -37,4 +37,4 @@ enum update_status
 #define WIN_FULLSCREEN_DESKTOP false
 #define VSYNC				false
 #define FPS					  165
-#define TITLE		"Vroom Engine"
+#define TITLE		"Vroom Application"

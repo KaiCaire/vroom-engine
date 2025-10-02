@@ -21,3 +21,21 @@ Abi: fb20a0909d2d19c823642b1e85bb9587c4e827dd84a62de537b5b393c149c35f
 Description: {fmt} is an open-source formatting library providing a fast and safe alternative to C stdio and C++ iostreams.
 Status: install ok installed
 
+Package: sdl3
+Version: 3.2.22
+Depends: vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 4a9a8eb838229d1769a2c188ddfb212c09c790e82cac8ed73a8c923edd93a37a
+Description: Simple DirectMedia Layer is a cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
+Status: install ok installed
+
+Package: sdl3-image
+Version: 3.2.4
+Depends: sdl3, vcpkg-cmake, vcpkg-cmake-config
+Architecture: x64-windows
+Multi-Arch: same
+Abi: 895e710e2015633872be5388378ccbe3795c9b187ecbdeffe78a2a6f8f78679c
+Description: SDL_image is an image file loading library. It loads images as SDL surfaces and textures, and supports the following formats: BMP, GIF, JPEG, LBM, PCX, PNG, PNM, TGA, TIFF, WEBP, XCF, XPM, XV
+Status: install ok installed
+

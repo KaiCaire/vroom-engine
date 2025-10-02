@@ -197,6 +197,12 @@ HelloWorld_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 HelloWorld_SOURCE_DIR:STATIC=C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld
 
+//The directory containing a CMake configuration file for SDL3.
+SDL3_DIR:PATH=C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/build/vcpkg_installed/x64-windows/share/sdl3
+
+//The directory containing a CMake configuration file for SDL3_image.
+SDL3_image_DIR:PATH=C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/build/vcpkg_installed/x64-windows/share/SDL3_image
+
 //Automatically copy dependencies into the output directory for
 // executables.
 VCPKG_APPLOCAL_DEPS:BOOL=ON

@@ -18,11 +18,11 @@ class Window : public Module
 public:
 
 	Window(Application* app, bool start_enabled = true);
-
 	// Destructor
 	virtual ~Window();
 
 	bool Init();
+	bool Awake();
 	update_status PreUpdate();
 	update_status Update();
 	update_status PostUpdate();
@@ -30,12 +30,12 @@ public:
 
 	void SetTitle(const char* title);
 
-	// Retrieve window size
-	uint GetWidth() const;
-	uint GetHeight() const;
+
 
 	// Gather relevant win events
-	bool GetWindowEvent(WindowEvent ev);
+	void GetSize (int& width, int& height) const;
+
+	int GetScale() const;
 
 private:
 	uint width;
