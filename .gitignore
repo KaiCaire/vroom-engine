@@ -1,0 +1,76 @@
+# ---- Build Artifacts ----
+/build/
+/bin/
+/lib/
+/obj/
+/out/
+/dist/
+/CMakeFiles/
+/CMakeCache.txt
+/Makefile
+/*.make
+/*.ninja
+/.ninja_deps
+/.ninja_log
+compile_commands.json
+cmake_install.cmake
+
+# ---- Visual Studio ----
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# ---- Visual Studio Code ----
+.vscode/
+*.code-workspace
+
+# ---- Compiled Object & Binary Files ----
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.pdb
+*.idb
+
+# ---- SDL / Engine Generated Files ----
+*.log
+*.tmp
+*.cache
+*.bak
+*.swp
+
+# ---- Crash Dumps ----
+*.dmp
+
+# ---- OS-Specific Junk ----
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# ---- Packaging ----
+*.tar
+*.zip
+*.7z
+*.gz
+
+# ---- Editor-specific ----
+*.iml
+.idea/
+
+# ---- Engine-specific (if generating assets) ----
+/assets/generated/
+/shaders/compiled/
