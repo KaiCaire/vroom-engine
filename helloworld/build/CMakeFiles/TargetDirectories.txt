@@ -1,3 +1,0 @@
-C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/build/CMakeFiles/HelloWorld.dir
-C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/build/CMakeFiles/ZERO_CHECK.dir
