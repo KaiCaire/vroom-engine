@@ -5,7 +5,7 @@
 //#include "SDL3/SDL_rect.h"
 //#include "SDL3/SDL_keyboard.h"
 
-
+#define MAX_KEYS 300
 #define NUM_MOUSE_BUTTONS 5
 
 enum EventWindow
@@ -67,6 +67,8 @@ public:
 private:
 	bool windowEvents[WE_COUNT];
 	KeyState* keyboard;
+	int* numkeys;
+
 	KeyState mouseButtons[NUM_MOUSE_BUTTONS];
 	int	mouseMotionX;
 	int mouseMotionY;

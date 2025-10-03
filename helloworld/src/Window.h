@@ -2,44 +2,36 @@
 
 #include "Module.h"
 
-class Application;
-
-enum WindowEvent
-{
-	WINDOW_EVENT_QUIT = 0,
-	WINDOW_EVENT_HIDE = 1,
-	WINDOW_EVENT_SHOW = 2,
-	WINDOW_EVENT_RESIZE = 3,
-	WINDOW_EVENT_COUNT       // Max window events
-};
-
 class Window : public Module
 {
 public:
 
-	Window(Application* app, bool start_enabled = true);
+	Window();
+
 	// Destructor
 	virtual ~Window();
 
-	bool Init();
+	// Called before render is available
 	bool Awake();
-	update_status PreUpdate();
-	update_status Update();
-	update_status PostUpdate();
+
+	// Called before quitting
 	bool CleanUp();
 
+	// Changae title
 	void SetTitle(const char* title);
 
+	// Retrive window size
+	void GetSize(int& width, int& height) const;
 
-
-	// Gather relevant win events
-	void GetSize (int& width, int& height) const;
-
+	// Retrieve window scale
 	int GetScale() const;
 
-private:
-	uint width;
-	uint height;
+public:
+	// The window we'll be rendering to
+	SDL_Window* window;
 
-	bool windowEvents[WINDOW_EVENT_COUNT];
+	std::string title;
+	int width = 1280;
+	int height = 720;
+	int scale = 1;
 };

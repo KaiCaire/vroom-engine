@@ -1,9 +1,6 @@
 #pragma once
 #include "Module.h"
-
-#include <SDL3/SDL_rect.h>
-#include <SDL3_image/SDL_image.h>
-#include <SDL3/SDL_render.h>
+#include "SDL3/SDL.h"
 
 class Render : public Module
 {
@@ -46,4 +43,7 @@ public:
 	SDL_Rect camera;
 	SDL_Rect viewport;
 	SDL_Color background;
+
+private:
+	bool vsync = false;
 };

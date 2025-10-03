@@ -3,15 +3,17 @@
 #include "Window.h"
 #include "Log.h"
 
-#define MAX_KEYS 300
+
 
 Input::Input() : Module()
 {
 	name = "input";
 
 	keyboard = new KeyState[MAX_KEYS];
+	numkeys = new int[MAX_KEYS];
 	memset(keyboard, KEY_IDLE, sizeof(KeyState) * MAX_KEYS);
 	memset(mouseButtons, KEY_IDLE, sizeof(KeyState) * NUM_MOUSE_BUTTONS);
+	
 }
 
 // Destructor
@@ -48,7 +50,8 @@ bool Input::PreUpdate()
 {
 	static SDL_Event event;
 
-	const Uint8* keys = SDL_GetKeyboardState();
+	int numkeys = 0; // will receive the number of keys
+	const bool* keys = SDL_GetKeyboardState(&numkeys);
 
 	for (int i = 0; i < MAX_KEYS; ++i)
 	{
@@ -146,4 +149,3 @@ bool Input::GetWindowEvent(EventWindow ev)
 //Vector2D Input::GetMouseMotion()
 //{
 //	return Vector2D(mouseMotionX, mouseMotionY);
-}
