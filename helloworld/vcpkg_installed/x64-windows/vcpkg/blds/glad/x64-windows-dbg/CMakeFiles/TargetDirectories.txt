@@ -1,0 +1,7 @@
+C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/glad/x64-windows-dbg/CMakeFiles/glad-generate-files.dir
+C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/glad/x64-windows-dbg/CMakeFiles/glad.dir
+C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/glad/x64-windows-dbg/CMakeFiles/edit_cache.dir
+C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/glad/x64-windows-dbg/CMakeFiles/rebuild_cache.dir
+C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/glad/x64-windows-dbg/CMakeFiles/list_install_components.dir
+C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/glad/x64-windows-dbg/CMakeFiles/install.dir
+C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/glad/x64-windows-dbg/CMakeFiles/install/local.dir

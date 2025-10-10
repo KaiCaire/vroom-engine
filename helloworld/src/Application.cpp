@@ -5,6 +5,7 @@
 #include "Window.h"
 #include "Input.h"
 #include "Render.h"
+#include "OpenGL.h"
 
 
 
@@ -17,6 +18,7 @@ Application::Application() {
     window = std::make_shared<Window>();
     input = std::make_shared<Input>();
     render = std::make_shared<Render>();
+    openGL = std::make_shared<OpenGL>();
 
     // Ordered for awake / Start / Update
     // Reverse order of CleanUp
@@ -25,6 +27,7 @@ Application::Application() {
 
 
     // Render last 
+    AddModule(std::static_pointer_cast<Module>(openGL));
     AddModule(std::static_pointer_cast<Module>(render));
 
 }

@@ -1,0 +1,6 @@
+Downloading KhronosGroup-EGL-Registry-7db3005d4c2cb439f129a0adc931f3274f9019e6.tar.gz
+Successfully downloaded KhronosGroup-EGL-Registry-7db3005d4c2cb439f129a0adc931f3274f9019e6.tar.gz.
+-- Extracting source C:/Users/ccair/AppData/Local/vcpkg/downloads/KhronosGroup-EGL-Registry-7db3005d4c2cb439f129a0adc931f3274f9019e6.tar.gz
+-- Using source at C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/egl-registry/src/274f9019e6-49d6bdb34a.clean
+-- Installing: C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/pkgs/egl-registry_x64-windows/share/egl-registry/copyright
+-- Performing post-build validation

@@ -82,13 +82,17 @@ bool Render::PreUpdate()
 
 bool Render::Update(float dt)
 {
+
+	
 	return true;
 }
 
 bool Render::PostUpdate()
 {
-	SDL_SetRenderDrawColor(renderer, background.r, background.g, background.g, background.a);
-	SDL_RenderPresent(renderer);
+	//SDL_SetRenderDrawColor(renderer, background.r, background.g, background.g, background.a);
+	//SDL_RenderPresent(renderer);
+
+	SDL_GL_SwapWindow(Application::GetInstance().window->window);
 	return true;
 }
 

@@ -1,0 +1,8 @@
+# ninja log v6
+5	366	7817536888175479	include/glad/glad.h	99ab47afc2cb723c
+5	366	7817536888175479	src/glad.c	99ab47afc2cb723c
+5	366	7817536888175479	C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/glad/x64-windows-rel/include/glad/glad.h	99ab47afc2cb723c
+5	366	7817536888175479	C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/glad/x64-windows-rel/src/glad.c	99ab47afc2cb723c
+368	697	7817536888811561	CMakeFiles/glad.dir/src/glad.c.obj	a5f899c8924abdd
+698	741	7817536892143261	glad.lib	f45fecf443557ae2
+741	781	7817536892472676	CMakeFiles/install.util	f83cdcf967fa86c0
