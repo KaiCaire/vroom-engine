@@ -3,6 +3,7 @@
 #include "OpenGL.h"
 #include "FileSystem.h"
 #include <string>
+#include <vector>
 #include "Mesh.h"
 #include "assimp/importer.hpp"
 #include "stb_image.h"
@@ -12,14 +13,6 @@ using namespace std;
 
 
 vector<Texture> textures_loaded;
-
-Model::Model(char* path) {
-
-}
-
-Model::~Model() {
-
-}
 
 void Model::loadModel(string path) {
     Assimp::Importer import;
@@ -94,29 +87,29 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
     vector<Texture> textures;
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
     {
-        aiString str;
-        mat->GetTexture(type, i, &str);
-        bool skip = false;
-        for (unsigned int j = 0; j < textures_loaded.size(); j++)
-        {
-            if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
-            {
-                textures.push_back(textures_loaded[j]);
-                skip = true;
-                break;
-            }
-        }
-        if (!skip)
-        {   // if texture hasn't been loaded already, load it
-            Texture texture;
-            texture.id = Application::GetInstance().textures.get()->TextureFromFile(str.C_Str(), directory);
-            
-            // define function above in another cpp, directory will fix itself as it's a member of the class already
-            texture.type = typeName;
-            texture.path = str.C_Str();
-            textures.push_back(texture);
-            textures_loaded.push_back(texture); // add to loaded textures
-        }
+        //aiString str;
+        //mat->GetTexture(type, i, &str);
+        //bool skip = false;
+        //for (unsigned int j = 0; j < textures_loaded.size(); j++)
+        //{
+        //    if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
+        //    {
+        //        textures.push_back(textures_loaded[j]);
+        //        skip = true;
+        //        break;
+        //    }
+        //}
+        //if (!skip)
+        //{   // if texture hasn't been loaded already, load it
+        //    Texture texture;
+        //    texture.id = Application::GetInstance().textures.get()->TextureFromFile(str.C_Str(), directory);
+        //    
+        //    // define function above in another cpp, directory will fix itself as it's a member of the class already
+        //    texture.type = typeName;
+        //    texture.path = str.C_Str();
+        //    textures.push_back(texture);
+        //    textures_loaded.push_back(texture); // add to loaded textures
+        //}
     }
     return textures;
 }

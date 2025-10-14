@@ -3,10 +3,14 @@
 #include "Shader.h"
 #include <vector>
 #include <SDL3/SDL_opengl.h>
+#include "assimp/cimport.h"
+#include "assimp/scene.h"
+#include "assimp/postprocess.h"
+#include "assimp/mesh.h"
 
 using namespace std;
 
-struct vertex {
+struct Vertex {
     glm::vec3 Position;
     glm::vec3 Normal;
     glm::vec2 TexCoords;

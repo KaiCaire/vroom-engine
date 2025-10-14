@@ -1,7 +1,7 @@
 #pragma once
 #include "Shader.h"
+#include "Mesh.h"
 #include <vector>
-#include "FileSystem.h"
 
 using namespace std;
 
@@ -15,10 +15,10 @@ public:
 
     ~Model();
     void Draw(Shader& shader);
-private:
+public:
     // model data
     vector<Mesh> meshes;
-    string directory = "";
+    string directory;
 
     void loadModel(string path);
     void processNode(aiNode* node, const aiScene* scene);

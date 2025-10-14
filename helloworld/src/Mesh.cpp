@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include "Shader.h"
 
 
 Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures) {
