@@ -1,8 +1,6 @@
 #pragma once
 #include "Module.h"
 
-
-
 class OpenGL : public Module {
 
 public:
@@ -13,6 +11,7 @@ public:
 	unsigned int shaderProgram;
 	unsigned int VAO;
 	unsigned int VBO;
+	unsigned int EBO;
 
 	bool Start() override;
 	bool Update(float dt) override;

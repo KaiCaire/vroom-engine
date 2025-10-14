@@ -2,6 +2,9 @@
 #include "Window.h"
 #include "Render.h"
 #include "Log.h"
+#include "FileSystem.h"
+#include "Mesh.h"
+
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -82,7 +85,7 @@ bool Render::PreUpdate()
 
 bool Render::Update(float dt)
 {
-
+	
 	
 	return true;
 }
@@ -280,4 +283,33 @@ bool Render::DrawCircle(int x, int y, int radius, Uint8 r, Uint8 g, Uint8 b, Uin
 	}
 
 	return ret;
+}
+
+bool Render::DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) const {
+
+	glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	
+	/*
+	void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
+	Copiar
+	mode: Specifies the type of primitives to render (e.g., GL_TRIANGLES, GL_LINES).
+
+	count: Number of indices to be rendered.
+
+	type: Data type of the indices (e.g., GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT).
+
+	indices: Pointer to the index array or offset in an element buffer.
+	*/
+
+	
+	glUseProgram(shaderProgram);
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glBindVertexArray(0);
+
+	
+
+	return true;
 }

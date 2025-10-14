@@ -1,2 +1,0 @@
-C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/detect_compiler/x64-windows-rel/CMakeFiles/edit_cache.dir
-C:/Users/ccair/Documents/Uni_Temp/Engines/MyEngineII/helloworld/vcpkg_installed/x64-windows/vcpkg/blds/detect_compiler/x64-windows-rel/CMakeFiles/rebuild_cache.dir

@@ -6,6 +6,8 @@
 #include "Input.h"
 #include "Render.h"
 #include "OpenGL.h"
+#include "FileSystem.h"
+#include "Textures.h"
 
 
 
@@ -19,15 +21,19 @@ Application::Application() {
     input = std::make_shared<Input>();
     render = std::make_shared<Render>();
     openGL = std::make_shared<OpenGL>();
+    fileSystem = std::make_shared<FileSystem>();
+    textures = std::make_shared<Textures>();
 
     // Ordered for awake / Start / Update
     // Reverse order of CleanUp
     AddModule(std::static_pointer_cast<Module>(window));
     AddModule(std::static_pointer_cast<Module>(input));
+    AddModule(std::static_pointer_cast<Module>(textures));
 
 
     // Render last 
     AddModule(std::static_pointer_cast<Module>(openGL));
+    AddModule(std::static_pointer_cast<Module>(fileSystem));
     AddModule(std::static_pointer_cast<Module>(render));
 
 }

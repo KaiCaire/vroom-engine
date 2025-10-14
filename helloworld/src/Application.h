@@ -10,6 +10,8 @@ class Window;
 class Input;
 class Render;
 class OpenGL;
+class FileSystem;
+class Textures;
 
 //class Physics;
 
@@ -87,6 +89,8 @@ public:
 	std::shared_ptr<Input> input;
 	std::shared_ptr<Render> render;
 	std::shared_ptr<OpenGL> openGL;
+	std::shared_ptr<FileSystem> fileSystem;
+	std::shared_ptr<Textures> textures;
 	
 
 

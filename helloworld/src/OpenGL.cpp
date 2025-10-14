@@ -1,13 +1,18 @@
 #include "OpenGL.h"
-
 #include <iostream>
 #include "Log.h"
 #include "Application.h"
 #include "Window.h"
+#include "Render.h"
 
-OpenGL::OpenGL() : Module(), glContext(nullptr), shaderProgram(0), VAO(0), VBO(0) 
+OpenGL::OpenGL() : Module()
 {
 	std::cout << "OpenGL Constructor" << std::endl;
+	VAO = 0;
+	VBO = 1;
+	EBO = 2;
+	shaderProgram = 3;
+	glContext = NULL;
 }
 
 // Destructor
@@ -50,7 +55,7 @@ bool OpenGL::Start() {
 	// 2nd param = how many const chars are you passing
 	// 4th param --> glint length = array of string lengths, NULL if strings are null-terminated
 
-	//Vertex Data
+	// Vertex Data of a triangle
 	float vertices[] = { //must be defined counterclockwise
 		0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
 		-0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
@@ -59,25 +64,66 @@ bool OpenGL::Start() {
 		//x,y,z,r,g,b
 	};
 
+	//rectangle --> repeated vertices
+
+	float rectVertices[] = {
+		// first triangle
+		 0.5f,  0.5f, 0.0f,  // top right
+		 0.5f, -0.5f, 0.0f,  // bottom right 
+		-0.5f,  0.5f, 0.0f,  // top left 
+		// second triangle
+		 0.5f, -0.5f, 0.0f,  // bottom right --> duplicate
+		-0.5f, -0.5f, 0.0f,  // bottom left
+		-0.5f,  0.5f, 0.0f   // top left --> duplicate
+	};
+
+	//instead make a EBO (vertex + indices)
+
+	float rectVerticesOpt[] = {
+		 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right, red
+		 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right, green
+		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left, blue
+		-0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f  // top left, white
+	};
+	unsigned int rectIndicesOpt[] = {  // used to indicate drawing order
+		0, 1, 3,   // first triangle
+		1, 2, 3    // second triangle
+	};
+
 	//Generate & bind VAO
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
+	
 
 
 	//Generate & bind VBO
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(rectVerticesOpt), rectVerticesOpt, GL_STATIC_DRAW);
+
+	//Generate & bind EBO
+
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(rectIndicesOpt), rectIndicesOpt, GL_STATIC_DRAW);
 
 	//Configure vertex attributes
+
+	//position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	//Enable vertex attribute above
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float),  (void*)(3 * sizeof(float)));
+
+	//color attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
+	
+	
+	glBindVertexArray(0);
 
-
+	
 
 	std::cout << "OpenGL initialized successfully" << std::endl;
 
@@ -102,6 +148,10 @@ bool OpenGL::Start() {
 		"{\n"
 		"	FragColor = vec4(ourColor, 1.0f);\n"
 		"}\0";
+
+	/*If you declare a uniform that isn't used anywhere in your GLSL code 
+	the compiler will silently remove the variable from the compiled version 
+	is the cause for several frustrating errors; keep this in mind!*/
 
 	unsigned int fragmentShader;
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -159,16 +209,16 @@ bool OpenGL::Start() {
 
 bool OpenGL::Update(float dt) {
 
+	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	glUseProgram(shaderProgram);
-	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	//glUseProgram(shaderProgram);
+	//glBindVertexArray(VAO);
+	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-	/*SDL_GL_SwapWindow(Application::GetInstance().window->window);*/
-
+	
 
 	return true;
 }

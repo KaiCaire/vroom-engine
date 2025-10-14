@@ -5,6 +5,7 @@
 #include "glad/glad.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengl.h>
+typedef unsigned int uint;
 
 
 
