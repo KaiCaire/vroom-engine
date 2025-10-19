@@ -9,8 +9,11 @@
 class Window;
 class Input;
 class Render;
+class OpenGL;
+class FileSystem;
+class Textures;
 
-class Physics;
+//class Physics;
 
 class Application
 {
@@ -63,8 +66,8 @@ private:
 	// Call modules after each loop iteration
 	bool PostUpdate();
 
-	// Load config file
-	bool LoadConfig();
+	//// Load config file
+	//bool LoadConfig();
 
 	std::list<std::shared_ptr<Module>> moduleList;
 
@@ -85,6 +88,9 @@ public:
 	std::shared_ptr<Window> window;
 	std::shared_ptr<Input> input;
 	std::shared_ptr<Render> render;
+	std::shared_ptr<OpenGL> openGL;
+	std::shared_ptr<FileSystem> fileSystem;
+	std::shared_ptr<Textures> textures;
 	
 
 
@@ -111,6 +117,6 @@ private:
 	//Maximun frame duration in miliseconds.
 	int maxFrameDuration = 16;
 
-	std::string gameTitle = "Platformer Game";
+	std::string gameTitle = "Vroom-Engine";
 
 };

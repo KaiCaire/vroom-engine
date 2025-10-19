@@ -5,7 +5,10 @@
 Window::Window() : Module()
 {
 	window = NULL;
+	glContext = NULL;
 	name = "window";
+	
+	
 }
 
 // Destructor
@@ -30,20 +33,18 @@ bool Window::Awake()
 		Uint32 flags = 0;
 		bool fullscreen = false;
 		bool borderless = false;
-		bool resizable = false;
+		bool resizable = true;
 		bool fullscreen_window = false;
-
-		// TODO Get the values from the config file
-		width = 1280;
-		height = 720;
-		scale = 1;
 
 		if (fullscreen == true)        flags |= SDL_WINDOW_FULLSCREEN;
 		if (borderless == true)        flags |= SDL_WINDOW_BORDERLESS;
 		if (resizable == true)         flags |= SDL_WINDOW_RESIZABLE;
+									   flags |= SDL_WINDOW_OPENGL;
 
 		// SDL3: SDL_CreateWindow(title, w, h, flags). Set position separately.
-		window = SDL_CreateWindow("Platform Game", width, height, flags);
+		
+		window = SDL_CreateWindow("Vroom Engine", width, height, flags);
+		glContext = SDL_GL_CreateContext(window);
 
 		if (window == NULL)
 		{
@@ -59,7 +60,20 @@ bool Window::Awake()
 			}
 			SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
 			SDL_ShowWindow(window);
+			
 		}
+
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+
+		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24); //we need 3 floats cuz we save the 4th for a stencil buffer
+
+		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);//Use 4
+
+		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);//Use 6
 	}
 
 	return ret;
