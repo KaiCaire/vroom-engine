@@ -1,5 +1,6 @@
 #pragma once
 #include "Module.h"
+#include "Shader.h"
 
 class OpenGL : public Module {
 
@@ -12,6 +13,8 @@ public:
 	unsigned int VAO;
 	unsigned int VBO;
 	unsigned int EBO;
+
+	Shader* texCoordsShader;
 
 	bool Start() override;
 	bool Update(float dt) override;

@@ -37,6 +37,7 @@ bool OpenGL::Start() {
 	}
 	
 	//vertex shader
+	/*
 	const char* vertexShaderSource = 
 		"#version 460 core\n"  
 		"layout(location = 0) in vec3 position;\n"
@@ -47,11 +48,15 @@ bool OpenGL::Start() {
 			"gl_Position = vec4(position.x, position.y, position.z, 1.0f);\n" //turns it into a homogeneous coordinate so it can be transformed in any way
 			"ourColor = color;\n"
 		"}\0";
+	*/
 
-	unsigned int vertexShader;
+	texCoordsShader = new Shader("../Assets/Shaders/TexCoordsShader.vert", "../Assets/Shaders/TexCoordsShader.frag");
+
+	//Shader constructor already gets source and compiles
+	/*unsigned int vertexShader;
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
+	glShaderSource(vertexShader, 1, &ourShader, NULL);
+	glCompileShader(vertexShader);*/
 	// 2nd param = how many const chars are you passing
 	// 4th param --> glint length = array of string lengths, NULL if strings are null-terminated
 
@@ -127,67 +132,40 @@ bool OpenGL::Start() {
 
 	std::cout << "OpenGL initialized successfully" << std::endl;
 
-
-	//Check vertex shader compilation
-	int vertexSuccess;
-	char infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &vertexSuccess);
-	if (!vertexSuccess) {
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cerr << "ERROR: Vertex Shader Compilation Failed\n" << infoLog << std::endl;
-	}
-	else {
-		std::cout << "Vertex Shader Compilation Successful!\n" << std::endl;
-	}
-
+	
+	/*
 	//Fragment Shader
 	const char* fragmentShaderSource = "#version 460 core\n"
 		"out vec4 FragColor;\n"
-		"in vec3 ourColor;\n"
+		"uniform vec4 ourColor;\n"
 		"void main()\n"
 		"{\n"
-		"	FragColor = vec4(ourColor, 1.0f);\n"
+		"	FragColor = ourColor;\n"
 		"}\0";
+	*/
+	
 
 	/*If you declare a uniform that isn't used anywhere in your GLSL code 
 	the compiler will silently remove the variable from the compiled version 
 	is the cause for several frustrating errors; keep this in mind!*/
-
+	
+	//already done in shader constructor
+	/*
+	
 	unsigned int fragmentShader;
 	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
 	glCompileShader(fragmentShader);
 
-	int fragSuccess;
-	/*char infoLog[512];*/
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &fragSuccess);
-	if (!fragSuccess) {
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cerr << "ERROR: Fragment Shader Compilation Failed\n" << infoLog << std::endl;
-	}
-	else {
-		std::cout << "Fragment Shader Compilation Successful!\n" << std::endl;
-	}
 
-	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
-
-	//check for fragment shader initialization success
 	shaderProgram = glCreateProgram();
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
-
-	// Check for linking errors
-	int programSuccess;
 	
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &programSuccess);
-	if (!programSuccess) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cerr << "ERROR: Shader Program Linking Failed\n" << infoLog << std::endl;
-	}
-	else {
-		std::cout << "Shader Program Compilation Successful!\n" << std::endl;
-	}
+	*/
+
+	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
 	// DEBUG
 	int currentProgram;
@@ -199,24 +177,33 @@ bool OpenGL::Start() {
 	std::cout << "Max vertex attribs: " << attribCount << std::endl;
 	//DEBUG END
 
-	 
-	// Delete shaders after linking
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+
 
 	return true;
 }
 
 bool OpenGL::Update(float dt) {
 
-	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+	float timeValue = SDL_GetTicks() / 1000.0f; // normal GetTicks() returns milliseconds! that's too fast, we want seconds
+	float greenValue = (sin(timeValue) / 2.0f) + 0.5f; // green intensity changes (0 to 1 and back) in a 3s interval
+	int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
 	//glUseProgram(shaderProgram);
-	//glBindVertexArray(VAO);
-	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+	texCoordsShader->Use();
+
+	/*
+	Finding the uniform location does not require you to use the shader program first, 
+	but updating a uniform does require you to first use the program (by calling glUseProgram), 
+	because it sets the uniform on the currently active shader program.
+	*/
+
+	glBindVertexArray(VAO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 	
 

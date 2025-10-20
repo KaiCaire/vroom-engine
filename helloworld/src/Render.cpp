@@ -6,6 +6,7 @@
 #include "Mesh.h"
 
 
+
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
@@ -13,6 +14,7 @@
 Render::Render() : Module()
 {
 	name = "render";
+	
 	background.r = 0;
 	background.g = 0;
 	background.b = 0;
