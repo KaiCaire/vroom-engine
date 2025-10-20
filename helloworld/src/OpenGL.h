@@ -9,7 +9,7 @@ public:
 	~OpenGL();
 
 	SDL_GLContext glContext;
-	unsigned int shaderProgram;
+	/*unsigned int shaderProgram;*/
 	unsigned int VAO;
 	unsigned int VBO;
 	unsigned int EBO;

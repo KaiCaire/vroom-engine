@@ -42,6 +42,10 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, NULL);
     glCompileShader(vertex);
+    // 2nd param = how many const chars are you passing
+    // 4th param --> glint length = array of string lengths, NULL if strings are null-terminated
+
+
     // print compile errors if any
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if (!success)

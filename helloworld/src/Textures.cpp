@@ -5,6 +5,9 @@
 #include <string>
 #include "FileSystem.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 using namespace std;
 
 Textures::Textures() : Module()
@@ -42,7 +45,12 @@ bool Textures::CleanUp()
 }
 
 
+unsigned char* Textures::LoadTexture(const char* filename, int* w, int* h, int* nChannels, int desiredChannels) {
 
+	std::string dir = "../Assets/Textures/";
+	std::string filePath = dir + filename; 
+	return stbi_load(filePath.c_str(), w, h, nChannels, desiredChannels);
+}
 
 uint Textures::TextureFromFile(const char* str, const char* directory) {
 	//get texture from a file

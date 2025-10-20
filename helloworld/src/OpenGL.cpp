@@ -4,6 +4,8 @@
 #include "Application.h"
 #include "Window.h"
 #include "Render.h"
+#include "Textures.h"
+#include "stb_image.h"
 
 OpenGL::OpenGL() : Module()
 {
@@ -11,7 +13,7 @@ OpenGL::OpenGL() : Module()
 	VAO = 0;
 	VBO = 1;
 	EBO = 2;
-	shaderProgram = 3;
+	/*shaderProgram = 3;*/
 	glContext = NULL;
 }
 
@@ -23,8 +25,6 @@ OpenGL::~OpenGL()
 
 bool OpenGL::Start() {
 
-	
-
 	//context = environment in which all OpenGL commands operate
 	//we create the context by passing a framebuffer, AKA a block of pixels displayable on a surface
 
@@ -35,30 +35,11 @@ bool OpenGL::Start() {
 		LOG("Error loading the glad library");
 		return false;
 	}
-	
-	//vertex shader
-	/*
-	const char* vertexShaderSource = 
-		"#version 460 core\n"  
-		"layout(location = 0) in vec3 position;\n"
-		"layout(location = 1) in vec3 color;\n"
-		"out vec3 ourColor;\n"
-		"void main()\n"
-		"{\n"
-			"gl_Position = vec4(position.x, position.y, position.z, 1.0f);\n" //turns it into a homogeneous coordinate so it can be transformed in any way
-			"ourColor = color;\n"
-		"}\0";
-	*/
 
 	texCoordsShader = new Shader("../Assets/Shaders/TexCoordsShader.vert", "../Assets/Shaders/TexCoordsShader.frag");
 
 	//Shader constructor already gets source and compiles
-	/*unsigned int vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertexShader, 1, &ourShader, NULL);
-	glCompileShader(vertexShader);*/
-	// 2nd param = how many const chars are you passing
-	// 4th param --> glint length = array of string lengths, NULL if strings are null-terminated
+	
 
 	// Vertex Data of a triangle
 	float vertices[] = { //must be defined counterclockwise
@@ -83,17 +64,62 @@ bool OpenGL::Start() {
 	};
 
 	//instead make a EBO (vertex + indices)
-
+	//UPDATE: added texCoords
 	float rectVerticesOpt[] = {
-		 0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // top right, red
-		 0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom right, green
-		-0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, // bottom left, blue
-		-0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f  // top left, white
+		// positions          // colors           // texture coords
+		 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+		 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
 	};
 	unsigned int rectIndicesOpt[] = {  // used to indicate drawing order
 		0, 1, 3,   // first triangle
 		1, 2, 3    // second triangle
 	};
+
+
+	//Generate texture
+	unsigned int texture;
+	glGenTextures(1, &texture);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+
+	//Setting various texture parameters:
+
+	//Texture-Wrap
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT); //S = X axis in texCoords
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT); //T = Y axis texCoords
+
+	//default texture repeat mode is GL_REPEAT
+	//if using GL_CLAMP_TO_BORDER, specify border color with:
+	/*
+		float borderColo[] = { 1.0f, 1.0f, 0.0f, 1.0f };
+		glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+	*/
+
+	//Filtering mode- -> GL_NEAREST = blocky pattern (default) || GL_LINEAR = smoother pattern
+	// can be set separately for minifying or magnifying operations:
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	// mip maps are only implemented in downscaling! don't filter mipmaps with MAG_FILTER 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	
+	//Load texture
+	int width, height, nChannels;
+
+	unsigned char* data = Application::GetInstance().textures.get()->LoadTexture("container.jpg", &width, &height, &nChannels);
+	
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+
 
 	//Generate & bind VAO
 
@@ -117,14 +143,18 @@ bool OpenGL::Start() {
 	//Configure vertex attributes
 
 	//position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	//Enable vertex attribute above
 	glEnableVertexAttribArray(0);
 
 	//color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 	
+
+	//texCoords attribute
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
 	
 	glBindVertexArray(0);
 
@@ -132,17 +162,6 @@ bool OpenGL::Start() {
 
 	std::cout << "OpenGL initialized successfully" << std::endl;
 
-	
-	/*
-	//Fragment Shader
-	const char* fragmentShaderSource = "#version 460 core\n"
-		"out vec4 FragColor;\n"
-		"uniform vec4 ourColor;\n"
-		"void main()\n"
-		"{\n"
-		"	FragColor = ourColor;\n"
-		"}\0";
-	*/
 	
 
 	/*If you declare a uniform that isn't used anywhere in your GLSL code 
@@ -189,11 +208,16 @@ bool OpenGL::Update(float dt) {
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+	/* flickering neon green rect:
+	
 	float timeValue = SDL_GetTicks() / 1000.0f; // normal GetTicks() returns milliseconds! that's too fast, we want seconds
 	float greenValue = (sin(timeValue) / 2.0f) + 0.5f; // green intensity changes (0 to 1 and back) in a 3s interval
 	int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
 	//glUseProgram(shaderProgram);
 	glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+	*/
+
 	texCoordsShader->Use();
 
 	/*
@@ -212,8 +236,6 @@ bool OpenGL::Update(float dt) {
 
 bool OpenGL::CleanUp() {
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteProgram(shaderProgram);
 
 	return true;
 }
