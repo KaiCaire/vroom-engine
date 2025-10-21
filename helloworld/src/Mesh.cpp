@@ -2,13 +2,13 @@
 #include "Shader.h"
 
 
-Mesh::Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures) {
+Mesh::Mesh(vector<Vertex> _vertices, vector<unsigned int> _indices, vector<Texture> _textures) {
 
-    this->vertices = vertices;
-    this->indices = indices;
-    this->textures = textures;
+    this->vertices = _vertices;
+    this->indices = _indices;
+    this->textures = _textures;
 
-    setupMesh();
+    this->setupMesh();
 }
 
 Mesh::~Mesh() {
@@ -23,11 +23,10 @@ void Mesh::setupMesh() {
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), &vertices[0], GL_STATIC_DRAW); //send to OpenGL (GPU)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int),
-        &indices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW); //send to GPU
 
     // vertex positions
     glEnableVertexAttribArray(0);
@@ -50,7 +49,7 @@ void Mesh::Draw(Shader &shader) {
         glActiveTexture(GL_TEXTURE0 + i); // activate proper texture unit before binding
         // retrieve texture number (the N in diffuse_textureN)
         string number;
-        string name = textures[i].type;
+        string name = textures[i].mapType;
         if (name == "texture_diffuse")
             number = std::to_string(diffuseNr++);
         else if (name == "texture_specular")
@@ -59,7 +58,7 @@ void Mesh::Draw(Shader &shader) {
         shader.setInt(("material." + name + number).c_str(), i);
         glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
-    glActiveTexture(GL_TEXTURE0);
+    /*glActiveTexture(GL_TEXTURE0);*/
 
     // draw mesh
     glBindVertexArray(VAO);

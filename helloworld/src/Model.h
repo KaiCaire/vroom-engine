@@ -1,9 +1,11 @@
 #pragma once
 #include "Shader.h"
 #include "Mesh.h"
+#include "Textures.h"
 #include <vector>
 
 using namespace std;
+
 
 class Model
 {
@@ -13,12 +15,12 @@ public:
         loadModel(path);
     }
 
-    ~Model();
+    ~Model() {};
     void Draw(Shader& shader);
 public:
     // model data
     vector<Mesh> meshes;
-    string directory;
+    std::string directory;
 
     void loadModel(string path);
     void processNode(aiNode* node, const aiScene* scene);

@@ -1,32 +1,30 @@
 #pragma once
 
 #include "Module.h"
+#include <string>
 
-class Textures : public Module
+class Texture : public Module
 {
 public:
 
-	Textures();
+	Texture();
 
-	// Destructor
-	virtual ~Textures();
+	
+	virtual ~Texture();
 
-	// Called before render is available
 	bool Awake();
 
-	// Called before the first frame
 	bool Start();
 
-	/*bool Update(float dt);*/
-
-	// Called before quitting
 	bool CleanUp();
 
-	unsigned char* LoadTexture(const char* filename, int* w, int* h, int* nChannels, int desiredChannels = 0);
+	uint TextureFromFile(std::string directory, const char* filename);
 
-	uint Textures::TextureFromFile(const char* aiStr, const char* directory);
 
 public:
 	
-	unsigned int textureIDs[];
+	uint id;
+	std::string mapType;
+	std::string path;
+	
 };
