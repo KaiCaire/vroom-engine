@@ -1,25 +1,31 @@
 #version 460 core
 out vec4 FragColor;
 
-in vec3 ourColor;
+//in vec3 ourColor;
 in vec2 texCoord;
 
 //The fragment shader should also have access to the texture object, passed with a uniform
 
-uniform sampler2D tex1;
-uniform sampler2D tex2;
-uniform float blend;
+struct Material 
+{
+    sampler2D texture_diffuse1;
+    sampler2D texture_specular1;
+	sampler2D texture_normal1;
+    sampler2D texture_roughness1; 
+    sampler2D texture_ao1; 
+};
+
+
+uniform Material material;
+
+
 
 void main()
 {
 	//built in OpenGL function! -> vec4 texture(sampler2D sampler, vec2 coord);
 
-	
-	//FragColor = vec4(ourColor, 1.0f);
-	//multiplying the texture with the color will result in an overlay
-	
-
-	FragColor = mix(texture(tex1, texCoord), texture(tex2, texCoord), 0.5);
+ 	//vec4 diffuse = texture(material.texture_diffuse1, TexCoords);
+	FragColor = texture(material.texture_diffuse1, texCoord);
 
 	/*
 		// trying to change alpha overtime, isn't working for some reason

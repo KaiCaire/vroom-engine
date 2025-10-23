@@ -16,15 +16,15 @@ public:
 	unsigned int VBO;
 	unsigned int EBO;
 
-	Texture texture1, texture2;
+	/*Texture texture1, texture2;*/
 	int width, height, nChannels;
 	glm::mat4 modelMat, viewMat, projectionMat;
-
+	glm::vec3* cubePositions = new glm::vec3[10];
 
 	Shader* texCoordsShader;
-	Model* warriorModel;
+	Model* ourModel;
 
-	float fullRadRot = 2 * (float)SDL_PI_F;
+	/*float fullRadRot = 2 * (float)SDL_PI_F;*/
 
 	bool Start() override;
 	bool Update(float dt) override;

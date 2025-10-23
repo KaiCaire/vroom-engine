@@ -103,7 +103,7 @@ uint Texture::TextureFromFile(const string directory, const char* filename) {
 
     
     path = filePath;
-
+ 
     stbi_image_free(data);
 
     return id;

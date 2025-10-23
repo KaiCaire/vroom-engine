@@ -19,8 +19,11 @@ public:
     void Draw(Shader& shader);
 public:
     // model data
+    int processedMeshes = 0;
     vector<Mesh> meshes;
     std::string directory;
+
+    
 
     void loadModel(string path);
     void processNode(aiNode* node, const aiScene* scene);
