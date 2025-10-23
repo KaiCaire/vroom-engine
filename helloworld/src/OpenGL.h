@@ -20,6 +20,7 @@ public:
 	int width, height, nChannels;
 	glm::mat4 modelMat, viewMat, projectionMat;
 
+
 	Shader* texCoordsShader;
 	Model* warriorModel;
 
