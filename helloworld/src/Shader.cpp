@@ -1,6 +1,6 @@
 #include "Shader.h"
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath)
+Shader::Shader(const char* vertexFileName, const char* fragmentFileName)
 {
     // 1. retrieve the vertex/fragment source code from filePath
     std::string vertexCode;
@@ -13,6 +13,10 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     try
     {
         // open files
+        std::string dir = "../Assets/Shaders/";
+        std::string vertexPath = dir + (std::string)vertexFileName;
+        std::string fragmentPath = dir + (std::string)fragmentFileName;
+
         vShaderFile.open(vertexPath);
         fShaderFile.open(fragmentPath);
         std::stringstream vShaderStream, fShaderStream;
@@ -42,6 +46,10 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, NULL);
     glCompileShader(vertex);
+    // 2nd param = how many const chars are you passing
+    // 4th param --> glint length = array of string lengths, NULL if strings are null-terminated
+
+
     // print compile errors if any
     glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if (!success)
@@ -51,6 +59,18 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
     };
 
    
+    // fragment Shader
+    fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment, 1, &fShaderCode, NULL);
+    glCompileShader(fragment);
+    // print compile errors if any
+    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        glGetShaderInfoLog(fragment, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+    };
+
 
     // shader Program
     ID = glCreateProgram();

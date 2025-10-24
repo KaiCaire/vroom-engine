@@ -17,8 +17,8 @@ public:
 	bool Start() override;
 	bool CleanUp() override;
 
-	aiMesh LoadFile(const char* filePath);
-	aiMesh SaveFile(const char* filePath);
+	/*aiMesh LoadFile(const char* filePath);
+	aiMesh SaveFile(const char* filePath);*/
 
 
 private:

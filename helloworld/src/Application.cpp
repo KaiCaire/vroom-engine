@@ -22,7 +22,7 @@ Application::Application() {
     render = std::make_shared<Render>();
     openGL = std::make_shared<OpenGL>();
     fileSystem = std::make_shared<FileSystem>();
-    textures = std::make_shared<Textures>();
+    textures = std::make_shared<Texture>();
 
     // Ordered for awake / Start / Update
     // Reverse order of CleanUp

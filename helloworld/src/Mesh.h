@@ -1,6 +1,10 @@
 #pragma once
 #include "glm/glm.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Shader.h"
+#include "Textures.h"
 #include <vector>
 #include <SDL3/SDL_opengl.h>
 #include "assimp/cimport.h"
@@ -8,21 +12,17 @@
 #include "assimp/postprocess.h"
 #include "assimp/mesh.h"
 
+
 using namespace std;
 
 struct Vertex {
     glm::vec3 Position;
     glm::vec3 Normal;
-    glm::vec2 TexCoords;
+    glm::vec2 texCoord;
 };
 
-
-struct Texture {
-    unsigned int id;
-    string type;
-    /*string path;*/
-};
-
+class Texture;
+ 
 
 class Mesh {
 public:

@@ -1,11 +1,12 @@
 {
   "dependencies": [
     "assimp",
+    "devil",
     "fmt",
     "glad",
     "glm",
     "sdl3",
     "sdl3-image",
-    "devil"
+    "stb"
   ]
 }
