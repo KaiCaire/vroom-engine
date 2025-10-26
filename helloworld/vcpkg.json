@@ -5,6 +5,14 @@
     "fmt",
     "glad",
     "glm",
+    {
+      "name": "imgui",
+      "features": [
+        "opengl3-binding",
+        "sdl3-binding",
+        "docking-experimental"
+      ]
+    },
     "sdl3",
     "sdl3-image",
     "stb"

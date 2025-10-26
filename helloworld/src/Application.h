@@ -14,6 +14,7 @@ class FileSystem;
 class Texture;
 class Mesh;
 class Model;
+class GUIManager;
 
 //class Physics;
 
@@ -93,6 +94,7 @@ public:
 	std::shared_ptr<OpenGL> openGL;
 	std::shared_ptr<FileSystem> fileSystem;
 	std::shared_ptr<Texture> textures;
+	std::shared_ptr<GUIManager> guiManager;
 	
 
 
