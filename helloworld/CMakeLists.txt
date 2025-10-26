@@ -13,7 +13,10 @@ find_package(glm CONFIG REQUIRED)
 
 
 
-add_executable(VroomEngine src/VroomEngine.cpp src/Application.cpp src/Application.h src/Module.h src/Window.cpp src/Window.h src/Render.cpp src/Render.h src/Input.cpp src/Input.h src/OpenGL.h src/OpenGL.cpp src/Log.h src/Log.cpp src/FileSystem.h src/FileSystem.cpp src/Shader.h src/Shader.cpp src/Mesh.h src/Mesh.cpp src/Model.h src/Model.cpp src/Textures.h src/Textures.cpp)
+add_executable(VroomEngine src/VroomEngine.cpp src/Application.cpp src/Application.h src/Module.h src/Window.cpp src/Window.h src/Render.cpp src/Render.h src/Input.cpp src/Input.h 
+src/OpenGL.h src/OpenGL.cpp src/Log.h src/Log.cpp src/FileSystem.h src/FileSystem.cpp src/Shader.h src/Shader.cpp src/Mesh.h src/Mesh.cpp src/Model.h src/Model.cpp src/Textures.h 
+src/Textures.cpp src/Component.h src/GameObject.h src/GameObject.cpp src/TransformComponent.h src/TransformComponent.cpp src/MeshRendererComponent.h src/MeshRendererComponent.cpp
+src/Material.h src/Material.cpp)
 
 
 target_link_libraries(VroomEngine PRIVATE SDL3::SDL3 SDL3_image::SDL3_image fmt::fmt glad::glad assimp::assimp glm::glm)
