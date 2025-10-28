@@ -2,8 +2,6 @@
 #include "Input.h"
 #include "Window.h"
 #include "Log.h"
-
-
 #include <string>
 #include <filesystem>
 #include <fstream>
@@ -133,9 +131,9 @@ bool Input::PreUpdate()
 			
 			LOG("Dropped File Directory = %s", droppedFileDir);
 
+			ProcessDroppedFile(droppedFileDir);
 			
-			importedModel = new Model(droppedFileDir);
-			Application::GetInstance().render.get()->AddModel(droppedFileDir);
+			
 			
 			//not needed in SDL3, the new allocated memory created  gets freed automatically
 			/*SDL_free(&droppedFileDir);*/
@@ -165,32 +163,29 @@ bool Input::CleanUp()
 	return true;
 }
 
-std::string Input::ProcessDroppedFile(const std::string sourcePath) {
+void Input::ProcessDroppedFile(const std::string sourcePath) {
 
-	string assetsPath = "../Assets/";
-	
-	
-
-	if (!std::filesystem::exists(assetsPath)) {
-		if (!std::filesystem::create_directory(assetsPath)) {
-			std::runtime_error("Failed to create new directory");
-		}
-	}
 
 	//find last dot of directory to get file extension (.fbx, .obj, .png, .jpg, etc)
 
+	//handle model files
 	string fileExtension = sourcePath.substr(sourcePath.find_last_of(".") + 1);
-	if (fileExtension == "fbx" || fileExtension == "FBX") {
+	if (fileExtension == "fbx" || fileExtension == "FBX" || fileExtension == "obj") {
+		importedModel = new Model(droppedFileDir);
+		Application::GetInstance().render.get()->AddModel(droppedFileDir);
+	}
 
-	}
-	else if (fileExtension == "obj") {
+	//handle image files
+	else if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "tga") {
+		//detect if mouse is over a mesh and which one
 		
+		//if it is, change current material's texture for the dropped texture
 	}
-	
+
 	//try {
 	//	std::filesystem::copy(sourcePath, destPath);
 	//}
-	return assetsPath;
+	
 	
 }
 
@@ -199,11 +194,47 @@ bool Input::GetWindowEvent(EventWindow ev)
 	return windowEvents[ev];
 }
 
-//Vector2D Input::GetMousePosition()
-//{
-//	return Vector2D(mouseX, mouseY);
-//}
-//
-//Vector2D Input::GetMouseMotion()
-//{
-//	return Vector2D(mouseMotionX, mouseMotionY);
+glm::vec3 Input::MouseRay(int mouseX, int mouseY, const glm::mat4& projection, const glm::mat4& view) {
+
+	int windowW, windowH;
+	Application::GetInstance().window.get()->GetSize(windowW,windowH);
+
+	float normalizedX = (2.0f * mouseX) / windowW - 1.0f;
+	float normalizedY = 1.0f - (2.0f * mouseY) / windowH; 
+	//y in 2D is greater the further down you go, but in 3D, it's the other way around! flip it by 1-(normalized2Dy)
+
+	glm::vec4 clipCoords = glm::vec4(normalizedX, normalizedY, -1.0f, 1.0f);  
+	// -1.0 = nearPlane in normalized depth space | w = 1.0 --> homogeneous coord
+
+	/*
+	mouse coords are in screen space, but we want a ray in world space (that starts at camera and goes into the scene)
+	we need to convert (mouseX, mouseY) multiplying by (inverse) projection matrix, and then (inverse) view matrix
+	*/
+
+	glm::vec4 viewCoords = glm::inverse(projection) * clipCoords; //screen space --> cam (local) space
+	viewCoords = glm::vec4(viewCoords.x, viewCoords.y, -1.0f, 0.0f);
+	// z = -1 --> forward dir | w = 0 --> applies no translation
+	// just keeps it as a direction (we just need to rotate, otherwise the direction vector will get offseted)
+	 
+	glm::vec4 worldCoords = glm::inverse(view) * viewCoords;  //cam (local) space --> world space
+	
+	glm::vec3 rayDirection = glm::normalize(glm::vec3(worldCoords)); 
+	//normalize vector (we don't care about its lenght, just direction)
+	
+
+	return rayDirection;
+
+
+
+}
+
+
+pair<float, float> Input::GetMousePosition()
+{
+	return pair<float, float>(mouseX, mouseY);
+}
+
+pair<float, float> Input::GetMouseMotion()
+{
+	return pair<float, float>(mouseMotionX, mouseMotionY);
+}

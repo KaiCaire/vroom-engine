@@ -58,14 +58,16 @@ public:
 		return mouseButtons[id - 1];
 	}
 
-	std::string ProcessDroppedFile(const std::string sourcePath);
+	void ProcessDroppedFile(const std::string sourcePath);
+
+	glm::vec3 MouseRay(int mouseX, int mouseY, const glm::mat4& projection, const glm::mat4& view);
 
 	// Check if a certain window event happened
 	bool GetWindowEvent(EventWindow ev);
 
 	// Get mouse / axis position
-	//Vector2D GetMousePosition();
-	//Vector2D GetMouseMotion();
+	std::pair<float, float> GetMousePosition();
+	std::pair<float, float> GetMouseMotion();
 	Model* importedModel;
 
 private:
@@ -83,8 +85,5 @@ private:
 	int windowID;
 	const char* droppedFileDir;
 	
-
-
-
 
 };
