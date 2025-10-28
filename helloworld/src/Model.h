@@ -10,8 +10,9 @@ using namespace std;
 class Model
 {
 public:
-    Model(char* path)
+    Model(const char* path)
     {
+        
         loadModel(path);
     }
 
@@ -23,7 +24,7 @@ public:
     vector<Mesh> meshes;
     std::string directory;
 
-    
+    std::string fullPath;
 
     void loadModel(string path);
     void processNode(aiNode* node, const aiScene* scene);

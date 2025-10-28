@@ -1,7 +1,9 @@
 #pragma once
 #include "Module.h"
+#include "Model.h"
 #include "SDL3/SDL.h"
 #include "FileSystem.h"
+#include <vector>
 //#include "Mesh.h"
 
 
@@ -38,6 +40,8 @@ public:
 	bool DrawLine(int x1, int y1, int x2, int y2, Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255, bool useCamera = true) const;
 	bool DrawCircle(int x1, int y1, int redius, Uint8 r, Uint8 g, Uint8 b, Uint8 a = 255, bool useCamera = true) const;
 
+
+	void AddModel(Model model);
 	bool DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) const;
 
 
@@ -51,7 +55,10 @@ public:
 	SDL_Rect camera;
 	SDL_Rect viewport;
 	SDL_Color background;
+	vector<Model> modelsToDraw;
+	
 
 private:
 	bool vsync = false;
+	
 };

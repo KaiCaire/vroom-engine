@@ -38,7 +38,7 @@ bool OpenGL::Start() {
 		return false;
 	}
 
-	stbi_set_flip_vertically_on_load(true);
+	/*stbi_set_flip_vertically_on_load(true);*/
 
 
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
@@ -50,16 +50,12 @@ bool OpenGL::Start() {
 	/*If you declare a uniform that isn't used anywhere in your GLSL code
 	the compiler will silently remove the variable from the compiled version
 	is the cause for several frustrating errors; keep this in mind!*/
-
-
-
-
-
 	//3D transformation matrices  --> Vclip = Mprojection⋅Mview⋅Mmodel⋅Vlocal
 
 	modelMat = glm::mat4(1.0f);
-	modelMat = glm::rotate(modelMat, glm::radians(45.0f), glm::vec3(0.5f, 0.5f, 0.25f)); //transforms vertex coordinates into world coordinates.
+	modelMat = glm::rotate(modelMat, glm::radians(45.0f), glm::vec3(0.0f, -1.0f, 0.0f)); //transforms vertex coordinates into world coordinates.
 	//^rotates on the x axis so it looks like laying on the floor
+	/*modelMat = glm::scale(modelMat, glm::vec3(0.05, 0.05, 0.05));*/
 
 	texCoordsShader->Use();
 	uint modelMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "model");
@@ -67,7 +63,8 @@ bool OpenGL::Start() {
 
 	viewMat = glm::mat4(1.0f);
 	// translate scene in the reverse direction of moving direction
-	viewMat = glm::translate(viewMat, glm::vec3(0.2f, 0.0f, -8.0f));
+	viewMat = glm::translate(viewMat, glm::vec3(0.0f, -2.0f, -15.0f));
+	
 	//OpenGL = righthanded system --> move cam in  positive z-axis (= translate scene towards negative z-axis)
 	texCoordsShader->Use();
 	uint viewMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "view");
@@ -92,8 +89,13 @@ bool OpenGL::Start() {
 	//// or set it via the texture class
 	//texCoordsShader->setInt("tex2", 1);
 
+	std::string modelPath = "../Assets/Models/BakerHouse/BakerHouse.fbx"; 
+	
 
-	ourModel = new Model("../Assets/Models/Survival_BackPack/backpack.obj");
+	ourModel = new Model(modelPath.c_str());
+
+	Application::GetInstance().render.get()->AddModel(*ourModel);
+	
 
 	cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -111,7 +113,7 @@ bool OpenGL::Update(float dt) {
 	glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	/*glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
+	
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
 
@@ -192,8 +194,10 @@ bool OpenGL::Update(float dt) {
 	texCoordsShader->setMat4("projection", projectionMat);
 
 
-
-	ourModel->Draw(*texCoordsShader);
+	
+	for (int i = 0; i < Application::GetInstance().render.get()->modelsToDraw.size(); i++) {
+		Application::GetInstance().render.get()->modelsToDraw[i].Draw(*texCoordsShader);
+	}
 
 
 	return true;
