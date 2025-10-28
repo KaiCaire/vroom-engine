@@ -21,8 +21,12 @@ class Component {
 public:
 	explicit Component(GameObject* owner) : owner(owner) {}
 	virtual ~Component() = default;
+
+	virtual void Udpdate() {
+		
+	}
+
 };
 
-template <typename T>
-concept IsComponent = std::is_base_of_v<Component, T>;
+
 
