@@ -130,8 +130,8 @@ bool OpenGL::Update(float dt) {
 	if (Application::GetInstance().input.get()->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_DOWN) {
 		if (firstMouse)
 		{
-			lastX = xpos;
-			lastY = ypos;
+			lastX = event.motion.x;
+			lastY = event.motion.y;
 			firstMouse = false;
 		}
 

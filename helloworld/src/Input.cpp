@@ -2,6 +2,8 @@
 #include "Input.h"
 #include "Window.h"
 #include "Log.h"
+#include "SDL3/SDL.h"
+#include <vector>
 
 
 
@@ -144,11 +146,11 @@ bool Input::GetWindowEvent(EventWindow ev)
 	return windowEvents[ev];
 }
 
-//Vector2D Input::GetMousePosition()
-//{
-//	return Vector2D(mouseX, mouseY);
-//}
-//
-//Vector2D Input::GetMouseMotion()
-//{
-//	return Vector2D(mouseMotionX, mouseMotionY);
+Vector2D Input::GetMousePosition()
+{
+	return Vector2D(mouseX, mouseY);
+}
+
+/*Vector2D Input::GetMouseMotion()
+{
+	return Vector2D(mouseMotionX, mouseMotionY);*/
