@@ -7,6 +7,7 @@
 #include "Textures.h"
 #include "stb_image.h"
 #include "Model.h"
+#include "Input.h"
 
 OpenGL::OpenGL() : Module()
 {
@@ -21,7 +22,7 @@ OpenGL::OpenGL() : Module()
 // Destructor
 OpenGL::~OpenGL()
 {
-	
+
 }
 
 bool OpenGL::Start() {
@@ -44,18 +45,18 @@ bool OpenGL::Start() {
 
 	std::cout << "OpenGL initialized successfully" << std::endl;
 
-	
 
-	/*If you declare a uniform that isn't used anywhere in your GLSL code 
-	the compiler will silently remove the variable from the compiled version 
+
+	/*If you declare a uniform that isn't used anywhere in your GLSL code
+	the compiler will silently remove the variable from the compiled version
 	is the cause for several frustrating errors; keep this in mind!*/
-	
 
-	
 
-	
+
+
+
 	//3D transformation matrices  --> Vclip = Mprojection⋅Mview⋅Mmodel⋅Vlocal
-	 
+
 	modelMat = glm::mat4(1.0f);
 	modelMat = glm::rotate(modelMat, glm::radians(45.0f), glm::vec3(0.5f, 0.5f, 0.25f)); //transforms vertex coordinates into world coordinates.
 	//^rotates on the x axis so it looks like laying on the floor
@@ -63,7 +64,7 @@ bool OpenGL::Start() {
 	texCoordsShader->Use();
 	uint modelMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "model");
 	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(modelMat));
-	
+
 	viewMat = glm::mat4(1.0f);
 	// translate scene in the reverse direction of moving direction
 	viewMat = glm::translate(viewMat, glm::vec3(0.2f, 0.0f, -8.0f));
@@ -72,7 +73,7 @@ bool OpenGL::Start() {
 	uint viewMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "view");
 	glUniformMatrix4fv(viewMatLoc, 1, GL_FALSE, glm::value_ptr(viewMat));
 
-	
+
 	//projection mat = perspective (FOV, aspectRatio, nearPlane, farPlane)
 	int windowW, windowH;
 	Application::GetInstance().window.get()->GetSize(windowW, windowH);
@@ -93,7 +94,12 @@ bool OpenGL::Start() {
 
 
 	ourModel = new Model("../Assets/Models/Survival_BackPack/backpack.obj");
-	
+
+	cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+	cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+	cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+	viewMat = glm::mat4(1.0f);
+
 
 	return true;
 }
@@ -108,18 +114,90 @@ bool OpenGL::Update(float dt) {
 	/*glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
+
+
+	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT)
+		cameraSpeed = 0.10f;
+	else
+		cameraSpeed = 0.05f;
+
+
+	xpos = Application::GetInstance().input.get()->GetMousePosition().x;
+	ypos = Application::GetInstance().input.get()->GetMousePosition().y;
+
+	if (Application::GetInstance().input.get()->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KEY_REPEAT) {
+		if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_W) == KEY_REPEAT)
+			cameraPos += cameraSpeed * cameraFront;
+		if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_D) == KEY_REPEAT)
+			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_S) == KEY_REPEAT)
+			cameraPos -= cameraSpeed * cameraFront;
+		if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_A) == KEY_REPEAT)
+			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		if (firstMouse)
+		{
+			lastX = Application::GetInstance().input.get()->GetMousePosition().x;
+			lastY = Application::GetInstance().input.get()->GetMousePosition().y;
+			firstMouse = false;
+		}
+
+		float xoffset = xpos - lastX;
+		float yoffset = lastY - ypos;
+		lastX = xpos;
+		lastY = ypos;
+
+		float sensitivity = 0.1f;
+		xoffset *= sensitivity;
+		yoffset *= sensitivity;
+
+		yaw += xoffset;
+		pitch += yoffset;
+
+		if (pitch > 89.0f)
+			pitch = 89.0f;
+		if (pitch < -89.0f)
+			pitch = -89.0f;
+
+		glm::vec3 direction;
+		direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+		direction.y = sin(glm::radians(pitch));
+		direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+		cameraFront = glm::normalize(direction);
+	}
+
+	if (!firstMouse && Application::GetInstance().input.get()->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP) {
+		firstMouse = true;
+	}
+
+	int scrollDelta = Application::GetInstance().input.get()->GetMouseWheelDeltaY();
+
+	if (scrollDelta != 0)
+	{
+		float zoomSpeed = 2.0f;
+
+		fov -= (float)scrollDelta * zoomSpeed;
+
+		if (fov < 1.0f) fov = 1.0f;
+		if (fov > 90.0f) fov = 90.0f;
+	}
+	projectionMat = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+	Application::GetInstance().input.get()->SetMouseWheelDeltaY(0);
+
+
+	viewMat = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
 	texCoordsShader->Use();
 	texCoordsShader->setMat4("model", modelMat);
 	texCoordsShader->setMat4("view", viewMat);
 	texCoordsShader->setMat4("projection", projectionMat);
 
-	
+
 
 	ourModel->Draw(*texCoordsShader);
 
 
 	return true;
-	
+
 }
 
 

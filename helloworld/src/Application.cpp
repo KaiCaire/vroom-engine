@@ -8,6 +8,7 @@
 #include "OpenGL.h"
 #include "FileSystem.h"
 #include "Textures.h"
+#include "Camera.h"
 
 
 
@@ -23,12 +24,14 @@ Application::Application() {
     openGL = std::make_shared<OpenGL>();
     fileSystem = std::make_shared<FileSystem>();
     textures = std::make_shared<Texture>();
+    camera = std::make_shared<Camera>();
 
     // Ordered for awake / Start / Update
     // Reverse order of CleanUp
     AddModule(std::static_pointer_cast<Module>(window));
     AddModule(std::static_pointer_cast<Module>(input));
     AddModule(std::static_pointer_cast<Module>(textures));
+    AddModule(std::static_pointer_cast<Module>(camera));
 
 
     // Render last 
