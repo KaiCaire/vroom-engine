@@ -4,6 +4,7 @@
 #include "FileSystem.h"
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "Mesh.h"
 #include "assimp/importer.hpp"
 #include "stb_image.h"
@@ -24,6 +25,8 @@ void Model::loadModel(string path) {
         cout << "ERROR::ASSIMP::" << import.GetErrorString() << endl;
         return;
     }
+
+    fullPath = path;
     directory = path.substr(0, path.find_last_of('/'));
 
     processNode(scene->mRootNode, scene);
@@ -148,14 +151,17 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
             }
         }
         if (!skip)
-        {   // if texture hasn't been loaded already, load it
+            // if texture hasn't been loaded already, load it
+        {
             Texture texture;
-            texture.TextureFromFile(directory, str.C_Str());
+            
+            texture.TextureFromFile(fullPath, str.C_Str());
             texture.mapType = typeName;
             texture.path = str.C_Str();
             textures.push_back(texture);
             textures_loaded.push_back(texture); // add to loaded textures
         }
+        
     }
     return textures;
 }

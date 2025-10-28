@@ -4,6 +4,8 @@
 #include "SDL3/SDL.h"
 
 
+
+
 #define MAX_KEYS 300
 #define NUM_MOUSE_BUTTONS 5
 
@@ -56,12 +58,15 @@ public:
 		return mouseButtons[id - 1];
 	}
 
+	std::string ProcessDroppedFile(const std::string sourcePath);
+
 	// Check if a certain window event happened
 	bool GetWindowEvent(EventWindow ev);
 
 	// Get mouse / axis position
 	//Vector2D GetMousePosition();
 	//Vector2D GetMouseMotion();
+	Model* importedModel;
 
 private:
 	bool windowEvents[WE_COUNT];
@@ -73,4 +78,13 @@ private:
 	int mouseMotionY;
 	int mouseX;
 	int mouseY;
+
+
+	int windowID;
+	const char* droppedFileDir;
+	
+
+
+
+
 };

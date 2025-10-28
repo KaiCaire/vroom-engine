@@ -3,6 +3,7 @@
 #include "Render.h"
 #include "Log.h"
 #include <string>
+#include <algorithm>
 #include <iostream>
 #include "FileSystem.h"
 
@@ -53,7 +54,15 @@ bool Texture::CleanUp()
 uint Texture::TextureFromFile(const string directory, const char* filename) {
 
     
-    std::string filePath = directory + '/' + filename;
+
+   
+
+    std::string editedDirectory = directory;
+
+    std::replace(editedDirectory.begin(), editedDirectory.end(), '\\', '/');
+    editedDirectory = directory.substr(0, directory.find_last_of("/") + 1);
+    
+    std::string filePath = editedDirectory + '/' + filename;
 
     /*unsigned int textureID;*/
     glGenTextures(1, &id);

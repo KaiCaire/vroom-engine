@@ -4,6 +4,15 @@
 #include "Log.h"
 
 
+#include <string>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include "Model.h"
+#include "Render.h"
+
+using namespace std;
+
 
 Input::Input() : Module()
 {
@@ -13,6 +22,7 @@ Input::Input() : Module()
 	numkeys = new int[MAX_KEYS];
 	memset(keyboard, KEY_IDLE, sizeof(KeyState) * MAX_KEYS);
 	memset(mouseButtons, KEY_IDLE, sizeof(KeyState) * NUM_MOUSE_BUTTONS);
+	
 	
 }
 
@@ -91,23 +101,23 @@ bool Input::PreUpdate()
 			windowEvents[WE_QUIT] = true;
 			break;
 
-		
-		/*case SDL_WINDOWEVENT_LEAVE:*/
+
+			/*case SDL_WINDOWEVENT_LEAVE:*/
 		case SDL_EVENT_WINDOW_HIDDEN:
 		case SDL_EVENT_WINDOW_MINIMIZED:
 		case SDL_EVENT_WINDOW_FOCUS_LOST:
 			windowEvents[WE_HIDE] = true;
 			break;
 
-		//case SDL_WINDOWEVENT_ENTER:
+			//case SDL_WINDOWEVENT_ENTER:
 		case SDL_EVENT_WINDOW_SHOWN:
 		case SDL_EVENT_WINDOW_FOCUS_GAINED:
 		case SDL_EVENT_WINDOW_MAXIMIZED:
 		case SDL_EVENT_WINDOW_RESTORED:
 			windowEvents[WE_SHOW] = true;
 			break;
-			
-			
+
+
 
 		case SDL_EVENT_MOUSE_BUTTON_DOWN:
 			mouseButtons[event.button.button - 1] = KEY_DOWN;
@@ -117,6 +127,21 @@ bool Input::PreUpdate()
 			mouseButtons[event.button.button - 1] = KEY_UP;
 			break;
 
+		case SDL_EVENT_DROP_FILE:
+			/*windowID = Application::GetInstance().window.get()->GetWindowID();*/
+			droppedFileDir = event.drop.data;
+			
+			LOG("Dropped File Directory = %s", droppedFileDir);
+
+			//TODO: 
+			importedModel = new Model(droppedFileDir);
+			Application::GetInstance().render.get()->AddModel(droppedFileDir);
+			
+			//not needed in SDL3, the new allocated memory created  gets freed automatically
+			/*SDL_free(&droppedFileDir);*/
+			break;
+
+
 		case SDL_EVENT_MOUSE_MOTION:
 			int scale = Application::GetInstance().window.get()->GetScale();
 			mouseMotionX = event.motion.xrel / scale;
@@ -124,6 +149,8 @@ bool Input::PreUpdate()
 			mouseX = event.motion.x / scale;
 			mouseY = event.motion.y / scale;
 			break;
+
+
 		}
 	}
 
@@ -138,6 +165,34 @@ bool Input::CleanUp()
 	return true;
 }
 
+std::string Input::ProcessDroppedFile(const std::string sourcePath) {
+
+	string assetsPath = "../Assets/";
+	
+	
+
+	if (!std::filesystem::exists(assetsPath)) {
+		if (!std::filesystem::create_directory(assetsPath)) {
+			std::runtime_error("Failed to create new directory");
+		}
+	}
+
+	//find last dot of directory to get file extension (.fbx, .obj, .png, .jpg, etc)
+
+	string fileExtension = sourcePath.substr(sourcePath.find_last_of(".") + 1);
+	if (fileExtension == "fbx" || fileExtension == "FBX") {
+
+	}
+	else if (fileExtension == "obj") {
+		
+	}
+	
+	//try {
+	//	std::filesystem::copy(sourcePath, destPath);
+	//}
+	return assetsPath;
+	
+}
 
 bool Input::GetWindowEvent(EventWindow ev)
 {
