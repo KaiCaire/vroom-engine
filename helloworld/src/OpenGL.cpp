@@ -64,7 +64,7 @@ bool OpenGL::Start() {
 	
 	viewMat = glm::mat4(1.0f);
 	// translate scene in the reverse direction of moving direction
-	viewMat = glm::translate(viewMat, glm::vec3(0.0f, -2.0f, -8.0f));
+	viewMat = glm::translate(viewMat, glm::vec3(0.0f, -2.0f, -15.0f));
 	
 	//OpenGL = righthanded system --> move cam in  positive z-axis (= translate scene towards negative z-axis)
 	texCoordsShader->Use();
@@ -95,6 +95,8 @@ bool OpenGL::Start() {
 	
 
 	ourModel = new Model(modelPath.c_str());
+
+	Application::GetInstance().render.get()->AddModel(*ourModel);
 	
 
 
@@ -122,7 +124,7 @@ bool OpenGL::Update(float dt) {
 	
 	/*Application::GetInstance().render.get()->DrawMesh();*/
 
-	ourModel->Draw(*texCoordsShader);
+	
 	for (int i = 0; i < Application::GetInstance().render.get()->modelsToDraw.size(); i++) {
 		Application::GetInstance().render.get()->modelsToDraw[i].Draw(*texCoordsShader);
 	}

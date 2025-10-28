@@ -12,6 +12,7 @@ class Model
 public:
     Model(const char* path)
     {
+        
         loadModel(path);
     }
 

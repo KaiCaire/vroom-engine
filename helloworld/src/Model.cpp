@@ -27,7 +27,15 @@ void Model::loadModel(string path) {
     }
 
     fullPath = path;
-    directory = path.substr(0, path.find_last_of('/'));
+
+    string fileExtension = fullPath.substr(fullPath.find_last_of(".") + 1);
+
+    if (fileExtension == "obj") 
+        stbi_set_flip_vertically_on_load(true);
+    else if (fileExtension == "fbx" || fileExtension  == "FBX") 
+        stbi_set_flip_vertically_on_load(false);
+
+    directory = fullPath.substr(0, fullPath.find_last_of('/'));
 
     processNode(scene->mRootNode, scene);
 
@@ -143,7 +151,8 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
         bool skip = false;
         for (unsigned int j = 0; j < textures_loaded.size(); j++)
         {
-            if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
+
+            if (std::strcmp(textures_loaded[j].path.data(), fullPath.c_str()) == 0)
             {
                 textures.push_back(textures_loaded[j]);
                 skip = true;
@@ -157,7 +166,7 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
             
             texture.TextureFromFile(fullPath, str.C_Str());
             texture.mapType = typeName;
-            texture.path = str.C_Str();
+            texture.path = fullPath;
             textures.push_back(texture);
             textures_loaded.push_back(texture); // add to loaded textures
         }

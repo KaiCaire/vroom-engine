@@ -133,7 +133,7 @@ bool Input::PreUpdate()
 			
 			LOG("Dropped File Directory = %s", droppedFileDir);
 
-			//TODO: 
+			
 			importedModel = new Model(droppedFileDir);
 			Application::GetInstance().render.get()->AddModel(droppedFileDir);
 			

@@ -53,14 +53,10 @@ bool Texture::CleanUp()
 
 uint Texture::TextureFromFile(const string directory, const char* filename) {
 
-    
-
-   
-
     std::string editedDirectory = directory;
 
     std::replace(editedDirectory.begin(), editedDirectory.end(), '\\', '/');
-    editedDirectory = directory.substr(0, directory.find_last_of("/") + 1);
+    editedDirectory = editedDirectory.substr(0, editedDirectory.find_last_of("/") + 1);
     
     std::string filePath = editedDirectory + '/' + filename;
 
