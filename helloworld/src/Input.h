@@ -60,8 +60,12 @@ public:
 	bool GetWindowEvent(EventWindow ev);
 
 	// Get mouse / axis position
-	Vector2D GetMousePosition();
+	SDL_FPoint GetMousePosition();
 	//Vector2D GetMouseMotion();
+
+	int GetMouseWheelDeltaY() const { return mouseWheelY; }
+
+	void SetMouseWheelDeltaY(int mouse) { mouseWheelY = mouse; }
 
 private:
 	bool windowEvents[WE_COUNT];
@@ -73,4 +77,5 @@ private:
 	int mouseMotionY;
 	int mouseX;
 	int mouseY;
+	int mouseWheelY;
 };

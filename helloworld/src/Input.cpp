@@ -15,7 +15,7 @@ Input::Input() : Module()
 	numkeys = new int[MAX_KEYS];
 	memset(keyboard, KEY_IDLE, sizeof(KeyState) * MAX_KEYS);
 	memset(mouseButtons, KEY_IDLE, sizeof(KeyState) * NUM_MOUSE_BUTTONS);
-	
+
 }
 
 
@@ -93,23 +93,23 @@ bool Input::PreUpdate()
 			windowEvents[WE_QUIT] = true;
 			break;
 
-		
-		/*case SDL_WINDOWEVENT_LEAVE:*/
+
+			/*case SDL_WINDOWEVENT_LEAVE:*/
 		case SDL_EVENT_WINDOW_HIDDEN:
 		case SDL_EVENT_WINDOW_MINIMIZED:
 		case SDL_EVENT_WINDOW_FOCUS_LOST:
 			windowEvents[WE_HIDE] = true;
 			break;
 
-		//case SDL_WINDOWEVENT_ENTER:
+			//case SDL_WINDOWEVENT_ENTER:
 		case SDL_EVENT_WINDOW_SHOWN:
 		case SDL_EVENT_WINDOW_FOCUS_GAINED:
 		case SDL_EVENT_WINDOW_MAXIMIZED:
 		case SDL_EVENT_WINDOW_RESTORED:
 			windowEvents[WE_SHOW] = true;
 			break;
-			
-			
+
+
 
 		case SDL_EVENT_MOUSE_BUTTON_DOWN:
 			mouseButtons[event.button.button - 1] = KEY_DOWN;
@@ -118,7 +118,9 @@ bool Input::PreUpdate()
 		case SDL_EVENT_MOUSE_BUTTON_UP:
 			mouseButtons[event.button.button - 1] = KEY_UP;
 			break;
-
+		case SDL_EVENT_MOUSE_WHEEL:
+			mouseWheelY = event.wheel.y;
+			break;
 		case SDL_EVENT_MOUSE_MOTION:
 			int scale = Application::GetInstance().window.get()->GetScale();
 			mouseMotionX = event.motion.xrel / scale;
@@ -146,9 +148,10 @@ bool Input::GetWindowEvent(EventWindow ev)
 	return windowEvents[ev];
 }
 
-Vector2D Input::GetMousePosition()
+
+SDL_FPoint Input::GetMousePosition()
 {
-	return Vector2D(mouseX, mouseY);
+	return { (float)mouseX, (float)mouseY };
 }
 
 /*Vector2D Input::GetMouseMotion()

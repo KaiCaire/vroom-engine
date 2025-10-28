@@ -116,22 +116,28 @@ bool OpenGL::Update(float dt) {
 
 
 
-	const float cameraSpeed = 0.05f; // adjust accordingly
-	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_W) == KEY_REPEAT)
-		cameraPos += cameraSpeed * cameraFront;
-	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_D) == KEY_REPEAT)
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_S) == KEY_REPEAT)
-		cameraPos -= cameraSpeed * cameraFront;
-	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_A) == KEY_REPEAT)
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT)
+		cameraSpeed = 0.10f;
+	else
+		cameraSpeed = 0.05f;
 
 
-	if (Application::GetInstance().input.get()->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_DOWN) {
+	xpos = Application::GetInstance().input.get()->GetMousePosition().x;
+	ypos = Application::GetInstance().input.get()->GetMousePosition().y;
+
+	if (Application::GetInstance().input.get()->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KEY_REPEAT) {
+		if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_W) == KEY_REPEAT)
+			cameraPos += cameraSpeed * cameraFront;
+		if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_D) == KEY_REPEAT)
+			cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_S) == KEY_REPEAT)
+			cameraPos -= cameraSpeed * cameraFront;
+		if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_A) == KEY_REPEAT)
+			cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 		if (firstMouse)
 		{
-			lastX = event.motion.x;
-			lastY = event.motion.y;
+			lastX = Application::GetInstance().input.get()->GetMousePosition().x;
+			lastY = Application::GetInstance().input.get()->GetMousePosition().y;
 			firstMouse = false;
 		}
 
@@ -162,6 +168,20 @@ bool OpenGL::Update(float dt) {
 	if (!firstMouse && Application::GetInstance().input.get()->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_UP) {
 		firstMouse = true;
 	}
+
+	int scrollDelta = Application::GetInstance().input.get()->GetMouseWheelDeltaY();
+
+	if (scrollDelta != 0)
+	{
+		float zoomSpeed = 2.0f;
+
+		fov -= (float)scrollDelta * zoomSpeed;
+
+		if (fov < 1.0f) fov = 1.0f;
+		if (fov > 90.0f) fov = 90.0f;
+	}
+	projectionMat = glm::perspective(glm::radians(fov), 800.0f / 600.0f, 0.1f, 100.0f);
+	Application::GetInstance().input.get()->SetMouseWheelDeltaY(0);
 
 
 	viewMat = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
