@@ -11,6 +11,7 @@
 
 class GUIManager : public Module 
 {
+public:
 	GUIManager();
 
 	//Destructor
@@ -27,7 +28,12 @@ class GUIManager : public Module
 	bool Update(float dt);
 	bool PostUpdate();
 
+	//Within update process events
+	void ProcessEvents(SDL_Event event);
+
 	//Called before quit
 	bool CleanUp();
+private:
+	ImGuiIO* io = nullptr;
 
 };
