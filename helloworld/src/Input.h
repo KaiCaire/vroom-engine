@@ -66,9 +66,14 @@ public:
 	bool GetWindowEvent(EventWindow ev);
 
 	// Get mouse / axis position
-	std::pair<float, float> GetMousePosition();
-	std::pair<float, float> GetMouseMotion();
+	SDL_FPoint GetMousePosition();
+	SDL_FPoint GetMouseMotion();
 	Model* importedModel;
+
+
+	int GetMouseWheelDeltaY() const { return mouseWheelY; }
+
+	void SetMouseWheelDeltaY(int mouse) { mouseWheelY = mouse; }
 
 private:
 	bool windowEvents[WE_COUNT];
@@ -80,9 +85,8 @@ private:
 	int mouseMotionY;
 	int mouseX;
 	int mouseY;
+  int mouseWheelY;
 
-
-	int windowID;
 	const char* droppedFileDir;
 	
 

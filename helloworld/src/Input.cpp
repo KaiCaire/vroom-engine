@@ -2,12 +2,17 @@
 #include "Input.h"
 #include "Window.h"
 #include "Log.h"
+
 #include <string>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include "Model.h"
 #include "Render.h"
+=======
+#include "SDL3/SDL.h"
+#include <vector>
+
 
 using namespace std;
 
@@ -20,8 +25,7 @@ Input::Input() : Module()
 	numkeys = new int[MAX_KEYS];
 	memset(keyboard, KEY_IDLE, sizeof(KeyState) * MAX_KEYS);
 	memset(mouseButtons, KEY_IDLE, sizeof(KeyState) * NUM_MOUSE_BUTTONS);
-	
-	
+
 }
 
 
@@ -125,6 +129,7 @@ bool Input::PreUpdate()
 			mouseButtons[event.button.button - 1] = KEY_UP;
 			break;
 
+
 		case SDL_EVENT_DROP_FILE:
 			/*windowID = Application::GetInstance().window.get()->GetWindowID();*/
 			droppedFileDir = event.drop.data;
@@ -139,6 +144,9 @@ bool Input::PreUpdate()
 			/*SDL_free(&droppedFileDir);*/
 			break;
 
+		case SDL_EVENT_MOUSE_WHEEL:
+			mouseWheelY = event.wheel.y;
+			break;
 
 		case SDL_EVENT_MOUSE_MOTION:
 			int scale = Application::GetInstance().window.get()->GetScale();
@@ -194,6 +202,7 @@ bool Input::GetWindowEvent(EventWindow ev)
 	return windowEvents[ev];
 }
 
+
 glm::vec3 Input::MouseRay(int mouseX, int mouseY, const glm::mat4& projection, const glm::mat4& view) {
 
 	int windowW, windowH;
@@ -229,12 +238,13 @@ glm::vec3 Input::MouseRay(int mouseX, int mouseY, const glm::mat4& projection, c
 }
 
 
-pair<float, float> Input::GetMousePosition()
+SDL_FPoint Input::GetMousePosition()
 {
-	return pair<float, float>(mouseX, mouseY);
+	return { (float)mouseX, (float)mouseY };
 }
 
-pair<float, float> Input::GetMouseMotion()
+SDL_FPoint <float, float> Input::GetMouseMotion()
 {
-	return pair<float, float>(mouseMotionX, mouseMotionY);
+	return {(float)(mouseMotionX, (float)mouseMotionY)};
 }
+
