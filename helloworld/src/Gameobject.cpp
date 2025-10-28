@@ -1,4 +1,9 @@
 #include "GameObject.h"
+#include "TransformComponent.h"
+#include "RenderMeshComponent.h"
+#include "MaterialComponent.h"
+#include <algorithm>
+
 
 void GameObject::Update()
 {
