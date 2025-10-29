@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _COMPONENT_H_
+#define _COMPONENT_H_
 
 #include <string>
 #include <memory>
@@ -10,26 +11,27 @@ class GameObject;
 enum class ComponentType {
 	NONE,
 	TRANSFORM,
-	MESH_REDERER,
+	MESH_RENDERER,
 	MATERIAL
 
 };
 
 class Component {
 public:
-	
-	Component(GameObject* owner, ComponentType type)
-		: owner(owner), type(type), active(true) {
-	}
+
 	virtual ~Component() = default;
 
-	virtual void Udpdate() {}
+	virtual void Update() {}
 	virtual void Enable() {}
 	virtual void Disable() {}
+
+	virtual void OnEditor() {}
 
 	ComponentType GetType() const { return type; }
 	bool IsActive() const { return active; }
 	GameObject* GetOwner() const { return owner; }
+
+	void SetActive(bool isActive);
 
 protected:
 	GameObject* owner;
@@ -40,4 +42,5 @@ protected:
 };
 
 
+#endif // !_COMPONENT_H_
 

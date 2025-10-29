@@ -10,13 +10,10 @@ GameObject::GameObject(const std::string& name)
 }
 
 GameObject::~GameObject() {
-    // Delete all components
-    for (Component* component : Components) {
-        delete component;
-    }
-    Components.clear();
+    
+    Components.clear(); 
 
-    // Clear all children (they should be managed elsewhere)
+    // Clear all children
     for (GameObject* child : children) {
         if (child) {
             child->parent = nullptr;
@@ -26,7 +23,7 @@ GameObject::~GameObject() {
 
 void GameObject::Update() {
     for (int i = 0; i < Components.size(); i++) {
-        Component* comp = Components[i];
+        Component* comp = Components[i].get();
         if (comp->IsActive())
             comp->Update();
     }
@@ -39,14 +36,14 @@ Component* GameObject::AddComponent(ComponentType type) {
     Component* newComponent = nullptr;
 
     switch (type) {
-    case ComponentType::TRANSFORM: 
-        newComponent = new TransformComponent(this);
+    case ComponentType::TRANSFORM:
+        newComponent = static_cast<Component*>(new TransformComponent(this));
         break;
-    case ComponentType::MESH_REDERER:
-        newComponent = new RenderMeshComponent(this);
+    case ComponentType::MESH_RENDERER:
+        newComponent = static_cast<Component*>(new RenderMeshComponent(this));
         break;
     case ComponentType::MATERIAL:
-        newComponent = new MaterialComponent(this);
+        newComponent = static_cast<Component*>(new MaterialComponent(this));
         break;
     default:
         return nullptr;
@@ -61,17 +58,69 @@ Component* GameObject::AddComponent(ComponentType type) {
 }
 
 Component* GameObject::GetComponent(ComponentType type) {
-    for (auto& comp : Components)
-        if (comp->GetType() == type)
+    for (auto& comp : Components) {
+        if (comp && comp->GetType() == type) {
             return comp.get();
+        }
+    }
     return nullptr;
 }
 
 void GameObject::RemoveComponent(ComponentType type) {
-    Components.erase(std::remove_if(Components.begin(), Components.end(),
-        [type](const std::unique_ptr<Component>& comp) {
-            return comp->GetType() == type;
-        }),
-        Components.end());
+    for (auto it = Components.begin(); it != Components.end(); ++it) {
+        if ((*it)->GetType() == type) {
+            Components.erase(it);  // unique_ptr se encarga de borrar
+            return;
+        }
+    }
 }
 
+
+
+void GameObject::SetActive(bool isActive) {
+    if (active == isActive) return;
+
+    active = isActive;
+
+    // Propagate to children
+    for (GameObject* child : children) {
+        if (child) {
+            child->SetActive(isActive);
+        }
+    }
+}
+
+void GameObject::SetParent(GameObject* newParent) {
+    // Remove from current parent
+    if (parent) {
+        parent->RemoveChild(this);
+    }
+
+    parent = newParent;
+
+    // Add to new parent
+    if (parent) {
+        parent->AddChild(this);
+    }
+}
+
+void GameObject::AddChild(GameObject* child) {
+    if (!child) return;
+
+    // Check if already a child
+    auto it = std::find(children.begin(), children.end(), child);
+    if (it != children.end()) return;
+
+    children.push_back(child);
+    child->parent = this;
+}
+
+void GameObject::RemoveChild(GameObject* child) {
+    if (!child) return;
+
+    auto it = std::find(children.begin(), children.end(), child);
+    if (it != children.end()) {
+        (*it)->parent = nullptr;
+        children.erase(it);
+    }
+}

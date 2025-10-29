@@ -2,6 +2,9 @@
 #include "Application.h"
 #include "OpenGL.h"
 #include "FileSystem.h"
+#include "TransformComponent.h"
+#include "RenderMeshComponent.h"
+#include "MaterialComponent.h"
 #include <string>
 #include <vector>
 #include "Mesh.h"
@@ -27,6 +30,9 @@ void Model::loadModel(string path) {
     directory = path.substr(0, path.find_last_of('/'));
 
     processNode(scene->mRootNode, scene);
+
+    rootGameObject = new GameObject("RootNode");
+    processNodeWithGameObjects(scene->mRootNode, scene, rootGameObject);
 
     LOG("Finished Loading Model");
 }
