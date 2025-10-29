@@ -18,7 +18,7 @@ enum class ComponentType {
 
 class Component {
 public:
-
+	Component(GameObject* owner, ComponentType type);
 	virtual ~Component() = default;
 
 	virtual void Update() {}
