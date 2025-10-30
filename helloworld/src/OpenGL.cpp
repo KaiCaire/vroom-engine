@@ -47,7 +47,6 @@ bool OpenGL::Start() {
 	std::cout << "OpenGL initialized successfully" << std::endl;
 
 
-
 	/*If you declare a uniform that isn't used anywhere in your GLSL code
 	the compiler will silently remove the variable from the compiled version
 	is the cause for several frustrating errors; keep this in mind!*/
@@ -119,7 +118,19 @@ bool OpenGL::Update(float dt) {
 
 
 	//grid
+
+	glUseProgram(texCoordsShader->ID);
+
+	//use shader's line color instead of texture
+	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), true);
+	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 0.0f, 1.0f, 1.0f); 
+
 	Application::GetInstance().render.get()->DrawGrid();
+	
+	// Restore to normal texture mode
+	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), false);
+
+	
 	
 
 	//camera controls

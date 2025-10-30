@@ -303,6 +303,8 @@ bool Render::DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) c
 void Render::DrawGrid() {
 
 	
+	
+
 
 	float lineX = -100.0f;
 	float lineZ = -100.0f;
@@ -311,6 +313,7 @@ void Render::DrawGrid() {
 	for (int i = 0; i < 1000; i++) {
 		
 		glLineWidth(1.0f);
+		
 		glBegin(GL_LINES);
 
 		//X AXIS LINES
@@ -328,6 +331,7 @@ void Render::DrawGrid() {
 		lineZ++;
 	}
 
+	glClearColor;
 
 	//glLineWidth(1.0f);
 }
