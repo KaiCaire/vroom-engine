@@ -5,7 +5,7 @@
 #include "Shader.h"
 
 
-RenderMeshComponent::RenderMeshComponent(GameObject* owner)
+RenderMeshComponent::RenderMeshComponent(std::shared_ptr<GameObject> owner)
     : Component(owner, ComponentType::MESH_RENDERER),
     mesh(nullptr),
     castShadows(true),
@@ -33,27 +33,38 @@ void RenderMeshComponent::OnEditor() {
     //laracode aqui
 }
 
-void RenderMeshComponent::SetMesh(Mesh* newMesh) {
+void RenderMeshComponent::SetMesh(std::shared_ptr<Mesh> newMesh) {
     mesh = newMesh;
 }
 
 void RenderMeshComponent::Render(Shader* shader) {
     if (!mesh || !active || !shader) return;
-
+    
+    auto sharedOwner = owner.lock();
+    if (!sharedOwner) return;
     // Get transform component to apply transformations
-    TransformComponent* transform =
-        static_cast<TransformComponent*>(owner->GetComponent(ComponentType::TRANSFORM));
+    
+    auto transform = std::dynamic_pointer_cast<TransformComponent>(sharedOwner->GetComponent(ComponentType::TRANSFORM));
     if (!transform)
         return;
-
-    MaterialComponent* material =
-        static_cast<MaterialComponent*>(owner->GetComponent(ComponentType::MATERIAL));
-
+    
+    
+   
+    auto material = std::dynamic_pointer_cast<MaterialComponent>(sharedOwner->GetComponent(ComponentType::MATERIAL));
+    if (!material)
+        return;
+    
+    
     // Apply transformation matrix
+    
     glm::mat4 modelMatrix = transform->GetGlobalTransform();
+    
+    
 
     // Set the model matrix in the shader
     shader->setMat4("model", modelMatrix);
 
     mesh->Draw(*shader);
 }
+
+

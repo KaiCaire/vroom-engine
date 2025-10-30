@@ -1,7 +1,7 @@
 #include "MaterialComponent.h"
 #include "GameObject.h"
 
-MaterialComponent::MaterialComponent(GameObject* owner)
+MaterialComponent::MaterialComponent(std::shared_ptr<GameObject> owner)
     : Component(owner, ComponentType::MATERIAL),
     color(1.0f, 1.0f, 1.0f, 1.0f),
     shininess(32.0f),

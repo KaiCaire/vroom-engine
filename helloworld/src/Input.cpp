@@ -183,7 +183,7 @@ void Input::ProcessDroppedFile(const std::string sourcePath) {
 	string fileExtension = sourcePath.substr(sourcePath.find_last_of(".") + 1);
 	if (fileExtension == "fbx" || fileExtension == "FBX" || fileExtension == "obj") {
 		importedModel = new Model(droppedFileDir);
-		Application::GetInstance().render.get()->AddModel(droppedFileDir);
+		Application::GetInstance().render.get()->AddModel(*importedModel);
 	}
 
 	//handle image files
@@ -194,6 +194,7 @@ void Input::ProcessDroppedFile(const std::string sourcePath) {
 		glm::vec3 mouseRayDir = MouseRay(mouseX, mouseY, projMat, viewMat);
 		
 		/*Application::GetInstance().render.get()->modelsToDraw()[]*/
+		
 		//if it is, change current material's texture for the dropped texture
 	}
 

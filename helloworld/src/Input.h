@@ -88,6 +88,7 @@ private:
   int mouseWheelY;
 
 	const char* droppedFileDir;
+	/*std::vector<std::shared_ptr<GameObject>> selectedObjects;*/
 	
 
 };

@@ -8,7 +8,7 @@
 class TransformComponent : public Component {
 
 public:
-    TransformComponent(GameObject* owner);
+    TransformComponent(std::shared_ptr<GameObject> owner);
     ~TransformComponent() override = default;
 
     // Component interface pa la lara

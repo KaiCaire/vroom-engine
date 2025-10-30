@@ -12,6 +12,7 @@ struct Material
     sampler2D texture_specular1;
 	sampler2D texture_normal1;
     sampler2D texture_roughness1; 
+    sampler2D texture_metallic1; 
     sampler2D texture_ao1; 
 };
 

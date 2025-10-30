@@ -18,7 +18,7 @@ enum class ComponentType {
 
 class Component {
 public:
-	Component(GameObject* owner, ComponentType type);
+	Component(std::shared_ptr<GameObject> owner, ComponentType type);
 	virtual ~Component() = default;
 
 	virtual void Update() {}
@@ -29,12 +29,15 @@ public:
 
 	ComponentType GetType() const { return type; }
 	bool IsActive() const { return active; }
-	GameObject* GetOwner() const { return owner; }
+	std::shared_ptr<GameObject> GetOwner() const 
+	{ 
+		return owner.lock(); 
+	}
 
 	void SetActive(bool isActive);
 
 protected:
-	GameObject* owner;
+	std::weak_ptr<GameObject> owner;
 	ComponentType type;
 	bool active;
 

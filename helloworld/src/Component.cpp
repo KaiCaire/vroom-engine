@@ -1,7 +1,7 @@
 #include "Component.h"
 #include "GameObject.h"
 
-Component::Component(GameObject* owner, ComponentType type)
+Component::Component(std::shared_ptr<GameObject> owner, ComponentType type)
     : owner(owner), type(type), active(true) {
 }
 

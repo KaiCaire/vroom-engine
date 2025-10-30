@@ -6,7 +6,7 @@ class Shader;  // Forward declaration
 
 class RenderMeshComponent : public Component {
 public:
-    RenderMeshComponent(GameObject* owner);
+    RenderMeshComponent(std::shared_ptr<GameObject> owner);
     ~RenderMeshComponent() override;
 
     // Component interface
@@ -16,8 +16,8 @@ public:
     void OnEditor() override;
 
     // Mesh management
-    void SetMesh(Mesh* newMesh);
-    Mesh* GetMesh() const { return mesh; }
+    void SetMesh(std::shared_ptr<Mesh> newMesh);
+    std::shared_ptr<Mesh>  GetMesh() const { return mesh; }
 
     // Rendering
     void Render(Shader* shader);  
@@ -30,7 +30,7 @@ public:
     void SetReceiveShadows(bool receive) { receiveShadows = receive; }
 
 private:
-    Mesh* mesh;  // Pointer to mesh data (not owned by this component)
+    std::shared_ptr<Mesh> mesh;  // Pointer to mesh data (not owned by this component)
     bool castShadows;
     bool receiveShadows;
 };

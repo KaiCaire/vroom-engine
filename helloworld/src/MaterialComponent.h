@@ -5,7 +5,7 @@
 
 class MaterialComponent : public Component {
 public:
-    MaterialComponent(GameObject* owner);
+    MaterialComponent(std::shared_ptr<GameObject> owner);
     ~MaterialComponent() override;
 
     // Component interface

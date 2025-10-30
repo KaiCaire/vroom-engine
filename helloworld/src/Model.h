@@ -4,42 +4,53 @@
 #include "Textures.h"
 #include "GameObject.h"
 #include <vector>
+#include <string>
 
 class Model {
 public:
-    Model(char* path) { loadModel(path); }
+    Model(std::string path) 
+    { 
+        loadModel(path);
+    }
     ~Model();
 
     
     void Draw(Shader& shader); 
-    vector<Mesh> meshes;        
+    std::vector<std::shared_ptr<Mesh>> meshes;
+    std::shared_ptr<GameObject> rootGameObject;
+    std::vector<std::shared_ptr<GameObject>> gameObjects;
 
+    std::vector<std::shared_ptr<GameObject>>& GetGameObjects() { return gameObjects; }
 
-    
-    GameObject* GetRootGameObject() const { return rootGameObject; }
-    const vector<GameObject*>& GetGameObjects() const { return gameObjects; }
-  
+    shared_ptr<GameObject> GetRootGameObject() const { return rootGameObject; }
     
     std::string directory;
     int processedMeshes = 0;
 
-
     std::string fullPath;
 
-    void loadModel(string path);
+    void loadModel(std::string path);
 
-    void processNode(aiNode* node, const aiScene* scene);
+    
+
+   /* void processNode(aiNode* node, const aiScene* scene);*/
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 
     
-    GameObject* rootGameObject = nullptr;
-    vector<GameObject*> gameObjects;
-    void processNodeWithGameObjects(aiNode* node, const aiScene* scene, GameObject* parent);
-    void createComponentsForMesh(GameObject* gameObject, aiMesh* aiMesh, const aiScene* scene); 
+    
+
+    void processNodeWithGameObjects(aiNode* node, const aiScene* scene, std::shared_ptr<GameObject> parent);
+    void createComponentsForMesh(std::shared_ptr<GameObject> gameObject, aiMesh* aiMesh, const aiScene* scene);
 
     
-    void loadModel(string path);
+   
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
 
-    void LogGameObjectHierarchy(GameObject* go, int depth);
+    void LogGameObjectHierarchy(std::shared_ptr<GameObject>  go, int depth);
+
+    
+    
+    
+
+    
 };
