@@ -121,13 +121,13 @@ bool GUIManager::Update(float dt)
 	ImGui::End();
 
 
-	//setup test window
-	ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
+	//test window
+	/*ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowPos(ImVec2(200, 200), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Holis", nullptr);
 
 	ImGui::Text("Soy gui");
-	ImGui::End();
+	ImGui::End();*/
 
 	return true;
 }

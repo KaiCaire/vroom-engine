@@ -82,7 +82,7 @@ void GUIElement::AboutSetUp() {
 		//Text
 		ImGui::Text("VroomEngine v.1");
 		ImGui::Separator();
-		ImGui::Text("Developed by: ");
+		ImGui::Text("Developed by: Ivan Alvarez, Kai Caire, Lara Guevara, Bernat Loza");
 		ImGui::Text("Developed using: ");
 		ImGui::NewLine();
 		ImGui::Text("MIT License Copyright(c) 2025");
