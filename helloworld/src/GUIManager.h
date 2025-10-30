@@ -36,6 +36,9 @@ public:
 	bool Update(float dt);
 	bool PostUpdate();
 
+	//initialize the docking space
+	void InitDock();
+
 	//Within update process events
 	void ProcessEvents(SDL_Event event);
 
@@ -45,7 +48,12 @@ private:
 	ImGuiIO* io = nullptr;
 	std::vector<GUIElement> WindowElements;
 	GUIElement AdditionalElements;
+	GUIElement Menu;
+
+	bool dockInitialized = false;
 
 public:
 	bool showAboutPopup = false;
+	bool showConsole = true;
+	bool showConfig = false;
 };

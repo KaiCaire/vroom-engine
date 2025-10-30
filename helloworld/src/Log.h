@@ -3,9 +3,14 @@
 
 #include <cstdio>
 #include <cstdarg>
+#include <vector>
+#include <string>
 
 #define LOG(format, ...) Log(__FILE__, __LINE__, format, ##__VA_ARGS__)
 
 void Log(const char file[], int line, const char* format, ...);
+
+std::vector<std::string> GetLogBuffer();
+void ClearLogs();
 
 #endif  // __LOG_H__

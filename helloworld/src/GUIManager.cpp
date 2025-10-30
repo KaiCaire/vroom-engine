@@ -6,8 +6,12 @@
 #include "FileSystem.h"
 #include <SDL3/SDL_opengl.h>
 #include <vector>
+#include "imgui.h"
+#include "imgui_internal.h" 
+#include <imgui_impl_sdl3.h>
+#include <imgui_impl_opengl3.h>
 
-GUIManager::GUIManager() : Module(), AdditionalElements(ElementType::Additional)
+GUIManager::GUIManager() : Module(), AdditionalElements(ElementType::Additional), Menu(ElementType::MenuBar)
 {
 	name = "guiManager";
 }
@@ -59,7 +63,8 @@ std::vector<GUIElement> GUIManager::LoadElements()
 {
 	std::vector<GUIElement> elements;
 
-	elements.push_back(GUIElement(ElementType::MenuBar));
+	elements.push_back(GUIElement(ElementType::Console));
+	elements.push_back(GUIElement(ElementType::Config));
 
 	return elements;
 }
@@ -101,10 +106,10 @@ bool GUIManager::Update(float dt)
 	ImGui::Begin("DockSpace", nullptr, dockingSpaceFlags);
 	ImGui::PopStyleVar(2);
 
-	//main element setup loop
-	for (GUIElement e : WindowElements) {
-		e.ElementSetUp();
-	}
+	if (!dockInitialized) InitDock();
+
+	//menu setup
+	Menu.ElementSetUp();
 
 	//handle popups
 	if (showAboutPopup)
@@ -120,6 +125,11 @@ bool GUIManager::Update(float dt)
 	ImGui::DockSpace(dockingSpaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 	ImGui::End();
 
+	//main element setup loop
+	for (GUIElement e : WindowElements) {
+		e.ElementSetUp();
+	}
+
 
 	//test window
 	/*ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
@@ -130,6 +140,25 @@ bool GUIManager::Update(float dt)
 	ImGui::End();*/
 
 	return true;
+}
+
+void GUIManager::InitDock() {
+	//clear any existing layout
+	ImGuiID dockspaceID = ImGui::GetID("DockSpace");
+	ImGui::DockBuilderRemoveNode(dockspaceID);
+	ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_DockSpace);
+	ImGui::DockBuilderSetNodeSize(dockspaceID, ImGui::GetMainViewport()->Size);
+
+	//split dock
+	ImGuiID dockMainID = dockspaceID;
+	ImGuiID dockBottomID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Down, 0.25f, nullptr, &dockMainID);
+
+	//assign windows to dock spaces
+	ImGui::DockBuilderDockWindow("Console", dockBottomID);
+
+	ImGui::DockBuilderFinish(dockspaceID);
+	//only do this once
+	dockInitialized = true;
 }
 
 void GUIManager::ProcessEvents(SDL_Event event) {

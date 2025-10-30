@@ -44,6 +44,10 @@ public:
 		return dt;
 	}
 
+	int GetFPS() {
+		return framesPerSecond;
+	}
+
 private:
 
 	// Private constructor to prevent instantiation
