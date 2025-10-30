@@ -84,10 +84,7 @@ bool OpenGL::Start() {
 	glEnable(GL_DEPTH_TEST);
 
 	texCoordsShader->Use();
-	// //don't forget to activate/use the shader before setting uniforms!
-	//glUniform1i(glGetUniformLocation(texCoordsShader->ID, "tex1"), 0);
-	//// or set it via the texture class
-	//texCoordsShader->setInt("tex2", 1);
+	
 
 	std::string modelPath = "../Assets/Models/BakerHouse/BakerHouse.fbx"; 
 	

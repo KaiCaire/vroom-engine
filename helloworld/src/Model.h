@@ -2,34 +2,44 @@
 #include "Shader.h"
 #include "Mesh.h"
 #include "Textures.h"
+#include "GameObject.h"
 #include <vector>
 
-using namespace std;
-
-
-class Model
-{
+class Model {
 public:
-    Model(const char* path)
-    {
-        
-        loadModel(path);
-    }
+    Model(char* path) { loadModel(path); }
+    ~Model();
 
-    ~Model() {};
-    void Draw(Shader& shader);
+    
+    void Draw(Shader& shader); 
+    vector<Mesh> meshes;        
 
 
-public:
-    // model data
-    int processedMeshes = 0;
-    vector<Mesh> meshes;
+    
+    GameObject* GetRootGameObject() const { return rootGameObject; }
+    const vector<GameObject*>& GetGameObjects() const { return gameObjects; }
+  
+    
     std::string directory;
+    int processedMeshes = 0;
+
 
     std::string fullPath;
 
     void loadModel(string path);
+
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
+
+    
+    GameObject* rootGameObject = nullptr;
+    vector<GameObject*> gameObjects;
+    void processNodeWithGameObjects(aiNode* node, const aiScene* scene, GameObject* parent);
+    void createComponentsForMesh(GameObject* gameObject, aiMesh* aiMesh, const aiScene* scene); 
+
+    
+    void loadModel(string path);
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
+
+    void LogGameObjectHierarchy(GameObject* go, int depth);
 };
