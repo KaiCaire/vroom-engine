@@ -18,6 +18,8 @@ public:
 
     ~Model() {};
     void Draw(Shader& shader);
+
+
 public:
     // model data
     int processedMeshes = 0;

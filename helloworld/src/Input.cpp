@@ -9,7 +9,7 @@
 #include <iostream>
 #include "Model.h"
 #include "Render.h"
-=======
+
 #include "SDL3/SDL.h"
 #include <vector>
 
@@ -243,7 +243,7 @@ SDL_FPoint Input::GetMousePosition()
 	return { (float)mouseX, (float)mouseY };
 }
 
-SDL_FPoint <float, float> Input::GetMouseMotion()
+SDL_FPoint Input::GetMouseMotion()
 {
 	return {(float)(mouseMotionX, (float)mouseMotionY)};
 }
