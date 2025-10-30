@@ -43,6 +43,7 @@ public:
 
 	void AddModel(Model model);
 	bool DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) const;
+	void DrawGrid();
 
 
 

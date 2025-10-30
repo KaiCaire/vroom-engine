@@ -40,6 +40,7 @@ bool OpenGL::Start() {
 
 	/*stbi_set_flip_vertically_on_load(true);*/
 
+	
 
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
 
@@ -110,14 +111,18 @@ bool OpenGL::Update(float dt) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
+	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
 
+	//grid
+	Application::GetInstance().render.get()->DrawGrid();
+	
 
+	//camera controls
 	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT)
 		cameraSpeed = 0.10f;
 	else

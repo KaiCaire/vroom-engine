@@ -296,15 +296,38 @@ bool Render::DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) c
 	glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//
-	//glUseProgram(shaderProgram);
-	//glBindVertexArray(VAO);
-	//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	//glBindVertexArray(0);
 
+	return true;
+}
 
+void Render::DrawGrid() {
 
 	
 
-	return true;
+	float lineX = -100.0f;
+	float lineZ = -100.0f;
+
+	float lineLength = 100.0f;
+	for (int i = 0; i < 1000; i++) {
+		
+		glLineWidth(1.0f);
+		glBegin(GL_LINES);
+
+		//X AXIS LINES
+		glVertex3f(-lineLength, 0.0f, lineZ);
+		glVertex3f(lineLength, 0.0f, lineZ);
+
+		//Z AXIS LINES
+		glVertex3f(lineX, 0.f, -lineLength);
+		glVertex3f(lineX, 0.f, lineLength);
+
+		glEnd();
+		
+
+		lineX++;
+		lineZ++;
+	}
+
+
+	//glLineWidth(1.0f);
 }

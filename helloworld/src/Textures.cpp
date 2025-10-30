@@ -8,6 +8,7 @@
 #include "FileSystem.h"
 
 
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -65,6 +66,7 @@ uint Texture::TextureFromFile(const string directory, const char* filename) {
     glBindTexture(GL_TEXTURE_2D, id);
     int width, height, nChannels;
     
+
     unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nChannels, 0);
     if (!data)
     {
