@@ -14,16 +14,20 @@ public:
     void Draw(Shader& shader); 
     vector<Mesh> meshes;        
 
+
     
     GameObject* GetRootGameObject() const { return rootGameObject; }
     const vector<GameObject*>& GetGameObjects() const { return gameObjects; }
-
-private:
+  
     
     std::string directory;
     int processedMeshes = 0;
 
-    
+
+    std::string fullPath;
+
+    void loadModel(string path);
+
     void processNode(aiNode* node, const aiScene* scene);
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 
