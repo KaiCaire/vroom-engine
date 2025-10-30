@@ -4,7 +4,7 @@
 #include "SDL3/SDL.h"
 #include "FileSystem.h"
 #include <vector>
-//#include "Mesh.h"
+
 
 
 
@@ -43,6 +43,7 @@ public:
 
 	void AddModel(Model model);
 	bool DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) const;
+	void DrawGrid();
 
 
 

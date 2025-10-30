@@ -40,11 +40,11 @@ bool OpenGL::Start() {
 
 	/*stbi_set_flip_vertically_on_load(true);*/
 
+	
 
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
 
 	std::cout << "OpenGL initialized successfully" << std::endl;
-
 
 
 	/*If you declare a uniform that isn't used anywhere in your GLSL code
@@ -84,10 +84,7 @@ bool OpenGL::Start() {
 	glEnable(GL_DEPTH_TEST);
 
 	texCoordsShader->Use();
-	// //don't forget to activate/use the shader before setting uniforms!
-	//glUniform1i(glGetUniformLocation(texCoordsShader->ID, "tex1"), 0);
-	//// or set it via the texture class
-	//texCoordsShader->setInt("tex2", 1);
+	
 
 	std::string modelPath = "../Assets/Models/BakerHouse/BakerHouse.fbx";
 
@@ -120,9 +117,31 @@ bool OpenGL::Update(float dt) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
+
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
-	float cameraSpeed;
+
+
+	//grid
+
+	glUseProgram(texCoordsShader->ID);
+
+	//use shader's line color instead of texture
+	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), true);
+	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 0.0f, 1.0f, 1.0f); 
+
+	Application::GetInstance().render.get()->DrawGrid();
+	
+	// Restore to normal texture mode
+	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), false);
+
+	
+	
+
+	//camera controls
+  
+  float cameraSpeed;
+  
 	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT)
 		cameraSpeed = 0.20f;
 	else
