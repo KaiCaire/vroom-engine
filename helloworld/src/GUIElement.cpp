@@ -102,8 +102,20 @@ void GUIElement::AboutSetUp() {
 		//Text
 		ImGui::Text("VroomEngine v.1");
 		ImGui::Separator();
-		ImGui::Text("Developed by: Ivan Alvarez, Kai Caire, Lara Guevara, Bernat Loza");
-		ImGui::Text("Developed using: ");
+		ImGui::Text("Developed by:");
+		ImGui::BulletText("Ivan Alvarez");
+		ImGui::BulletText("Kai Caire");
+		ImGui::BulletText("Lara Guevara");
+		ImGui::BulletText("Bernat Loza");
+		ImGui::Separator();
+		ImGui::Text("Developed using:");
+		ImGui::BulletText("assimp");
+		ImGui::BulletText("fmt");
+		ImGui::BulletText("glad");
+		ImGui::BulletText("glm");
+		ImGui::BulletText("imgui");
+		ImGui::BulletText("OpenGL");
+		ImGui::BulletText("sdl3");
 		ImGui::NewLine();
 		ImGui::Text("MIT License Copyright(c) 2025");
 
