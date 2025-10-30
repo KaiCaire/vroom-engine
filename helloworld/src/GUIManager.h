@@ -4,10 +4,15 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
 
+#include <SDL3/SDL_opengl.h>
 #include "SDL3/SDL.h"
 
 #include "Module.h"
+#include <vector>
 #include "FileSystem.h"
+#include "GUIElement.h"
+
+//class GUIElement;
 
 class GUIManager : public Module 
 {
@@ -19,6 +24,9 @@ public:
 
 	//Called before manager is available
 	bool Awake();
+
+	//Setup windows
+	std::vector<GUIElement> LoadElements();
 
 	//Called before first frame
 	bool Start();
@@ -35,5 +43,9 @@ public:
 	bool CleanUp();
 private:
 	ImGuiIO* io = nullptr;
+	std::vector<GUIElement> WindowElements;
+	GUIElement AdditionalElements;
 
+public:
+	bool showAboutPopup = false;
 };

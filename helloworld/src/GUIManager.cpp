@@ -1,10 +1,13 @@
 #include "Application.h"
 #include "Window.h"
 #include "GUIManager.h"
+#include "GUIElement.h"
 #include "Log.h"
 #include "FileSystem.h"
+#include <SDL3/SDL_opengl.h>
+#include <vector>
 
-GUIManager::GUIManager() : Module() 
+GUIManager::GUIManager() : Module(), AdditionalElements(ElementType::Additional)
 {
 	name = "guiManager";
 }
@@ -19,6 +22,10 @@ bool GUIManager::Awake()
 {
 	LOG("Set up ImGui context");
 	bool ret = true;
+
+	//prepare ui elements
+	WindowElements = LoadElements();
+	//AdditionalElements = GUIElement(ElementType::Additional);
 
 	//Setup version
 	const char* glsl_version{ "#version 140" };
@@ -46,6 +53,15 @@ bool GUIManager::Awake()
 	ImGui_ImplSDL3_InitForOpenGL(Application::GetInstance().window.get()->GetWindow(), Application::GetInstance().window.get()->GetContext());
 	ImGui_ImplOpenGL3_Init(glsl_version);
 	return ret;
+}
+
+std::vector<GUIElement> GUIManager::LoadElements() 
+{
+	std::vector<GUIElement> elements;
+
+	elements.push_back(GUIElement(ElementType::MenuBar));
+
+	return elements;
 }
 
 //Called before first frame
@@ -85,12 +101,27 @@ bool GUIManager::Update(float dt)
 	ImGui::Begin("DockSpace", nullptr, dockingSpaceFlags);
 	ImGui::PopStyleVar(2);
 
+	//main element setup loop
+	for (GUIElement e : WindowElements) {
+		e.ElementSetUp();
+	}
+
+	//handle popups
+	if (showAboutPopup)
+	{
+		ImGui::OpenPopup("About");
+		showAboutPopup = false; 
+	}
+
+	//setup popups
+	AdditionalElements.ElementSetUp();
+
 	ImGuiID dockingSpaceID = ImGui::GetID("DockSpace");
 	ImGui::DockSpace(dockingSpaceID, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 	ImGui::End();
 
 
-	//setup window
+	//setup test window
 	ImGui::SetNextWindowSize(ImVec2(400, 300), ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowPos(ImVec2(200, 200), ImGuiCond_FirstUseEver);
 	ImGui::Begin("Holis", nullptr);

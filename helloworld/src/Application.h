@@ -96,7 +96,7 @@ public:
 	std::shared_ptr<FileSystem> fileSystem;
 	std::shared_ptr<Texture> textures;
 	
-
+	bool requestExit = false;
 
 private:
 

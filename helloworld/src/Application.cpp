@@ -88,6 +88,8 @@ bool Application::Start() {
 // Called each loop iteration
 bool Application::Update() {
 
+    if (requestExit) return false;
+    
     bool ret = true;
     PrepareUpdate();
 
