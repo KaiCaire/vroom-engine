@@ -18,6 +18,8 @@ using namespace std;
 
 vector<Texture> textures_loaded;
 
+
+
 void Model::loadModel(string path) {
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -35,6 +37,17 @@ void Model::loadModel(string path) {
     processNodeWithGameObjects(scene->mRootNode, scene, rootGameObject);
 
     LOG("Finished Loading Model");
+
+    LOG("=== MODEL LOADING SUMMARY ===");
+    LOG("Total GameObjects created: %d", gameObjects.size());
+    LOG("Total Meshes processed: %d", meshes.size());
+    LOG("Root GameObject: '%s'", rootGameObject ? rootGameObject->GetName().c_str() : "NULL");
+
+    // Mostrar la jerarquía completa
+    if (rootGameObject) {
+        LOG("=== HIERARCHY ===");
+        LogGameObjectHierarchy(rootGameObject, 0);
+    }
 }
 
 void Model::Draw(Shader& shader) {
@@ -166,6 +179,157 @@ vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type,
     return textures;
 }
 
+Model::~Model() {
+    // Cleanup gameobjects
+    for (GameObject* go : gameObjects) {
+        delete go;
+    }
+    gameObjects.clear();
+}
 
+void Model::processNodeWithGameObjects(aiNode* node, const aiScene* scene, GameObject* parent)
+{
+    // Create GameObject for this node
+    GameObject* gameObject = new GameObject(node->mName.C_Str());
+    gameObjects.push_back(gameObject);
 
+    // AÑADIR AQUÍ:
+    LOG("Created GameObject: '%s' (Parent: '%s')",
+        gameObject->GetName().c_str(),
+        parent ? parent->GetName().c_str() : "NULL");
 
+    // Create Transform component and load transformation
+    Component* transformComp = gameObject->AddComponent(ComponentType::TRANSFORM);
+    TransformComponent* transform = static_cast<TransformComponent*>(transformComp);
+
+    // AÑADIR AQUÍ:
+    LOG("  - Added Transform component to '%s'", gameObject->GetName().c_str());
+
+    // Decompose Assimp transformation matrix
+    aiVector3D position, scaling;
+    aiQuaternion rotation;
+    node->mTransformation.Decompose(scaling, rotation, position);
+
+    transform->SetPosition(glm::vec3(position.x, position.y, position.z));
+    transform->SetRotation(glm::quat(rotation.w, rotation.x, rotation.y, rotation.z));
+    transform->SetScale(glm::vec3(scaling.x, scaling.y, scaling.z));
+
+    // AÑADIR AQUÍ:
+    LOG("  - Transform: Pos(%.2f, %.2f, %.2f) Scale(%.2f, %.2f, %.2f)",
+        position.x, position.y, position.z,
+        scaling.x, scaling.y, scaling.z);
+
+    // Set parent
+    if (parent) {
+        gameObject->SetParent(parent);
+        // AÑADIR AQUÍ:
+        LOG("  - Set parent to '%s'", parent->GetName().c_str());
+    }
+
+    // Process all meshes for this node
+    // AÑADIR AQUÍ:
+    LOG("  - Processing %d meshes for '%s'", node->mNumMeshes, gameObject->GetName().c_str());
+
+    for (unsigned int i = 0; i < node->mNumMeshes; i++)
+    {
+        // ... resto del código
+    }
+
+    // Process children recursively
+    // AÑADIR AQUÍ:
+    LOG("  - Processing %d children for '%s'", node->mNumChildren, gameObject->GetName().c_str());
+
+    for (unsigned int i = 0; i < node->mNumChildren; i++)
+    {
+        processNodeWithGameObjects(node->mChildren[i], scene, gameObject);
+    }
+}
+
+void Model::createComponentsForMesh(GameObject* gameObject, aiMesh* aiMesh, const aiScene* scene)
+{
+    // AÑADIR AL INICIO:
+    LOG("Creating components for mesh in GameObject '%s'", gameObject->GetName().c_str());
+    LOG("  - Vertices: %d, Faces: %d", aiMesh->mNumVertices, aiMesh->mNumFaces);
+
+    vector<Vertex> vertices;
+    vector<unsigned int> indices;
+    vector<Texture> textures;
+
+    // ... proceso de vertices e indices ...
+
+    // Load textures
+    if (aiMesh->mMaterialIndex >= 0)
+    {
+        aiMaterial* material = scene->mMaterials[aiMesh->mMaterialIndex];
+        vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+
+        // AÑADIR AQUÍ:
+        LOG("  - Loaded %d diffuse textures", diffuseMaps.size());
+
+        vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+
+        // AÑADIR AQUÍ:
+        LOG("  - Loaded %d specular textures", specularMaps.size());
+    }
+
+    // Create the actual Mesh object and store it
+    Mesh* mesh = new Mesh(vertices, indices, textures);
+    meshes.push_back(*mesh);
+
+    // Create MeshRenderer component
+    Component* rendererComp = gameObject->AddComponent(ComponentType::MESH_RENDERER);
+    RenderMeshComponent* renderer = static_cast<RenderMeshComponent*>(rendererComp);
+    renderer->SetMesh(mesh);
+
+    // AÑADIR AQUÍ:
+    LOG("  - Added MeshRenderer component to '%s'", gameObject->GetName().c_str());
+
+    // Create Material component
+    Component* materialComp = gameObject->AddComponent(ComponentType::MATERIAL);
+    MaterialComponent* matComponent = static_cast<MaterialComponent*>(materialComp);
+
+    // AÑADIR AQUÍ:
+    LOG("  - Added Material component to '%s'", gameObject->GetName().c_str());
+
+    // Load material properties from Assimp
+    if (aiMesh->mMaterialIndex >= 0)
+    {
+        aiMaterial* aiMat = scene->mMaterials[aiMesh->mMaterialIndex];
+
+        // Get color
+        aiColor4D color;
+        if (aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_DIFFUSE, &color) == AI_SUCCESS) {
+            matComponent->SetColor(glm::vec4(color.r, color.g, color.b, color.a));
+            // AÑADIR AQUÍ:
+            LOG("    - Material color: (%.2f, %.2f, %.2f, %.2f)",
+                color.r, color.g, color.b, color.a);
+        }
+
+        // Get shininess
+        float shininess;
+        if (aiGetMaterialFloat(aiMat, AI_MATKEY_SHININESS, &shininess) == AI_SUCCESS) {
+            matComponent->SetShininess(shininess);
+            // AÑADIR AQUÍ:
+            LOG("    - Material shininess: %.2f", shininess);
+        }
+    }
+}
+
+void Model::LogGameObjectHierarchy(GameObject* go, int depth) {
+    if (!go) return;
+
+    string indent(depth * 2, ' ');
+    LOG("%s- '%s' (Active: %s, Components: %d, Children: %d)",
+        indent.c_str(),
+        go->GetName().c_str(),
+        go->IsActive() ? "Yes" : "No",
+        // Aquí necesitarías un getter para contar componentes
+        0, // Por ahora 0, o añade un método GetComponentCount() en GameObject
+        go->GetChildren().size());
+
+    for (GameObject* child : go->GetChildren()) {
+        LogGameObjectHierarchy(child, depth + 1);
+    }
+}

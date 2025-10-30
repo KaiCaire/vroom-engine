@@ -31,8 +31,11 @@ private:
     GameObject* rootGameObject = nullptr;
     vector<GameObject*> gameObjects;
     void processNodeWithGameObjects(aiNode* node, const aiScene* scene, GameObject* parent);
+    void createComponentsForMesh(GameObject* gameObject, aiMesh* aiMesh, const aiScene* scene); 
 
     
     void loadModel(string path);
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
+
+    void LogGameObjectHierarchy(GameObject* go, int depth);
 };

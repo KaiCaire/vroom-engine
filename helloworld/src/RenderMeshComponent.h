@@ -1,6 +1,6 @@
 #pragma once
 #include "Component.h"
-#include "Mesh.h"  // Tu clase Mesh actual
+#include "Mesh.h"  
 
 class Shader;  // Forward declaration
 
@@ -20,7 +20,7 @@ public:
     Mesh* GetMesh() const { return mesh; }
 
     // Rendering
-    void Render(Shader* shader);  // Ahora recibe el shader como parámetro
+    void Render(Shader* shader);  
 
     // Drawing properties
     bool GetCastShadows() const { return castShadows; }

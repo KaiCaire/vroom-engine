@@ -13,7 +13,7 @@ RenderMeshComponent::RenderMeshComponent(GameObject* owner)
 }
 
 RenderMeshComponent::~RenderMeshComponent() {
-    // Don't delete mesh - it's managed elsewhere (resource manager)
+    
     mesh = nullptr;
 }
 
@@ -55,13 +55,5 @@ void RenderMeshComponent::Render(Shader* shader) {
     // Set the model matrix in the shader
     shader->setMat4("model", modelMatrix);
 
-    // Si tienes material component, puedes usarlo para propiedades adicionales
-    //if (material) {
-    //    shader->setVec4("material.color", material->GetColor());
-    //    shader->setFloat("material.shininess", material->GetShininess());
-    //    // etc...
-    //}
-
-    // Draw the mesh (tu Mesh::Draw ya hace bind de texturas y dibuja)
     mesh->Draw(*shader);
 }

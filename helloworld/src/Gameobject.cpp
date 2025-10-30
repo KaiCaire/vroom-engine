@@ -3,6 +3,7 @@
 #include "RenderMeshComponent.h"
 #include "MaterialComponent.h"
 #include <algorithm>
+#include "Log.h"
 
 
 GameObject::GameObject(const std::string& name)
@@ -38,14 +39,21 @@ Component* GameObject::AddComponent(ComponentType type) {
     switch (type) {
     case ComponentType::TRANSFORM:
         newComponent = static_cast<Component*>(new TransformComponent(this));
+        // AÑADIR AQUÍ:
+        LOG("Added TRANSFORM component to GameObject '%s'", name.c_str());
         break;
     case ComponentType::MESH_RENDERER:
         newComponent = static_cast<Component*>(new RenderMeshComponent(this));
+        // AÑADIR AQUÍ:
+        LOG("Added MESH_RENDERER component to GameObject '%s'", name.c_str());
         break;
     case ComponentType::MATERIAL:
         newComponent = static_cast<Component*>(new MaterialComponent(this));
+        // AÑADIR AQUÍ:
+        LOG("Added MATERIAL component to GameObject '%s'", name.c_str());
         break;
     default:
+        LOG("WARNING: Attempted to add unknown component type to '%s'", name.c_str());
         return nullptr;
     }
 
@@ -54,7 +62,6 @@ Component* GameObject::AddComponent(ComponentType type) {
     }
 
     return newComponent;
-
 }
 
 Component* GameObject::GetComponent(ComponentType type) {
@@ -69,7 +76,7 @@ Component* GameObject::GetComponent(ComponentType type) {
 void GameObject::RemoveComponent(ComponentType type) {
     for (auto it = Components.begin(); it != Components.end(); ++it) {
         if ((*it)->GetType() == type) {
-            Components.erase(it);  // unique_ptr se encarga de borrar
+            Components.erase(it);  
             return;
         }
     }
@@ -91,6 +98,11 @@ void GameObject::SetActive(bool isActive) {
 }
 
 void GameObject::SetParent(GameObject* newParent) {
+    // AÑADIR AQUÍ:
+    LOG("Setting parent of '%s' to '%s'",
+        name.c_str(),
+        newParent ? newParent->GetName().c_str() : "NULL");
+
     // Remove from current parent
     if (parent) {
         parent->RemoveChild(this);
@@ -113,6 +125,12 @@ void GameObject::AddChild(GameObject* child) {
 
     children.push_back(child);
     child->parent = this;
+
+    // AÑADIR AQUÍ:
+    LOG("Added child '%s' to '%s' (Total children: %d)",
+        child->GetName().c_str(),
+        name.c_str(),
+        children.size());
 }
 
 void GameObject::RemoveChild(GameObject* child) {
