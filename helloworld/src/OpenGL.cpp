@@ -40,11 +40,11 @@ bool OpenGL::Start() {
 
 	/*stbi_set_flip_vertically_on_load(true);*/
 
+	
 
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
 
 	std::cout << "OpenGL initialized successfully" << std::endl;
-
 
 
 	/*If you declare a uniform that isn't used anywhere in your GLSL code
@@ -110,14 +110,30 @@ bool OpenGL::Update(float dt) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
+	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
 
+	//grid
 
+	glUseProgram(texCoordsShader->ID);
+
+	//use shader's line color instead of texture
+	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), true);
+	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 0.0f, 1.0f, 1.0f); 
+
+	Application::GetInstance().render.get()->DrawGrid();
+	
+	// Restore to normal texture mode
+	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), false);
+
+	
+	
+
+	//camera controls
 	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT)
 		cameraSpeed = 0.10f;
 	else

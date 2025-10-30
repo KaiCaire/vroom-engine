@@ -2,6 +2,7 @@
 #include "Input.h"
 #include "Window.h"
 #include "Log.h"
+#include "OpenGL.h"
 
 #include <string>
 #include <filesystem>
@@ -186,7 +187,11 @@ void Input::ProcessDroppedFile(const std::string sourcePath) {
 	//handle image files
 	else if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "tga") {
 		//detect if mouse is over a mesh and which one
+		glm::mat4 projMat = Application::GetInstance().openGL.get()->projectionMat;
+		glm::mat4 viewMat = Application::GetInstance().openGL.get()->viewMat;
+		glm::vec3 mouseRayDir = MouseRay(mouseX, mouseY, projMat, viewMat);
 		
+		/*Application::GetInstance().render.get()->modelsToDraw()[]*/
 		//if it is, change current material's texture for the dropped texture
 	}
 
@@ -232,8 +237,6 @@ glm::vec3 Input::MouseRay(int mouseX, int mouseY, const glm::mat4& projection, c
 	
 
 	return rayDirection;
-
-
 
 }
 
