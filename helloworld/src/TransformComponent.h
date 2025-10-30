@@ -33,8 +33,8 @@ public:
     glm::vec3 GetWorldScale() const;
 
     // Matrix operations
-    glm::mat4 GetLocalMatrix() const;
-    glm::mat4 GetGlobalMatrix() const;
+    glm::mat4 GetLocalTransform() const;
+    glm::mat4 GetGlobalTransform() const;
 
     // Mark transform as dirty (needs recalculation)
     void MarkAsDirty();

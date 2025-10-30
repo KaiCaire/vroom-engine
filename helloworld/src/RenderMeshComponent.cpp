@@ -50,7 +50,7 @@ void RenderMeshComponent::Render(Shader* shader) {
         static_cast<MaterialComponent*>(owner->GetComponent(ComponentType::MATERIAL));
 
     // Apply transformation matrix
-    glm::mat4 modelMatrix = transform->GetGlobalMatrix();
+    glm::mat4 modelMatrix = transform->GetGlobalTransform();
 
     // Set the model matrix in the shader
     shader->setMat4("model", modelMatrix);

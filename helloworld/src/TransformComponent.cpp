@@ -58,7 +58,7 @@ glm::vec3 TransformComponent::GetEulerAngles() const {
 }
 
 glm::vec3 TransformComponent::GetWorldPosition() const {
-    glm::mat4 globalMat = GetGlobalMatrix();
+    glm::mat4 globalMat = GetGlobalTransform();
     return glm::vec3(globalMat[3]);
 }
 
@@ -91,14 +91,14 @@ glm::vec3 TransformComponent::GetWorldScale() const {
     return localScale;
 }
 
-glm::mat4 TransformComponent::GetLocalMatrix() const {
+glm::mat4 TransformComponent::GetLocalTransform() const {
     if (isDirty) {
         RecalculateMatrices();
     }
     return localMatrix;
 }
 
-glm::mat4 TransformComponent::GetGlobalMatrix() const {
+glm::mat4 TransformComponent::GetGlobalTransform() const {
     if (isGlobalDirty) {
         RecalculateGlobalMatrixRecursive();
     }
@@ -146,7 +146,7 @@ void TransformComponent::RecalculateGlobalMatrixRecursive() const {
             static_cast<TransformComponent*>(
                 owner->GetParent()->GetComponent(ComponentType::TRANSFORM));
         if (parentTransform) {
-            globalMatrix = parentTransform->GetGlobalMatrix() * localMatrix;
+            globalMatrix = parentTransform->GetGlobalTransform() * localMatrix;
         } else {
             globalMatrix = localMatrix;
         }

@@ -115,6 +115,8 @@ bool Input::PreUpdate()
 
 		case SDL_EVENT_MOUSE_BUTTON_UP:
 			mouseButtons[event.button.button - 1] = KEY_UP;
+
+			
 			break;
 
 		case SDL_EVENT_MOUSE_MOTION:
