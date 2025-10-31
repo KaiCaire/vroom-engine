@@ -8,6 +8,7 @@
 #include "SDL3/SDL.h"
 
 #include "Module.h"
+#include "Gameobject.h"
 #include <vector>
 #include "FileSystem.h"
 #include "GUIElement.h"
@@ -51,11 +52,15 @@ private:
 	GUIElement Menu;
 
 	bool dockInitialized = false;
+	bool objectsInitialized = false;
 
 public:
 	bool showAboutPopup = false;
 	bool showConsole = true;
 	bool showConfig = false;
-	bool showHierarchy = false;
+	bool showHierarchy = true;
 	bool showInspector = false;
+
+	std::vector<std::shared_ptr<GameObject>> sceneObjects;
+	std::shared_ptr<GameObject> selectedObject;
 };

@@ -15,9 +15,10 @@
 
 #include <vector>
 
-GUIElement::GUIElement(ElementType t) 
+GUIElement::GUIElement(ElementType t, GUIManager* m)
 {
 	type = t;
+	manager = m;
 }
 
 GUIElement:: ~GUIElement() 
@@ -256,21 +257,37 @@ void GUIElement::HierarchySetUp(bool* show)
 	}
 
 	//create objects (minim cube)
-	//if(ImGui::BeginChild())
+	
 
 	//game objects
-	std::vector<std::shared_ptr<GameObject>>& objects = Application::GetInstance().openGL.get()->ourModel->GetGameObjects();
-	for (auto e : objects) {
-		int i = 1;
-		if (e.get()->GetParent() == nullptr && e.get()->IsActive()) {
-			const std::string text = "Entity " + std::to_string(i);
-			++i;
-			
-			//ImGui::TreeNodeEx();
-		}
+	//get root level objects
+	for (auto& obj : manager->sceneObjects)
+	{
+		//check for game objects with no parent
+		if (obj->IsActive() && !obj->GetParent()) DrawNode(obj, manager->selectedObject);
 	}
 
 	ImGui::End();
+}
+
+void GUIElement::DrawNode(const std::shared_ptr<GameObject>& obj, std::shared_ptr<GameObject>& selected) {
+	//setup tree structure (add arrows to expandable objects, make it so they show as selected)
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow |
+		(obj == selected ? ImGuiTreeNodeFlags_Selected : 0) |
+		(obj->GetChildren().empty() ? ImGuiTreeNodeFlags_Leaf : 0);
+
+	//create node and check if opened
+	bool opened = ImGui::TreeNodeEx((void*)obj.get(), flags, "%s", obj->GetName().c_str());
+
+	//check if object has been selected
+	if (ImGui::IsItemClicked()) selected = obj;
+
+	//show children 
+	if (opened)
+	{
+		for (auto& child : obj->GetChildren()) DrawNode(child, selected);
+		ImGui::TreePop();
+	}
 }
 
 void GUIElement::InspectorSetUp(bool* show)
