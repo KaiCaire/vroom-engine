@@ -161,9 +161,13 @@ void GUIManager::InitDock() {
 	//split dock
 	ImGuiID dockMainID = dockspaceID;
 	ImGuiID dockBottomID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Down, 0.25f, nullptr, &dockMainID);
+	ImGuiID dockLeftID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Left, 0.25f, nullptr, &dockMainID);
+	ImGuiID dockRightID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Right, 0.35f, nullptr, &dockMainID);
 
 	//assign windows to dock spaces
 	ImGui::DockBuilderDockWindow("Console", dockBottomID);
+	ImGui::DockBuilderDockWindow("Hierarchy", dockLeftID);
+	ImGui::DockBuilderDockWindow("Inspector", dockRightID);
 
 	ImGui::DockBuilderFinish(dockspaceID);
 	//only do this once

@@ -27,5 +27,6 @@ public:
 	uint id;
 	std::string mapType;
 	std::string path;
+	int texW, texH;
 	
 };

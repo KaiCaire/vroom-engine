@@ -20,6 +20,8 @@ Texture::Texture() : Module()
     id = -1;
     mapType = "";
     path = "";
+    texW = 0;
+    texH = 0;
 }
 
 // Destructor
@@ -68,6 +70,8 @@ uint Texture::TextureFromFile(const string directory, const char* filename) {
     
 
     unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nChannels, 0);
+    texW = width;
+    texH = height;
     if (!data)
     {
         cout << "Failed to load texture: " << filePath << endl;
