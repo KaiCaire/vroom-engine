@@ -4,6 +4,8 @@
 #include "SDL3/SDL.h"
 
 
+
+
 #define MAX_KEYS 300
 #define NUM_MOUSE_BUTTONS 5
 
@@ -56,12 +58,22 @@ public:
 		return mouseButtons[id - 1];
 	}
 
+	void ProcessDroppedFile(const std::string sourcePath);
+
+	glm::vec3 MouseRay(int mouseX, int mouseY, const glm::mat4& projection, const glm::mat4& view);
+
 	// Check if a certain window event happened
 	bool GetWindowEvent(EventWindow ev);
 
 	// Get mouse / axis position
-	//Vector2D GetMousePosition();
-	//Vector2D GetMouseMotion();
+	SDL_FPoint GetMousePosition();
+	SDL_FPoint GetMouseMotion();
+	Model* importedModel;
+
+
+	int GetMouseWheelDeltaY() const { return mouseWheelY; }
+
+	void SetMouseWheelDeltaY(int mouse) { mouseWheelY = mouse; }
 
 private:
 	bool windowEvents[WE_COUNT];
@@ -73,4 +85,10 @@ private:
 	int mouseMotionY;
 	int mouseX;
 	int mouseY;
+  int mouseWheelY;
+
+	const char* droppedFileDir;
+	/*std::vector<std::shared_ptr<GameObject>> selectedObjects;*/
+	
+
 };

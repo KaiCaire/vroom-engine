@@ -94,8 +94,7 @@ bool Render::Update(float dt)
 
 bool Render::PostUpdate()
 {
-	//SDL_SetRenderDrawColor(renderer, background.r, background.g, background.g, background.a);
-	//SDL_RenderPresent(renderer);
+
 
 	SDL_GL_SwapWindow(Application::GetInstance().window->window);
 	return true;
@@ -287,31 +286,51 @@ bool Render::DrawCircle(int x, int y, int radius, Uint8 r, Uint8 g, Uint8 b, Uin
 	return ret;
 }
 
+void Render::AddModel(Model model) {
+	modelsToDraw.push_back(model);
+}
+
 bool Render::DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) const {
 
 	glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	
-	/*
-	void glDrawElements(GLenum mode, GLsizei count, GLenum type, const void *indices);
-	Copiar
-	mode: Specifies the type of primitives to render (e.g., GL_TRIANGLES, GL_LINES).
-
-	count: Number of indices to be rendered.
-
-	type: Data type of the indices (e.g., GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_UNSIGNED_INT).
-
-	indices: Pointer to the index array or offset in an element buffer.
-	*/
-
-	
-	glUseProgram(shaderProgram);
-	glBindVertexArray(VAO);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
-
-	
 
 	return true;
+}
+
+void Render::DrawGrid() {
+
+	
+	
+
+
+	float lineX = -100.0f;
+	float lineZ = -100.0f;
+
+	float lineLength = 100.0f;
+	for (int i = 0; i < 1000; i++) {
+		
+		glLineWidth(1.0f);
+		
+		glBegin(GL_LINES);
+
+		//X AXIS LINES
+		glVertex3f(-lineLength, 0.0f, lineZ);
+		glVertex3f(lineLength, 0.0f, lineZ);
+
+		//Z AXIS LINES
+		glVertex3f(lineX, 0.f, -lineLength);
+		glVertex3f(lineX, 0.f, lineLength);
+
+		glEnd();
+		
+
+		lineX++;
+		lineZ++;
+	}
+
+	glClearColor;
+
+	//glLineWidth(1.0f);
 }
