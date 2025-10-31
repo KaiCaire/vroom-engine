@@ -213,6 +213,7 @@ void GUIElement::ConfigSetUp(bool* show) {
 
 	//variable config
 	ImGui::Text("Variable Settings:");
+	//window (full screen, window resolution etc)
 
 	ImGui::Separator();
 
@@ -258,13 +259,16 @@ void GUIElement::HierarchySetUp(bool* show)
 	//if(ImGui::BeginChild())
 
 	//game objects
-	/*std::vector<std::shared_ptr<GameObject>>& objects = Application::GetInstance().openGL.get()->ourModel->GetGameObjects();
+	std::vector<std::shared_ptr<GameObject>>& objects = Application::GetInstance().openGL.get()->ourModel->GetGameObjects();
 	for (auto e : objects) {
+		int i = 1;
 		if (e.get()->GetParent() == nullptr && e.get()->IsActive()) {
-			const std::string text = 
-			ImGui::TreeNodeEx();
+			const std::string text = "Entity " + std::to_string(i);
+			++i;
+			
+			//ImGui::TreeNodeEx();
 		}
-	}*/
+	}
 
 	ImGui::End();
 }
