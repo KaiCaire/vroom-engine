@@ -14,7 +14,9 @@ class FileSystem;
 class Texture;
 class Mesh;
 class Model;
+class GUIManager;
 class Camera;
+
 
 //class Physics;
 
@@ -42,6 +44,10 @@ public:
 
 	float GetDt() const {
 		return dt;
+	}
+
+	int GetFPS() {
+		return framesPerSecond;
 	}
 
 private:
@@ -89,6 +95,7 @@ public:
 
 	// Modules
 	std::shared_ptr<Window> window;
+	std::shared_ptr<GUIManager> guiManager;
 	std::shared_ptr<Input> input;
 	std::shared_ptr<Render> render;
 	std::shared_ptr<OpenGL> openGL;
@@ -96,7 +103,7 @@ public:
 	std::shared_ptr<Texture> textures;
 	std::shared_ptr<Camera> camera;
 	
-
+	bool requestExit = false;
 
 private:
 

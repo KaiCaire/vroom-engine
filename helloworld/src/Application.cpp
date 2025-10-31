@@ -8,7 +8,11 @@
 #include "OpenGL.h"
 #include "FileSystem.h"
 #include "Textures.h"
+
+#include "GUIManager.h"
+
 #include "Camera.h"
+
 
 
 
@@ -19,6 +23,7 @@ Application::Application() {
 
     // Modules
     window = std::make_shared<Window>();
+    guiManager = std::make_shared<GUIManager>();
     input = std::make_shared<Input>();
     render = std::make_shared<Render>();
     openGL = std::make_shared<OpenGL>();
@@ -29,6 +34,7 @@ Application::Application() {
     // Ordered for awake / Start / Update
     // Reverse order of CleanUp
     AddModule(std::static_pointer_cast<Module>(window));
+    AddModule(std::static_pointer_cast<Module>(guiManager));
     AddModule(std::static_pointer_cast<Module>(input));
     AddModule(std::static_pointer_cast<Module>(textures));
     AddModule(std::static_pointer_cast<Module>(camera));
@@ -88,6 +94,8 @@ bool Application::Start() {
 // Called each loop iteration
 bool Application::Update() {
 
+    if (requestExit) return false;
+    
     bool ret = true;
     PrepareUpdate();
 

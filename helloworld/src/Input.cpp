@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "Input.h"
 #include "Window.h"
+#include "GUIManager.h"
 #include "Log.h"
 #include "OpenGL.h"
 
@@ -98,6 +99,7 @@ bool Input::PreUpdate()
 
 	while (SDL_PollEvent(&event) != 0)
 	{
+		Application::GetInstance().guiManager.get()->ProcessEvents(event);
 		switch (event.type)
 		{
 		case SDL_EVENT_QUIT:
