@@ -179,7 +179,7 @@ bool OpenGL::Update(float dt) {
 		}
 		else if (Application::GetInstance().input.get()->GetMouseButtonDown(SDL_BUTTON_MIDDLE) == KEY_REPEAT) // Pan
 		{
-			ProcessPan(xoffset, yoffset);
+			ProcessPan(xoffset, -yoffset);
 		}
 		else if (Application::GetInstance().input.get()->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KEY_REPEAT) // Dolly
 		{
