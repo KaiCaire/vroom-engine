@@ -9,7 +9,7 @@
 #include "Module.h"
 #include "FileSystem.h"
 
-enum ElementType{ Additional, MenuBar, Console, Config};
+enum ElementType{ Additional, MenuBar, Console, Config, Hierarchy, Inspector};
 
 class GUIElement {
 public:
@@ -23,6 +23,8 @@ public:
 	void AboutSetUp();
 	void ConsoleSetUp(bool* show);
 	void ConfigSetUp(bool* show);
+	void HierarchySetUp(bool* show);
+	void InspectorSetUp(bool* show);
 
 private:
 	ElementType type;

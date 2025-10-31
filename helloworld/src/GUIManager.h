@@ -56,4 +56,6 @@ public:
 	bool showAboutPopup = false;
 	bool showConsole = true;
 	bool showConfig = false;
+	bool showHierarchy = false;
+	bool showInspector = false;
 };

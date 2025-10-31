@@ -65,6 +65,8 @@ std::vector<GUIElement> GUIManager::LoadElements()
 
 	elements.push_back(GUIElement(ElementType::Console));
 	elements.push_back(GUIElement(ElementType::Config));
+	elements.push_back(GUIElement(ElementType::Hierarchy));
+	elements.push_back(GUIElement(ElementType::Inspector));
 
 	return elements;
 }

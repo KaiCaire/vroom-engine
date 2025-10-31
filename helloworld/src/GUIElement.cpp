@@ -5,6 +5,8 @@
 #include "FileSystem.h"
 #include "GUIManager.h"
 #include "SystemInfo.h"
+#include "OpenGL.h"
+#include "Model.h"
 
 #include <SDL3/SDL_opengl.h>
 #include <glm/glm.hpp>
@@ -39,6 +41,12 @@ void GUIElement::ElementSetUp()
 	case ElementType::Config:
 		if (Application::GetInstance().guiManager.get()->showConfig) ConfigSetUp(&Application::GetInstance().guiManager.get()->showConfig);
 		break;
+	case ElementType::Hierarchy:
+		if (Application::GetInstance().guiManager.get()->showHierarchy) HierarchySetUp(&Application::GetInstance().guiManager.get()->showHierarchy);
+		break;
+	case ElementType::Inspector:
+		if (Application::GetInstance().guiManager.get()->showInspector) InspectorSetUp(&Application::GetInstance().guiManager.get()->showInspector);
+		break;
 	default:
 		LOG("No GUIType detected.");
 		break;
@@ -66,6 +74,14 @@ void GUIElement::MenuBarSetUp()
 			if (ImGui::MenuItem("Configuration", nullptr, Application::GetInstance().guiManager.get()->showConfig)) {
 				bool set = !Application::GetInstance().guiManager.get()->showConfig;
 				Application::GetInstance().guiManager.get()->showConfig = set;
+			}
+			if (ImGui::MenuItem("Hierarchy", nullptr, Application::GetInstance().guiManager.get()->showHierarchy)) {
+				bool set = !Application::GetInstance().guiManager.get()->showHierarchy;
+				Application::GetInstance().guiManager.get()->showHierarchy = set;
+			}
+			if (ImGui::MenuItem("Inspector", nullptr, Application::GetInstance().guiManager.get()->showInspector)) {
+				bool set = !Application::GetInstance().guiManager.get()->showInspector;
+				Application::GetInstance().guiManager.get()->showInspector = set;
 			}
 
 			ImGui::EndMenu();
@@ -219,5 +235,57 @@ void GUIElement::ConfigSetUp(bool* show) {
 	ImGui::BulletText("Assimp: %d.%d.%d", aiGetVersionMajor(), aiGetVersionMinor(), aiGetVersionRevision());
 	ImGui::BulletText("fmt: %d.%d.%d", FMT_VERSION / 10000, (FMT_VERSION / 100) % 100, FMT_VERSION % 100);
 	
+	ImGui::End();
+}
+
+void GUIElement::HierarchySetUp(bool* show)
+{
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+
+	//initial states
+	ImGui::SetNextWindowDockID(0, ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(500, 300), ImGuiCond_FirstUseEver);
+
+	//check if we should show it
+	if (!ImGui::Begin("Hierarchy", show, window_flags))
+	{
+		//if not -> end here
+		ImGui::End();
+		return;
+	}
+
+	//create objects (minim cube)
+	//if(ImGui::BeginChild())
+
+	//game objects
+	/*std::vector<std::shared_ptr<GameObject>>& objects = Application::GetInstance().openGL.get()->ourModel->GetGameObjects();
+	for (auto e : objects) {
+		if (e.get()->GetParent() == nullptr && e.get()->IsActive()) {
+			const std::string text = 
+			ImGui::TreeNodeEx();
+		}
+	}*/
+
+	ImGui::End();
+}
+
+void GUIElement::InspectorSetUp(bool* show)
+{
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+
+	//initial states
+	ImGui::SetNextWindowDockID(0, ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(500, 300), ImGuiCond_FirstUseEver);
+
+	//check if we should show it
+	if (!ImGui::Begin("Inspector", show, window_flags))
+	{
+		//if not -> end here
+		ImGui::End();
+		return;
+	}
+
+	//show normals 
+
 	ImGui::End();
 }
