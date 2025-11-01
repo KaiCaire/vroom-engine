@@ -31,6 +31,7 @@ public:
 
 	Shader* texCoordsShader;
 	Model* ourModel;
+	vector<Model*> modelObjects;
 
 
 	bool Start() override;

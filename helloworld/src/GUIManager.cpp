@@ -84,11 +84,17 @@ bool GUIManager::PreUpdate()
 	return true;
 }
 
+void GUIManager::AddGameObject(Model* obj) {
+	sceneObjects.push_back(obj->rootGameObject);
+}
+
 bool GUIManager::Update(float dt)
 {
 	//initialize game object list
 	if (!objectsInitialized) {
-		sceneObjects.push_back(Application::GetInstance().openGL.get()->ourModel->rootGameObject); 
+		for (auto m : Application::GetInstance().openGL.get()->modelObjects) {
+			sceneObjects.push_back(m->rootGameObject);
+		}
 		objectsInitialized = true;
 	}
 	

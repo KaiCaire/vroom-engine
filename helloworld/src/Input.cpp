@@ -108,9 +108,14 @@ bool Input::PreUpdate()
 
 			/*case SDL_EVENT_WINDOW_RESIZED:*/
 		case SDL_EVENT_WINDOW_RESIZED:
-			//handle opengl window on resize
 			w = event.window.data1;
 			h = event.window.data2;
+
+			//make sure window values are set accordingly
+			Application::GetInstance().window.get()->width = w;
+			Application::GetInstance().window.get()->height = h;
+
+			//handle opengl window on resize
 			glViewport(0,0,w, h);
 			break;
 			/*case SDL_WINDOWEVENT_LEAVE:*/

@@ -38,8 +38,8 @@ public:
     ~Mesh();
     void CalculateNormals();
     void Draw(Shader &shader);
-    bool drawVertNormals;
-    bool drawFaceNormals;
+    bool drawVertNormals = false;
+    bool drawFaceNormals = false;
     /*void CreateCube();*/
 
 private:

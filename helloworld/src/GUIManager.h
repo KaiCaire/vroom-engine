@@ -45,6 +45,9 @@ public:
 
 	//Called before quit
 	bool CleanUp();
+
+	//add game objects to hierarchy
+	void AddGameObject(Model* obj);
 private:
 	ImGuiIO* io = nullptr;
 	std::vector<GUIElement> WindowElements;

@@ -84,7 +84,6 @@ Model::Model(Mesh mesh) {
     /*LOG("  - Set parent to '%s'", rootGameObject->GetName());*/
     
     //TODO: define & apply default material
-     
      meshes.push_back(make_shared<Mesh>(mesh));
 }
 

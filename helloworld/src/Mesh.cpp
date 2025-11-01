@@ -14,8 +14,8 @@ Mesh::Mesh(vector<Vertex> _vertices, vector<unsigned int> _indices, vector<Textu
     
 
     
-    drawVertNormals = true;
-    drawFaceNormals = true;
+    drawVertNormals = false;
+    drawFaceNormals = false;
 
     this->setupMesh();
     CalculateNormals();
@@ -81,7 +81,7 @@ void Mesh::Draw(Shader &shader) {
     
 
     
-    if (Application::GetInstance().guiManager.get()->drawVertNormals) {
+    if (drawFaceNormals) {
         
         
         glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), true);
@@ -102,7 +102,7 @@ void Mesh::Draw(Shader &shader) {
         glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), false);
     }
 
-    if (Application::GetInstance().guiManager.get()->drawVertNormals) {
+    if (drawVertNormals) {
 
 
         glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), true);

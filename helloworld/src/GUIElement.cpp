@@ -323,7 +323,7 @@ void GUIElement::HierarchySetUp(bool* show)
 	for (auto& obj : manager->sceneObjects)
 	{
 		//check for game objects with no parent
-		if (obj->IsActive() && !obj->GetParent()) DrawNode(obj, manager->selectedObject);
+		if (obj && obj->IsActive() && !obj->GetParent()) DrawNode(obj, manager->selectedObject);
 	}
 
 	ImGui::End();
@@ -417,32 +417,8 @@ void GUIElement::InspectorSetUp(bool* show)
 				ImGui::Text("Indices: %d", ind.size());
 
 				//show normals 
-				//handle button colors (commented until show normal function is created)
-				if (showVertNormals) {
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // Green when active
-				}
-				else if (showFaceNormals) {
-					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.9f, 1.0f, 1.0f)); // Light blue when active
-				}
-				else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
-
-				if (ImGui::Button("Show Vertex Normals")) {
-					//handle showing normals
-
-					showVertNormals = !showVertNormals;
-					//handle state
-					//showNormals = !showNormals; //commented until show normal function is created
-				}
-
-				if (ImGui::Button("Show Face Normals")) {
-					//handle showing normals
-					showFaceNormals = !showFaceNormals;
-					//handle state
-					//showNormals = !showNormals; //commented until show normal function is created
-				}
-
-				//activate the button color change (commented until show normal function is created)
-				ImGui::PopStyleColor();
+				ImGui::Checkbox("Show Vertex Normals", &mesh.get()->drawFaceNormals);
+				ImGui::Checkbox("Show Face Normals", &mesh.get()->drawVertNormals);
 			}
 
 			//texture

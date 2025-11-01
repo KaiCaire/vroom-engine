@@ -93,6 +93,7 @@ bool OpenGL::Start() {
 	
 
 	ourModel = new Model(modelPath.c_str());
+	modelObjects.push_back(ourModel);
 
 	Application::GetInstance().render.get()->AddModel(*ourModel);
 
@@ -427,6 +428,10 @@ Model OpenGL::CreateCube() {
 
 	//we probably need a function to create a model without a path
 	Model* cubeModel = new Model(*cubeMesh);
+
+	//add model and game object
+	modelObjects.push_back(cubeModel);
+	Application::GetInstance().guiManager.get()->AddGameObject(cubeModel);
 
 	/*Application::GetInstance().render.get()->AddModel(cubeMesh);*/
 	return *cubeModel;
