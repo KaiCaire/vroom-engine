@@ -99,6 +99,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
     vector<Vertex> vertices;
     vector<unsigned int> indices;
     vector<Texture> textures;
+    
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;

@@ -292,18 +292,14 @@ void Render::AddModel(Model model) {
 
 bool Render::DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) const {
 
-	glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
 	return true;
 }
 
 void Render::DrawGrid() {
-
-	
-	
-
 
 	float lineX = -100.0f;
 	float lineZ = -100.0f;

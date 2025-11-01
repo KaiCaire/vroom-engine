@@ -44,6 +44,8 @@ bool OpenGL::Start() {
 
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
 
+	/*normalShader = new Shader("")*/
+
 	std::cout << "OpenGL initialized successfully" << std::endl;
 
 
@@ -87,12 +89,13 @@ bool OpenGL::Start() {
 	
 
 	std::string modelPath = "../Assets/Models/BakerHouse/BakerHouse.fbx";
-
+	
 
 	ourModel = new Model(modelPath.c_str());
 
 	Application::GetInstance().render.get()->AddModel(*ourModel);
-
+	
+	
 
 
 	cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
@@ -128,7 +131,7 @@ bool OpenGL::Update(float dt) {
 
 	//use shader's line color instead of texture
 	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), true);
-	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 0.0f, 1.0f, 1.0f); 
+	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 0.0f, 1.0f, 1.0f); //pink grid lol
 
 
 	Application::GetInstance().render.get()->DrawGrid();
@@ -216,6 +219,9 @@ bool OpenGL::Update(float dt) {
 	texCoordsShader->setMat4("model", modelMat);
 	texCoordsShader->setMat4("view", viewMat);
 	texCoordsShader->setMat4("projection", projectionMat);
+
+	//draw all meshes
+	
 
 	for (int i = 0; i < Application::GetInstance().render.get()->modelsToDraw.size(); i++) {
 		Application::GetInstance().render.get()->modelsToDraw[i].Draw(*texCoordsShader);
