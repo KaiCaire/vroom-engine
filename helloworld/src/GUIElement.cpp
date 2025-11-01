@@ -12,6 +12,7 @@
 #include "RenderMeshComponent.h"
 #include "MaterialComponent.h"
 #include "Textures.h"
+#include "Window.h"
 
 #include <SDL3/SDL_opengl.h>
 #include <glm/glm.hpp>
@@ -221,9 +222,44 @@ void GUIElement::ConfigSetUp(bool* show) {
 	ImGui::Separator();
 
 	//variable config
-	ImGui::Text("Variable Settings:");
-	//window (full screen, window resolution etc)
+	ImGui::Text("Variables:");
+	//window full screen
+	//check if window is fullscreen
+	bool fullscreen = Application::GetInstance().window.get()->isFullscreen;
+	if (ImGui::Checkbox("Fullscreen", &fullscreen)) {
+		Application::GetInstance().window.get()->SetFullScreen(fullscreen);
+	}
+	//window resolution
+	if (!fullscreen) {
+		//get resolutions and current resolution from window
+		vector<glm::vec2> options = Application::GetInstance().window.get()->resolutions;
+		glm::vec2 current = Application::GetInstance().window.get()->currentRes;
 
+		//find index of current resolution
+		int index = 0;
+
+		//setup dropdown menu
+		ImGui::Text("Resolution");
+		ImGui::SameLine();
+		if (ImGui::BeginCombo("##Resolution", (std::to_string((int)current.x) + "x" + std::to_string((int)current.y)).c_str())) {
+			for (int i = 0; i < options.size(); i++) {
+				//find selected resoltion
+				bool selected = (current == options[i]);
+				
+				//create option label
+				std::string label = (std::to_string((int)options[i].x) + "x" + std::to_string((int)options[i].y));
+				if (ImGui::Selectable(label.c_str(), selected)) {
+					//apply resolution
+					current = options[i];
+					Application::GetInstance().window.get()->SetWindowSize(current);
+				}
+
+				if (selected) ImGui::SetItemDefaultFocus();
+			}
+
+			ImGui::EndCombo();
+		}
+	}
 	ImGui::Separator();
 
 	//hardware and memory consuption
