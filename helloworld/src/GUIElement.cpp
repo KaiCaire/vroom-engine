@@ -8,16 +8,26 @@
 #include "OpenGL.h"
 #include "Model.h"
 
+#include "TransformComponent.h"
+#include "RenderMeshComponent.h"
+#include "MaterialComponent.h"
+#include "Textures.h"
+#include "Window.h"
+
 #include <SDL3/SDL_opengl.h>
 #include <glm/glm.hpp>
 #include <assimp/version.h>
 #include <fmt/core.h>
 
+#include <glm/gtx/euler_angles.hpp>
+#include <glm/gtx/transform.hpp>
+
 #include <vector>
 
-GUIElement::GUIElement(ElementType t) 
+GUIElement::GUIElement(ElementType t, GUIManager* m)
 {
 	type = t;
+	manager = m;
 }
 
 GUIElement:: ~GUIElement() 
@@ -212,8 +222,44 @@ void GUIElement::ConfigSetUp(bool* show) {
 	ImGui::Separator();
 
 	//variable config
-	ImGui::Text("Variable Settings:");
+	ImGui::Text("Variables:");
+	//window full screen
+	//check if window is fullscreen
+	bool fullscreen = Application::GetInstance().window.get()->isFullscreen;
+	if (ImGui::Checkbox("Fullscreen", &fullscreen)) {
+		Application::GetInstance().window.get()->SetFullScreen(fullscreen);
+	}
+	//window resolution
+	if (!fullscreen) {
+		//get resolutions and current resolution from window
+		vector<glm::vec2> options = Application::GetInstance().window.get()->resolutions;
+		glm::vec2 current = Application::GetInstance().window.get()->currentRes;
 
+		//find index of current resolution
+		int index = 0;
+
+		//setup dropdown menu
+		ImGui::Text("Resolution");
+		ImGui::SameLine();
+		if (ImGui::BeginCombo("##Resolution", (std::to_string((int)current.x) + "x" + std::to_string((int)current.y)).c_str())) {
+			for (int i = 0; i < options.size(); i++) {
+				//find selected resoltion
+				bool selected = (current == options[i]);
+				
+				//create option label
+				std::string label = (std::to_string((int)options[i].x) + "x" + std::to_string((int)options[i].y));
+				if (ImGui::Selectable(label.c_str(), selected)) {
+					//apply resolution
+					current = options[i];
+					Application::GetInstance().window.get()->SetWindowSize(current);
+				}
+
+				if (selected) ImGui::SetItemDefaultFocus();
+			}
+
+			ImGui::EndCombo();
+		}
+	}
 	ImGui::Separator();
 
 	//hardware and memory consuption
@@ -255,18 +301,49 @@ void GUIElement::HierarchySetUp(bool* show)
 	}
 
 	//create objects (minim cube)
-	//if(ImGui::BeginChild())
+	if (ImGui::BeginMenu("Create...")) {
+		if (ImGui::MenuItem("Empty")) {
+			//Create empty function
+
+		}
+		if (ImGui::MenuItem("Cube")) {
+			//Create cube function
+
+		}
+		ImGui::EndMenu();
+	}
+
+	ImGui::Separator();
 
 	//game objects
-	/*std::vector<std::shared_ptr<GameObject>>& objects = Application::GetInstance().openGL.get()->ourModel->GetGameObjects();
-	for (auto e : objects) {
-		if (e.get()->GetParent() == nullptr && e.get()->IsActive()) {
-			const std::string text = 
-			ImGui::TreeNodeEx();
-		}
-	}*/
+	//get root level objects
+	for (auto& obj : manager->sceneObjects)
+	{
+		//check for game objects with no parent
+		if (obj->IsActive() && !obj->GetParent()) DrawNode(obj, manager->selectedObject);
+	}
 
 	ImGui::End();
+}
+
+void GUIElement::DrawNode(const std::shared_ptr<GameObject>& obj, std::shared_ptr<GameObject>& selected) {
+	//setup tree structure (add arrows to expandable objects, make it so they show as selected)
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow |
+		(obj == selected ? ImGuiTreeNodeFlags_Selected : 0) |
+		(obj->GetChildren().empty() ? ImGuiTreeNodeFlags_Leaf : 0);
+
+	//create node and check if opened
+	bool opened = ImGui::TreeNodeEx((void*)obj.get(), flags, "%s", obj->GetName().c_str());
+
+	//check if object has been selected
+	if (ImGui::IsItemClicked()) selected = obj;
+
+	//show children 
+	if (opened)
+	{
+		for (auto& child : obj->GetChildren()) DrawNode(child, selected);
+		ImGui::TreePop();
+	}
 }
 
 void GUIElement::InspectorSetUp(bool* show)
@@ -285,7 +362,99 @@ void GUIElement::InspectorSetUp(bool* show)
 		return;
 	}
 
-	//show normals 
+	//check if a game object is selected
+	auto selected = manager->selectedObject;
+
+	if (selected) {
+		//show game object name
+		char buffer[128];
+		strcpy(buffer, selected->GetName().c_str());
+		if (ImGui::InputText("##hidden", buffer, sizeof(buffer))) selected->SetName(buffer);
+
+	    //transform
+		//get transform component
+		auto transform = std::dynamic_pointer_cast<TransformComponent>(selected->GetComponent(ComponentType::TRANSFORM));
+		if (transform) {
+			//check if header is open
+			if (ImGui::CollapsingHeader("Transform")) {
+				//get values
+				glm::vec3 pos = transform.get()->GetWorldPosition();
+				glm::quat rot = glm::degrees(glm::eulerAngles(transform->GetWorldRotation()));
+				glm::vec3 scale = transform.get()->GetWorldScale();
+
+				//display values
+				ImGui::Text("Position: %.2f, %.2f, %.2f", pos.x, pos.y, pos.z);
+				ImGui::Text("Rotation: %.2f, %.2f, %.2f", rot.x, rot.y, rot.z);
+				ImGui::Text("Scale: %.2f, %.2f, %.2f", scale.x, scale.y, scale.z);
+			}
+		}
+		
+		//mesh
+		//get mesh component
+		auto meshComponent = std::dynamic_pointer_cast<RenderMeshComponent>(selected->GetComponent(ComponentType::MESH_RENDERER));
+		//get texture for next step
+		vector<Texture> textureComponent;
+
+		if (meshComponent) {
+			std::shared_ptr<Mesh> mesh = meshComponent.get()->GetMesh();
+			if(mesh) textureComponent = mesh.get()->textures;
+
+			//check if header is open
+			if (ImGui::CollapsingHeader("Mesh")) {
+				//get values
+				std::shared_ptr<Mesh> mesh = meshComponent.get()->GetMesh();
+				vector<Vertex> vert = mesh.get()->vertices;
+				vector<unsigned int> ind = mesh.get()->indices;
+
+				//display values
+				ImGui::Text("Vertices: %d", vert.size());
+				ImGui::Text("Indices: %d", ind.size());
+
+				//show normals 
+				//handle button colors (commented until show normal function is created)
+				//if (showNormals) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // Green when active
+				//else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+
+				if (ImGui::Button("Show Normals")) {
+					//handle showing normals
+
+					//handle state
+					//showNormals = !showNormals; //commented until show normal function is created
+				}
+
+				//activate the button color change (commented until show normal function is created)
+				//ImGui::PopStyleColor();
+			}
+
+			//texture
+			if (ImGui::CollapsingHeader("Texture")) {
+				for (auto t : textureComponent) {
+					ImGui::Text("Texture %u", t.id);
+					ImGui::BulletText("Path: %s", t.path.c_str());
+					ImGui::BulletText("Width: %d", t.texW);
+					ImGui::BulletText("Height: %d", t.texH);
+				}
+
+				//checker texture toggle
+				//handle button colors (commented until show checker function is created)
+				//if (checkerTex) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // Green when active
+				//else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+
+				if (ImGui::Button("Show Checker Texture")) {
+					//handle checker texture
+
+					//handle state
+					//checkerTex = !checkerTex; //commented until show checker function is created
+				}
+
+				//activate the button color change (commented until show checker function is created)
+				//ImGui::PopStyleColor();
+			}
+		}
+	}
+	else {
+		ImGui::Text("No GameObject selected.");
+	}
 
 	ImGui::End();
 }

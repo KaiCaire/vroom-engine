@@ -2,6 +2,7 @@
 #include "Window.h"
 #include "GUIManager.h"
 #include "GUIElement.h"
+#include "OpenGL.h"
 #include "Log.h"
 #include "FileSystem.h"
 #include <SDL3/SDL_opengl.h>
@@ -11,7 +12,7 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
 
-GUIManager::GUIManager() : Module(), AdditionalElements(ElementType::Additional), Menu(ElementType::MenuBar)
+GUIManager::GUIManager() : Module(), AdditionalElements(ElementType::Additional, this), Menu(ElementType::MenuBar, this), sceneObjects(), selectedObject(nullptr)
 {
 	name = "guiManager";
 }
@@ -63,10 +64,10 @@ std::vector<GUIElement> GUIManager::LoadElements()
 {
 	std::vector<GUIElement> elements;
 
-	elements.push_back(GUIElement(ElementType::Console));
-	elements.push_back(GUIElement(ElementType::Config));
-	elements.push_back(GUIElement(ElementType::Hierarchy));
-	elements.push_back(GUIElement(ElementType::Inspector));
+	elements.push_back(GUIElement(ElementType::Console, this));
+	elements.push_back(GUIElement(ElementType::Config, this));
+	elements.push_back(GUIElement(ElementType::Hierarchy, this));
+	elements.push_back(GUIElement(ElementType::Inspector, this));
 
 	return elements;
 }
@@ -85,6 +86,12 @@ bool GUIManager::PreUpdate()
 
 bool GUIManager::Update(float dt)
 {
+	//initialize game object list
+	if (!objectsInitialized) {
+		sceneObjects = Application::GetInstance().openGL.get()->ourModel->GetGameObjects();
+		objectsInitialized = true;
+	}
+	
 	//Start the ImGui frame
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL3_NewFrame();
@@ -154,9 +161,13 @@ void GUIManager::InitDock() {
 	//split dock
 	ImGuiID dockMainID = dockspaceID;
 	ImGuiID dockBottomID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Down, 0.25f, nullptr, &dockMainID);
+	ImGuiID dockLeftID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Left, 0.25f, nullptr, &dockMainID);
+	ImGuiID dockRightID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Right, 0.35f, nullptr, &dockMainID);
 
 	//assign windows to dock spaces
 	ImGui::DockBuilderDockWindow("Console", dockBottomID);
+	ImGui::DockBuilderDockWindow("Hierarchy", dockLeftID);
+	ImGui::DockBuilderDockWindow("Inspector", dockRightID);
 
 	ImGui::DockBuilderFinish(dockspaceID);
 	//only do this once

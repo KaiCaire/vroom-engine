@@ -96,7 +96,7 @@ bool Input::PreUpdate()
 		if (mouseButtons[i] == KEY_UP)
 			mouseButtons[i] = KEY_IDLE;
 	}
-
+	int w, h = 0;
 	while (SDL_PollEvent(&event) != 0)
 	{
 		Application::GetInstance().guiManager.get()->ProcessEvents(event);
@@ -106,7 +106,13 @@ bool Input::PreUpdate()
 			windowEvents[WE_QUIT] = true;
 			break;
 
-
+			/*case SDL_EVENT_WINDOW_RESIZED:*/
+		case SDL_EVENT_WINDOW_RESIZED:
+			//handle opengl window on resize
+			w = event.window.data1;
+			h = event.window.data2;
+			glViewport(0,0,w, h);
+			break;
 			/*case SDL_WINDOWEVENT_LEAVE:*/
 		case SDL_EVENT_WINDOW_HIDDEN:
 		case SDL_EVENT_WINDOW_MINIMIZED:

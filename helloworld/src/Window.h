@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Module.h"
+#include <vector>
 
 class Window : public Module
 {
@@ -34,6 +35,9 @@ public:
 		return glContext;
 	}
 
+	void SetFullScreen(bool set);
+	void SetWindowSize(glm::vec2 size);
+
 public:
 	// The window we'll be rendering to
 	SDL_Window* window;
@@ -43,4 +47,16 @@ public:
 	int width = 800;
 	int height = 720;
 	int scale = 1;
+
+	bool isFullscreen = false;
+
+	//current resolution being used 
+	glm::vec2 currentRes = { width, height };
+
+	//list of resolutions for imgui dropdown
+	std::vector<glm::vec2> resolutions = {
+		{800, 720},
+		{1280, 720}
+	};
+
 };

@@ -38,7 +38,7 @@ void Model::loadModel(string path) {
     directory = fullPath.substr(0, fullPath.find_last_of('/'));
 
     rootGameObject = make_shared<GameObject>("RootNode");
-    processNodeWithGameObjects(scene->mRootNode, scene, rootGameObject);
+    processNodeWithGameObjects(scene->mRootNode, scene, nullptr);
 
     LOG("Finished Loading Model");
     LOG("=== MODEL LOADING SUMMARY ===");
