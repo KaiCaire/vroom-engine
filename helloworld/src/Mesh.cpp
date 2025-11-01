@@ -1,6 +1,8 @@
-#include "Mesh.h"
+﻿#include "Mesh.h"
 #include "Shader.h"
-
+#include "Model.h"
+#include "Application.h"
+#include "Render.h"
 
 
 Mesh::Mesh(vector<Vertex> _vertices, vector<unsigned int> _indices, vector<Texture> _textures) {
@@ -143,7 +145,7 @@ void Mesh::CalculateNormals() {
         glm::vec3 v1 = vertices[indices[i + 1]].Position;
         glm::vec3 v2 = vertices[indices[i + 2]].Position;
 
-        //With just vertices[i] instead of vertices[indices[i]], you�d be assuming that every 3 consecutive vertices form a triangle.
+        //With just vertices[i] instead of vertices[indices[i]], you’d be assuming that every 3 consecutive vertices form a triangle.
         //However, that's not always the case, as most meshes reuse vertices between faces.
 
         glm::vec3 normal = glm::normalize(glm::cross(v1-v0, v2-v0)); 
@@ -163,6 +165,5 @@ void Mesh::CalculateNormals() {
         normal = glm::normalize(normal);
     }
     
-
-    
 }
+

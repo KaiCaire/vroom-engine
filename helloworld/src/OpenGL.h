@@ -44,4 +44,6 @@ public:
 	void ProcessDolly(float xoffset, float yoffset);
 	void ProcessScrollZoom(float delta, bool isMouseScroll);
 
+	Model CreateCube();
+
 };
