@@ -85,7 +85,9 @@ bool GUIManager::PreUpdate()
 }
 
 void GUIManager::AddGameObject(Model* obj) {
-	sceneObjects.push_back(obj->rootGameObject);
+	for (auto o : obj->gameObjects) {
+		sceneObjects.push_back(o);
+	}
 }
 
 bool GUIManager::Update(float dt)
