@@ -45,6 +45,8 @@ bool OpenGL::Start() {
 
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
 
+	/*normalShader = new Shader("")*/
+
 	std::cout << "OpenGL initialized successfully" << std::endl;
 
 
@@ -88,13 +90,14 @@ bool OpenGL::Start() {
 
 
 	std::string modelPath = "../Assets/Models/BakerHouse/BakerHouse.fbx";
-
+	
 
 	ourModel = new Model(modelPath.c_str());
 
 	Application::GetInstance().render.get()->AddModel(*ourModel);
 
-
+	Model defaultCube = CreateCube();
+	Application::GetInstance().render.get()->AddModel(defaultCube);
 
 	cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
@@ -114,7 +117,7 @@ bool OpenGL::Update(float dt) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
+	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -129,7 +132,9 @@ bool OpenGL::Update(float dt) {
 
 	//use shader's line color instead of texture
 	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), true);
-	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 0.0f, 1.0f, 1.0f);
+
+	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 1.0f, 1.0f, 0.5f); //white grid
+
 
 
 	Application::GetInstance().render.get()->DrawGrid();
@@ -137,11 +142,9 @@ bool OpenGL::Update(float dt) {
 	// Restore to normal texture mode
 	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), false);
 
-
-
-
 	//camera controls
 	float cameraSpeed;
+
 
 	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT)
 		cameraSpeed = 0.20f;
@@ -216,6 +219,9 @@ bool OpenGL::Update(float dt) {
 	texCoordsShader->setMat4("model", modelMat);
 	texCoordsShader->setMat4("view", viewMat);
 	texCoordsShader->setMat4("projection", projectionMat);
+
+	//draw all meshes
+	
 
 	for (int i = 0; i < Application::GetInstance().render.get()->modelsToDraw.size(); i++) {
 		Application::GetInstance().render.get()->modelsToDraw[i].Draw(*texCoordsShader);
@@ -328,6 +334,105 @@ void OpenGL::ProcessScrollZoom(float delta, bool isMouseScroll)
 	}
 }
 
+
+Model OpenGL::CreateCube() {
+
+	const glm::vec3 v000(-1.0f, -1.0f, -1.0f);
+	const glm::vec3 v001(-1.0f, -1.0f, 1.0f);
+	const glm::vec3 v010(-1.0f, 1.0f, -1.0f);
+	const glm::vec3 v011(-1.0f, 1.0f, 1.0f);
+	const glm::vec3 v100(1.0f, -1.0f, -1.0f);
+	const glm::vec3 v101(1.0f, -1.0f, 1.0f);
+	const glm::vec3 v110(1.0f, 1.0f, -1.0f);
+	const glm::vec3 v111(1.0f, 1.0f, 1.0f);
+
+
+	std::vector<Vertex> _vertices;
+	std::vector<unsigned int> _indices;
+	std::vector<glm::vec3> _normals;
+	std::vector<glm::vec2> _texCoords;
+	std::vector<Texture> _textures;
+
+
+	// Frontal face (+Z)
+	_vertices.push_back({ v001 }); // 0
+	_vertices.push_back({ v101 }); // 1
+	_vertices.push_back({ v111 }); // 2
+	_vertices.push_back({ v011 }); // 3
+
+	// Back face (-Z)
+	_vertices.push_back({ v100 }); // 4
+	_vertices.push_back({ v000 }); // 5
+	_vertices.push_back({ v010 }); // 6
+	_vertices.push_back({ v110 }); // 7
+
+	// Right face (+X)
+	_vertices.push_back({ v101 }); // 8
+	_vertices.push_back({ v100 }); // 9
+	_vertices.push_back({ v110 }); // 10
+	_vertices.push_back({ v111 }); // 11
+
+	// Left face (-X)
+	_vertices.push_back({ v000 }); // 12
+	_vertices.push_back({ v001 }); // 13
+	_vertices.push_back({ v011 }); // 14
+	_vertices.push_back({ v010 }); // 15
+
+	// Top face (+Y)
+	_vertices.push_back({ v011 }); // 16
+	_vertices.push_back({ v111 }); // 17
+	_vertices.push_back({ v110 }); // 18
+	_vertices.push_back({ v010 }); // 19
+
+	// Bottom face (-Y)
+	_vertices.push_back({ v000 }); // 20
+	_vertices.push_back({ v100 }); // 21
+	_vertices.push_back({ v101 }); // 22
+	_vertices.push_back({ v001 }); // 23
+
+	// Normals for each vertex
+	for (int i = 0; i < 4; i++) _normals.push_back(glm::vec3(0.0f, 0.0f, 1.0f));  // Cara frontal
+	for (int i = 0; i < 4; i++) _normals.push_back(glm::vec3(0.0f, 0.0f, -1.0f)); // Cara trasera
+	for (int i = 0; i < 4; i++) _normals.push_back(glm::vec3(1.0f, 0.0f, 0.0f));  // Cara derecha
+	for (int i = 0; i < 4; i++) _normals.push_back(glm::vec3(-1.0f, 0.0f, 0.0f)); // Cara izquierda
+	for (int i = 0; i < 4; i++) _normals.push_back(glm::vec3(0.0f, 1.0f, 0.0f));  // Cara superior
+	for (int i = 0; i < 4; i++) _normals.push_back(glm::vec3(0.0f, -1.0f, 0.0f)); // Cara inferior
+
+	// tex coords for each face
+	for (int i = 0; i < 6; i++) {
+		_texCoords.push_back(glm::vec2(0.0f, 0.0f)); // Bottom left corner
+		_texCoords.push_back(glm::vec2(1.0f, 0.0f)); // Bottom right corner
+		_texCoords.push_back(glm::vec2(1.0f, 1.0f)); // Top right corner
+		_texCoords.push_back(glm::vec2(0.0f, 1.0f)); // Top left corner
+	}
+
+
+
+	// indices for each face (2 triangles per face)
+	for (int i = 0; i < 6; i++) {
+		int base = i * 4;
+		_indices.push_back(base);     // 0
+		_indices.push_back(base + 1); // 1
+		_indices.push_back(base + 2); // 2
+		
+		_indices.push_back(base);     // 0
+		_indices.push_back(base + 2); // 2
+		_indices.push_back(base + 3); // 3
+	}
+
+	// Assign data to model
+
+	Mesh* cubeMesh = new Mesh(_vertices, _indices, _textures);
+
+	//we probably need a function to create a model without a path
+	Model* cubeModel = new Model(*cubeMesh);
+
+	/*Application::GetInstance().render.get()->AddModel(cubeMesh);*/
+	return *cubeModel;
+
+
+}
+
 void OpenGL::FocusObject() {
 	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_F) == KEY_DOWN)
 	{
@@ -354,3 +459,4 @@ void OpenGL::FocusObject() {
 		}
 	}
 }
+

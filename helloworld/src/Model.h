@@ -12,6 +12,8 @@ public:
     { 
         loadModel(path);
     }
+
+    Model(Mesh mesh);
     ~Model();
 
     

@@ -23,14 +23,10 @@ public:
     void Render(Shader* shader);  
 
     // Drawing properties
-    bool GetCastShadows() const { return castShadows; }
-    void SetCastShadows(bool cast) { castShadows = cast; }
-
-    bool GetReceiveShadows() const { return receiveShadows; }
-    void SetReceiveShadows(bool receive) { receiveShadows = receive; }
+    void DrawNormals();
 
 private:
     std::shared_ptr<Mesh> mesh;  // Pointer to mesh data (not owned by this component)
-    bool castShadows;
-    bool receiveShadows;
+    bool drawFaceNormals;
+    bool drawVertNormals;
 };

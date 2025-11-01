@@ -31,13 +31,21 @@ public:
     vector<unsigned int> indices;
     vector<Texture>      textures;
 
+    vector<glm::vec3>    normals;
+    
+
     Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
     ~Mesh();
-
+    void CalculateNormals();
     void Draw(Shader &shader);
+    bool drawVertNormals;
+    bool drawFaceNormals;
+    void CreateCube();
+
 private:
     //  render data
     unsigned int VAO, VBO, EBO;
 
     void setupMesh();
+    
 };

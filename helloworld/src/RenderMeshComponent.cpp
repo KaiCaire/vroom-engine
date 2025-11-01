@@ -7,9 +7,7 @@
 
 RenderMeshComponent::RenderMeshComponent(std::shared_ptr<GameObject> owner)
     : Component(owner, ComponentType::MESH_RENDERER),
-    mesh(nullptr),
-    castShadows(true),
-    receiveShadows(true) {
+    mesh(nullptr) {
 }
 
 RenderMeshComponent::~RenderMeshComponent() {
@@ -67,4 +65,9 @@ void RenderMeshComponent::Render(Shader* shader) {
     mesh->Draw(*shader);
 }
 
+
+void RenderMeshComponent::DrawNormals() {
+    
+    mesh->CalculateNormals();
+}
 
