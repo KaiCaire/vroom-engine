@@ -61,6 +61,11 @@ public:
 	bool showHierarchy = true;
 	bool showInspector = true;
 
+
 	std::vector<std::shared_ptr<GameObject>> sceneObjects;
 	std::shared_ptr<GameObject> selectedObject;
+
+
+	bool drawFaceNormals = false;
+	bool drawVertNormals = false;
 };

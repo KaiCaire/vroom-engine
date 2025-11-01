@@ -32,7 +32,6 @@ public:
 	Shader* texCoordsShader;
 	Model* ourModel;
 
-	/*float fullRadRot = 2 * (float)SDL_PI_F;*/
 
 	bool Start() override;
 	bool Update(float dt) override;
@@ -45,5 +44,7 @@ public:
 	void ProcessDolly(float xoffset, float yoffset);
 	void ProcessScrollZoom(float delta, bool isMouseScroll);
 	void FocusObject();
+
+	Model CreateCube();
 
 };

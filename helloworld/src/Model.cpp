@@ -19,6 +19,8 @@ using namespace std;
 // Static list of loaded textures
 vector<Texture> textures_loaded;
 
+
+
 void Model::loadModel(string path) {
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -51,6 +53,39 @@ void Model::loadModel(string path) {
         LOG("=== HIERARCHY ===");
         // LogGameObjectHierarchy(rootGameObject, 0);
     }
+}
+
+Model::Model(Mesh mesh) {
+    auto gameObject = make_shared<GameObject>();
+    gameObjects.push_back(gameObject);
+
+    /*LOG("Created Cube: '%s' (Parent: '%s')", gameObject->GetName().c_str(), parent ? parent->GetName().c_str() : "NULL");*/
+
+    // Transform component
+    auto transformComp = gameObject->AddComponent(ComponentType::TRANSFORM);
+    auto transform = static_cast<TransformComponent*>(transformComp.get());
+
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::quat rotation = glm::quat(0, 0, 0, 1);
+    glm::vec3 scaling = glm::vec3(1.0f);
+
+    transform->SetPosition(position);
+
+    //IMPORTANT! quats in glm are defined as glm::quat(w,x,y,z)
+    transform->SetRotation(rotation);
+    transform->SetScale(scaling);
+
+    LOG("  - Transform: Pos(%.2f, %.2f, %.2f) Scale(%.2f, %.2f, %.2f)",
+        position.x, position.y, position.z,
+        scaling.x, scaling.y, scaling.z);
+
+    
+    /*gameObject->SetParent(rootGameObject);*/
+    /*LOG("  - Set parent to '%s'", rootGameObject->GetName());*/
+    
+    //TODO: define & apply default material
+     
+     meshes.push_back(make_shared<Mesh>(mesh));
 }
 
 void Model::Draw(Shader& shader) {
@@ -116,6 +151,7 @@ Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
     vector<Vertex> vertices;
     vector<unsigned int> indices;
     vector<Texture> textures;
+    
 
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex;
