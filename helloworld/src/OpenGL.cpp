@@ -96,8 +96,8 @@ bool OpenGL::Start() {
 
 	Application::GetInstance().render.get()->AddModel(*ourModel);
 
-	Model defaultCube = CreateCube();
-	Application::GetInstance().render.get()->AddModel(defaultCube);
+	/*Model defaultCube = CreateCube();
+	Application::GetInstance().render.get()->AddModel(defaultCube);*/
 
 	cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 	cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);

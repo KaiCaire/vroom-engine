@@ -12,7 +12,7 @@
 #include "RenderMeshComponent.h"
 #include "MaterialComponent.h"
 #include "Textures.h"
-#include "Window.h"
+#include "Render.h"
 
 #include <SDL3/SDL_opengl.h>
 #include <glm/glm.hpp>
@@ -28,6 +28,8 @@ GUIElement::GUIElement(ElementType t, GUIManager* m)
 {
 	type = t;
 	manager = m;
+
+	
 }
 
 GUIElement:: ~GUIElement() 
@@ -307,7 +309,8 @@ void GUIElement::HierarchySetUp(bool* show)
 
 		}
 		if (ImGui::MenuItem("Cube")) {
-			//Create cube function
+			Model defaultCube = Application::GetInstance().openGL.get()->CreateCube();
+			Application::GetInstance().render.get()->AddModel(defaultCube);
 
 		}
 		ImGui::EndMenu();
@@ -395,6 +398,9 @@ void GUIElement::InspectorSetUp(bool* show)
 		//get texture for next step
 		vector<Texture> textureComponent;
 
+		bool showFaceNormals = manager->drawFaceNormals;
+		bool showVertNormals = manager->drawVertNormals;
+
 		if (meshComponent) {
 			std::shared_ptr<Mesh> mesh = meshComponent.get()->GetMesh();
 			if(mesh) textureComponent = mesh.get()->textures;
@@ -412,12 +418,25 @@ void GUIElement::InspectorSetUp(bool* show)
 
 				//show normals 
 				//handle button colors (commented until show normal function is created)
-				//if (showNormals) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // Green when active
-				//else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
+				if (showVertNormals) {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // Green when active
+				}
+				else if (showFaceNormals) {
+					ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.9f, 1.0f, 1.0f)); // Light blue when active
+				}
+				else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
 
-				if (ImGui::Button("Show Normals")) {
+				if (ImGui::Button("Show Vertex Normals")) {
 					//handle showing normals
 
+					showVertNormals = !showVertNormals;
+					//handle state
+					//showNormals = !showNormals; //commented until show normal function is created
+				}
+
+				if (ImGui::Button("Show Face Normals")) {
+					//handle showing normals
+					showFaceNormals = !showFaceNormals;
 					//handle state
 					//showNormals = !showNormals; //commented until show normal function is created
 				}

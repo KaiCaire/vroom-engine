@@ -2,6 +2,7 @@
 #include "Shader.h"
 #include "Model.h"
 #include "Application.h"
+#include "GuiManager.h"
 #include "Render.h"
 
 
@@ -80,7 +81,7 @@ void Mesh::Draw(Shader &shader) {
     
 
     
-    if (drawVertNormals) {
+    if (Application::GetInstance().guiManager.get()->drawVertNormals) {
         
         
         glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), true);
@@ -101,7 +102,7 @@ void Mesh::Draw(Shader &shader) {
         glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), false);
     }
 
-    if (drawFaceNormals) {
+    if (Application::GetInstance().guiManager.get()->drawVertNormals) {
 
 
         glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), true);

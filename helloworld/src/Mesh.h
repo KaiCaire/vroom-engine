@@ -40,7 +40,7 @@ public:
     void Draw(Shader &shader);
     bool drawVertNormals;
     bool drawFaceNormals;
-    void CreateCube();
+    /*void CreateCube();*/
 
 private:
     //  render data
