@@ -96,6 +96,7 @@ bool OpenGL::Start() {
 
 	Application::GetInstance().render.get()->AddModel(*ourModel);
 
+
 	/*Model defaultCube = CreateCube();
 	Application::GetInstance().render.get()->AddModel(defaultCube);*/
 

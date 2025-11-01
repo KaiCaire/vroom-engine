@@ -88,7 +88,7 @@ bool GUIManager::Update(float dt)
 {
 	//initialize game object list
 	if (!objectsInitialized) {
-		sceneObjects = Application::GetInstance().openGL.get()->ourModel->GetGameObjects();
+		sceneObjects.push_back(Application::GetInstance().openGL.get()->ourModel->rootGameObject); 
 		objectsInitialized = true;
 	}
 	
