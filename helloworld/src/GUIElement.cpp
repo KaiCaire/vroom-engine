@@ -442,7 +442,7 @@ void GUIElement::InspectorSetUp(bool* show)
 				}
 
 				//activate the button color change (commented until show normal function is created)
-				//ImGui::PopStyleColor();
+				ImGui::PopStyleColor();
 			}
 
 			//texture
@@ -459,12 +459,12 @@ void GUIElement::InspectorSetUp(bool* show)
 				//if (checkerTex) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // Green when active
 				//else ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.6f, 0.6f, 1.0f));
 
-				if (ImGui::Button("Show Checker Texture")) {
-					//handle checker texture
+				//if (ImGui::Button("Show Checker Texture")) {
+				//	//handle checker texture
 
-					//handle state
-					//checkerTex = !checkerTex; //commented until show checker function is created
-				}
+				//	//handle state
+				//	//checkerTex = !checkerTex; //commented until show checker function is created
+				//}
 
 				//activate the button color change (commented until show checker function is created)
 				//ImGui::PopStyleColor();
