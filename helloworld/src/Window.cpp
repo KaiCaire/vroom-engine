@@ -112,3 +112,25 @@ int Window::GetScale() const
 {
 	return scale;
 }
+
+void Window::SetFullScreen(bool set) {
+	isFullscreen = set;
+
+	if (isFullscreen) {
+		SDL_SetWindowFullscreenMode(window, nullptr); // use desktop resolution
+		SDL_SetWindowFullscreen(window, true);
+		
+	}
+	else {
+		SDL_SetWindowFullscreen(window, false);
+	}
+
+	SDL_GetWindowSize(window, &width, &height);
+}
+
+void Window::SetWindowSize(glm::vec2 size) {
+	currentRes = size;
+	width = size.x;
+	height = size.y;
+	SDL_SetWindowSize(window, size.x, size.y);
+}
