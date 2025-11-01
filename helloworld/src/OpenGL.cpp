@@ -8,6 +8,7 @@
 #include "stb_image.h"
 #include "Model.h"
 #include "Input.h"
+#include "GUIManager.h"
 
 OpenGL::OpenGL() : Module()
 {
@@ -40,7 +41,7 @@ bool OpenGL::Start() {
 
 	/*stbi_set_flip_vertically_on_load(true);*/
 
-	
+
 
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
 
@@ -84,7 +85,7 @@ bool OpenGL::Start() {
 	glEnable(GL_DEPTH_TEST);
 
 	texCoordsShader->Use();
-	
+
 
 	std::string modelPath = "../Assets/Models/BakerHouse/BakerHouse.fbx";
 
@@ -128,21 +129,20 @@ bool OpenGL::Update(float dt) {
 
 	//use shader's line color instead of texture
 	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), true);
-	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 0.0f, 1.0f, 1.0f); 
+	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 0.0f, 1.0f, 1.0f);
 
 
 	Application::GetInstance().render.get()->DrawGrid();
-	
+
 	// Restore to normal texture mode
 	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), false);
 
-	
-	
+
+
 
 	//camera controls
-  
-  float cameraSpeed;
-  
+	float cameraSpeed;
+
 	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LSHIFT) == KEY_REPEAT)
 		cameraSpeed = 0.20f;
 	else
@@ -205,7 +205,7 @@ bool OpenGL::Update(float dt) {
 	}
 	Application::GetInstance().input.get()->SetMouseWheelDeltaY(0);
 
-
+	FocusObject();
 	UpdateCameraVectors();
 
 	float aspectRatio = (float)Application::GetInstance().window.get()->width / (float)Application::GetInstance().window.get()->height;
@@ -325,5 +325,32 @@ void OpenGL::ProcessScrollZoom(float delta, bool isMouseScroll)
 		fov -= delta * zoomSpeed;
 		if (fov < 1.0f) fov = 1.0f;
 		if (fov > 90.0f) fov = 90.0f;
+	}
+}
+
+void OpenGL::FocusObject() {
+	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_F) == KEY_DOWN)
+	{
+		std::shared_ptr<GameObject> selectedObj = Application::GetInstance().guiManager->selectedObject;
+		if (selectedObj)
+		{
+			auto transformComp = std::dynamic_pointer_cast<TransformComponent>(
+				selectedObj->GetComponent(ComponentType::TRANSFORM)
+			);
+
+			if (transformComp)
+			{
+				glm::vec3 targetPosition = transformComp->GetWorldPosition();
+
+				UpdateCameraVectors();
+				const float focusDistance = 7.0f;
+				const float heightOffset = 1.0f;
+
+				cameraPos = targetPosition - cameraFront * focusDistance + glm::vec3(0, heightOffset, 0);
+
+				targetPos = targetPosition;
+				distance = glm::length(cameraPos - targetPos);
+			}
+		}
 	}
 }

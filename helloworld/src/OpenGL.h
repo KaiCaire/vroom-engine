@@ -44,5 +44,6 @@ public:
 	void ProcessPan(float xoffset, float yoffset);
 	void ProcessDolly(float xoffset, float yoffset);
 	void ProcessScrollZoom(float delta, bool isMouseScroll);
+	void FocusObject();
 
 };
