@@ -94,6 +94,8 @@ bool OpenGL::Start() {
 
 	Application::GetInstance().render.get()->AddModel(*ourModel);
 
+	
+
 
 
 	cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);

@@ -36,7 +36,10 @@ void Model::loadModel(string path) {
     directory = fullPath.substr(0, fullPath.find_last_of('/'));
 
     rootGameObject = make_shared<GameObject>("RootNode");
-    processNodeWithGameObjects(scene->mRootNode, scene, nullptr);
+    rootGameObject->AddComponent(ComponentType::TRANSFORM);
+
+
+    processNodeWithGameObjects(scene->mRootNode, scene, rootGameObject);
 
     LOG("Finished Loading Model");
     LOG("=== MODEL LOADING SUMMARY ===");
@@ -86,8 +89,22 @@ void Model::processNodeWithGameObjects(aiNode* node, const aiScene* scene, share
 
     LOG("  - Processing %d meshes for '%s'", node->mNumMeshes, gameObject->GetName().c_str());
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-        aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        meshes.push_back(make_shared<Mesh>(processMesh(mesh, scene)));
+        aiMesh* aimesh = scene->mMeshes[node->mMeshes[i]];
+
+        if (node->mNumMeshes > 1) {
+            string meshName = string(node->mName.C_Str()) + "_Mesh" + to_string(i);
+            auto meshGO = make_shared<GameObject>(meshName);
+            gameObjects.push_back(meshGO);
+
+            meshGO->AddComponent(ComponentType::TRANSFORM);
+            meshGO->SetParent(gameObject);
+
+            createComponentsForMesh(meshGO, aimesh, scene);
+
+        }
+        else {
+            createComponentsForMesh(gameObject, aimesh, scene);
+        }
     }
 
     LOG("  - Processing %d children for '%s'", node->mNumChildren, gameObject->GetName().c_str());
