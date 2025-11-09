@@ -34,6 +34,7 @@ public:
 		return owner.lock(); 
 	}
 
+	
 	void SetActive(bool isActive);
 
 protected:

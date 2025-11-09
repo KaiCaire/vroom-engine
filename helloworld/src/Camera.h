@@ -25,7 +25,10 @@ public:
     float fov;
     float distance;
 
-    // Mouse state (necesario para el modo de coordenadas absolutas)
+    // 
+    // 
+    // 
+    // state (necesario para el modo de coordenadas absolutas)
     bool firstMouse;
     float lastX;
     float lastY;

@@ -61,6 +61,17 @@ std::shared_ptr<Component> GameObject::GetComponent(ComponentType type) {
     return nullptr;
 }
 
+//std::shared_ptr<RenderMeshComponent>GameObject::GetRenderMeshComponent() {
+//    for (auto& comp : Components) {
+//        if (comp && comp->GetType() == ComponentType::MESH_RENDERER) {
+//            RenderMeshComponent meshRenderer = std::dynamic_cast(shared_ptr<RenderMeshComponent>(comp));
+//        }
+//            return comp;
+//    }
+//    return nullptr;
+//}
+
+
 void GameObject::RemoveComponent(ComponentType type) {
     auto it = std::remove_if(Components.begin(), Components.end(),
         [type](const std::shared_ptr<Component>& comp) {

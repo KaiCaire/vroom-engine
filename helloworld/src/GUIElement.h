@@ -34,4 +34,5 @@ public:
 private:
 	ElementType type;
 	GUIManager* manager;
+	bool selectedMesh = false;
 };

@@ -2,6 +2,8 @@
 
 #include "Module.h"
 #include "SDL3/SDL.h"
+#include <vector>
+#include "GameObject.h"
 
 
 
@@ -44,6 +46,8 @@ public:
 	// Called each loop iteration
 	bool PreUpdate();
 
+	bool Update(float dt);
+
 	// Called before quitting
 	bool CleanUp();
 
@@ -70,6 +74,11 @@ public:
 	SDL_FPoint GetMouseMotion();
 	Model* importedModel;
 	
+	void AddToSelection(std::shared_ptr<GameObject> gameObject);
+	void RemoveFromSelection(std::shared_ptr<GameObject> gameObject);
+	void ClearSelection();
+	std::vector<std::shared_ptr<GameObject>> GetSelectedGameObjects() const;
+	bool IsGameObjectSelected(std::shared_ptr<GameObject> gameObject) const;
 
 
 	int GetMouseWheelDeltaY() const { return mouseWheelY; }
@@ -86,10 +95,9 @@ private:
 	int mouseMotionY;
 	int mouseX;
 	int mouseY;
-  int mouseWheelY;
+	int mouseWheelY;
 
 	const char* droppedFileDir;
-	/*std::vector<std::shared_ptr<GameObject>> selectedObjects;*/
-	
+	std::vector<std::shared_ptr<GameObject>> selectedObjects;
 
 };

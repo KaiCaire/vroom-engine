@@ -22,6 +22,8 @@ public:
     // Component management
     std::shared_ptr<Component> AddComponent(ComponentType type);
     std::shared_ptr<Component> GetComponent(ComponentType type);
+    /*std::shared_ptr<RenderMeshComponent>GetRenderMeshComponent();*/
+
     void RemoveComponent(ComponentType type);
     int GetComponentCount() const { return Components.size(); }
 
@@ -36,8 +38,14 @@ public:
     // Active state
     bool IsActive() const { return active; }
     void SetActive(bool isActive);
-
-    bool isSelected = false;
+    bool IsSelected() const { return isSelected; }
+    void Select() {
+        isSelected = true;
+    }
+    void Unselect() {
+        isSelected = false;
+    }
+    
 
     // Name
     const std::string& GetName() const { return name; }
@@ -63,6 +71,7 @@ private:
     bool active = true;
     bool markedForDestroy = false;
     bool isEmpty = false;
+    bool isSelected = false;
 
     //store model owner for root objects
     Model* ownerModel = nullptr;

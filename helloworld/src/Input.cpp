@@ -182,6 +182,19 @@ bool Input::PreUpdate()
 	return true;
 }
 
+bool Input::Update(float dt) {
+
+	//for (auto object : selectedObjects) {
+	//	auto meshComp = std::dynamic_pointer_cast<RenderMeshComponent>(object->GetComponent(ComponentType::MESH_RENDERER));
+	//	
+	//	if(meshComp)
+	//		meshComp->drawOutline = true;
+	//		
+	//}
+	return true;
+}
+
+
 // Called before quitting
 bool Input::CleanUp()
 {
@@ -339,3 +352,39 @@ SDL_FPoint Input::GetMouseMotion()
 	return {(float)(mouseMotionX, (float)mouseMotionY)};
 }
 
+
+void Input::AddToSelection(std::shared_ptr<GameObject> gameObject) {
+	auto meshComp = std::dynamic_pointer_cast<RenderMeshComponent>(gameObject->GetComponent(ComponentType::MESH_RENDERER));
+	auto it = std::find(selectedObjects.begin(), selectedObjects.end(), gameObject);
+	if (it == selectedObjects.end()) {
+		selectedObjects.push_back(gameObject);
+		if (meshComp) meshComp->drawOutline = true;
+		gameObject->Select();
+	}
+}
+
+void Input::RemoveFromSelection(std::shared_ptr<GameObject> gameObject) {
+	auto meshComp = std::dynamic_pointer_cast<RenderMeshComponent>(gameObject->GetComponent(ComponentType::MESH_RENDERER));
+	auto it = std::find(selectedObjects.begin(), selectedObjects.end(), gameObject);
+	if (it != selectedObjects.end()) {
+		if(meshComp) meshComp->drawOutline = false;
+		selectedObjects.erase(it);
+		gameObject->Unselect();
+	}
+}
+
+std::vector<std::shared_ptr<GameObject>>Input::GetSelectedGameObjects() const {
+	return selectedObjects;
+}
+
+void Input::ClearSelection() {
+	for (auto& selectedObject : selectedObjects) {
+		selectedObject->Unselect();
+	}
+	selectedObjects.clear();
+}
+
+bool Input::IsGameObjectSelected(std::shared_ptr<GameObject> gameObject) const {
+	auto it = std::find(selectedObjects.begin(), selectedObjects.end(), gameObject);
+	return it != selectedObjects.end();
+}

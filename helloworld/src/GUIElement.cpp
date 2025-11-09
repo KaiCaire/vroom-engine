@@ -7,6 +7,7 @@
 #include "SystemInfo.h"
 #include "OpenGL.h"
 #include "Model.h"
+#include "Input.h"
 
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
@@ -352,7 +353,18 @@ void GUIElement::DrawNode(const std::shared_ptr<GameObject>& obj, std::shared_pt
 	bool opened = ImGui::TreeNodeEx((void*)obj.get(), flags, "%s", obj->GetName().c_str());
 
 	//check if object has been selected
-	if (ImGui::IsItemClicked()) selected = obj;
+	if (ImGui::IsItemClicked() && selected == nullptr) {
+		selected = obj;
+		Application::GetInstance().input.get()->AddToSelection(selected);
+	}
+	else {
+		if (ImGui::IsItemClicked() && selected != nullptr) {
+			Application::GetInstance().input.get()->RemoveFromSelection(selected);
+			selected = nullptr;
+			
+		}
+	}
+	
 
 	//right click to delete object
 	if (ImGui::BeginPopupContextItem()) {
@@ -388,10 +400,17 @@ void GUIElement::InspectorSetUp(bool* show)
 	}
 
 	//check if a game object is selected
-	auto selected = manager->selectedObject;
+	auto selected = manager->selectedObject;/*
+	std::shared_ptr <GameObject> prevSelected;*/
+	std::shared_ptr<RenderMeshComponent> meshComponent;
+
+
 
 	if (selected) {
 		//show game object name
+		
+			
+		
 		char buffer[128];
 		strcpy(buffer, selected->GetName().c_str());
 		if (ImGui::InputText("##hidden", buffer, sizeof(buffer))) selected->SetName(buffer);
@@ -416,22 +435,35 @@ void GUIElement::InspectorSetUp(bool* show)
 		
 		//mesh
 		//get mesh component
-		auto meshComponent = std::dynamic_pointer_cast<RenderMeshComponent>(selected->GetComponent(ComponentType::MESH_RENDERER));
+		meshComponent = std::dynamic_pointer_cast<RenderMeshComponent>(selected->GetComponent(ComponentType::MESH_RENDERER));
 		//get texture for next step
 		vector<Texture> textureComponent;
 
 		bool showFaceNormals = manager->drawFaceNormals;
 		bool showVertNormals = manager->drawVertNormals;
-
+		
 		
 		if (meshComponent) {
 			std::shared_ptr<Mesh> mesh = meshComponent.get()->GetMesh();
 			if(mesh) textureComponent = mesh.get()->textures;
 
+
+			if (!Application::GetInstance().input.get()->IsGameObjectSelected(selected)) {
+				Application::GetInstance().input.get()->AddToSelection(selected); 
+			}
+		
+			
+			/*if (!selectedMesh) {
+				meshComponent.get()->drawOutline = !meshComponent.get()->drawOutline;
+				selectedMesh = true;
+			}*/
+
 			//check if header is open
 			if (ImGui::CollapsingHeader("Mesh")) {
 				//get values
+				
 				std::shared_ptr<Mesh> mesh = meshComponent.get()->GetMesh();
+				
 				vector<Vertex> vert = mesh.get()->vertices;
 				vector<unsigned int> ind = mesh.get()->indices;
 
@@ -486,9 +518,14 @@ void GUIElement::InspectorSetUp(bool* show)
 				}
 			}
 		}
+		
 	}
 	else {
+		
+
+		Application::GetInstance().input.get()->ClearSelection();
 		ImGui::Text("No GameObject selected.");
+		
 	}
 
 	ImGui::End();
