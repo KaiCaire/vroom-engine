@@ -34,12 +34,14 @@ public:
     vector<glm::vec3>    normals;
     
 
+
     Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
     ~Mesh();
     void CalculateNormals();
     void Draw(Shader &shader);
     bool drawVertNormals = false;
     bool drawFaceNormals = false;
+
     
 
 private:

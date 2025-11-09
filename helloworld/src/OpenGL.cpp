@@ -33,6 +33,7 @@ bool OpenGL::Start() {
 	//we create the context by passing a framebuffer, AKA a block of pixels displayable on a surface
 
 	int version = gladLoadGLLoader(reinterpret_cast<GLADloadproc>(SDL_GL_GetProcAddress));
+	
 
 	// … check for errors
 	if (version == 0) {
@@ -43,13 +44,10 @@ bool OpenGL::Start() {
 	viewMat = Application::GetInstance().camera->viewMat;
 	projectionMat = Application::GetInstance().camera->projectionMat;
 
-	/*stbi_set_flip_vertically_on_load(true);*/
-
-
-
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
+	singleColorShader = new Shader("TexCoordsShader.vert", "SingleColorShader.frag");
 
-	/*normalShader = new Shader("")*/
+	
 
 	std::cout << "OpenGL initialized successfully" << std::endl;
 
@@ -88,7 +86,22 @@ bool OpenGL::Start() {
 	uint projectionMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "projection");
 	glUniformMatrix4fv(projectionMatLoc, 1, GL_FALSE, glm::value_ptr(projectionMat));
 
-	glEnable(GL_DEPTH_TEST);
+	/*glEnable(GL_DEPTH_TEST);*/ //by default at glDepthFunc(GL_LESS)
+	
+	
+	/* in linear depth buffers:
+	obj near plane --> depth value tends to 0.0
+	obj at far plane --> depth value tends to 1.0
+	*/
+
+	/*non-linear depth buffers --> very high precision for small z-values, low precision for large z-values
+	* 
+	A value of 0.5 in the depth buffer does not mean the pixel's z-value is halfway in the frustum; 
+	the z-value of the vertex is actually quite close to the near plane!
+
+	If we try to draw the z-buffer, almost everything will look WHITE! the z-values have been normalized, 
+	we need to undo that by transforming them back into NDC[-1, 1] (rn it's [0,1] so we need to double it and offset it -> 2n-1 )
+	*/
 
 	texCoordsShader->Use();
 
@@ -104,49 +117,49 @@ bool OpenGL::Start() {
 	viewMat = glm::mat4(1.0f);
 
 
+
+
 	return true;
 }
 
 bool OpenGL::Update(float dt) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);//clear depth buffer each frame
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
-
-
-
-	//grid
-
-	glUseProgram(texCoordsShader->ID);
-
-	//use shader's line color instead of texture
-	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), true);
-	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 1.0f, 1.0f, 0.5f); //white grid
-
-	Application::GetInstance().render.get()->DrawGrid();
-
-	// Restore to normal texture mode
-	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), false);
+	
+	
 
 	viewMat = Application::GetInstance().camera->viewMat;
 	projectionMat = Application::GetInstance().camera->projectionMat;
+	
+	
+	singleColorShader->Use();
+	SetUpVertShader(singleColorShader);
 
-	texCoordsShader->Use();
-	texCoordsShader->setMat4("model", modelMat);
-	texCoordsShader->setMat4("view", viewMat);
-	texCoordsShader->setMat4("projection", projectionMat);
+	//glStencilMask(0x00);
+	//DRAW GRID
+	singleColorShader->setVec4("color", glm::vec4(1.0f, 1.0f, 1.0f, 0.5f));
+	Application::GetInstance().render.get()->DrawGrid();
+
+	
+	
+	glUseProgram(texCoordsShader->ID);
+	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "drawZbuffer"), drawZbuffer);
+
+	//texCoordsShader->Use();
+	//SetUpVertShader(texCoordsShader);
+
 
 	//draw all meshes
-	
-
 	for (int i = 0; i < Application::GetInstance().render.get()->modelsToDraw.size(); i++) {
-		Application::GetInstance().render.get()->modelsToDraw[i]->Draw(*texCoordsShader);
+
+		Application::GetInstance().render.get()->modelsToDraw[i]->Draw(*texCoordsShader);		
 	}
+
+
+	
 
 	return true;
 
@@ -239,3 +252,16 @@ Model* OpenGL::CreateCube() {
 
 }
 
+void OpenGL::SetUpVertShader(Shader* shader) {
+	shader->Use();
+	shader->setMat4("model", modelMat);
+	shader->setMat4("view", viewMat);
+	shader->setMat4("projection", projectionMat);
+}
+
+// In OpenGL class
+void OpenGL::SetUpViewProjection(Shader* shader) {
+	shader->Use();
+	shader->setMat4("view", viewMat);
+	shader->setMat4("projection", projectionMat);
+}

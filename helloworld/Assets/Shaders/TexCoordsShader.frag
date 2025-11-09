@@ -1,7 +1,7 @@
 #version 460 core
 out vec4 FragColor;
 
-//in vec3 ourColor;
+
 in vec2 texCoord;
 
 //The fragment shader should also have access to the texture object, passed with a uniform
@@ -18,16 +18,32 @@ struct Material
 
 
 uniform Material material;
-uniform bool useLineColor;
-uniform vec4 lineColor;
 
 
+uniform bool drawZbuffer;
+
+float near = 0.1;
+float far = 100.0f;
+
+float LinearizeDepth(float depth){
+    float z = depth * 2.0f - 1.0f;
+    return ((2.0 * near * far) / (far + near - z * (far - near))); 
+}
 
 void main()
 {
+    if(drawZbuffer){
+        float depth = LinearizeDepth(gl_FragCoord.z) / far;
+        FragColor = vec4(vec3(depth), 1.0);
+    } 
+    else
+    {
+        
+        FragColor = texture(material.texture_diffuse1, texCoord);
+    }
+
+
 	
-	if (useLineColor) FragColor = lineColor;
-	else FragColor = texture(material.texture_diffuse1, texCoord);
 
 }
 

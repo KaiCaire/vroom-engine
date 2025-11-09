@@ -2,6 +2,7 @@
 #include "Shader.h"
 #include "Model.h"
 #include "Application.h"
+#include "OpenGL.h"
 #include "GuiManager.h"
 #include "Render.h"
 
@@ -58,34 +59,48 @@ void Mesh::setupMesh() {
 void Mesh::Draw(Shader &shader) {
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
+    Shader* singleColorShader = Application::GetInstance().openGL.get()->singleColorShader;
 
-    
+    if (!textures.empty()) {
+        unsigned int diffuseNr = 1;
+        unsigned int specularNr = 1;
+        for (unsigned int i = 0; i < textures.size(); i++) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            std::string number;
+            std::string name = textures[i].mapType;
+            if (name == "texture_diffuse")
+                number = std::to_string(diffuseNr++);
+            else if (name == "texture_specular")
+                number = std::to_string(specularNr++);
 
-    for (unsigned int i = 0; i < textures.size(); i++)
-    {
-        glActiveTexture(GL_TEXTURE0); // activate proper texture unit before binding
-        // retrieve texture number (the N in diffuse_textureN)
-        string number;
-        string name = textures[i].mapType;
-        if (name == "texture_diffuse")
-            number = std::to_string(diffuseNr++);
-        else if (name == "texture_specular")
-            number = std::to_string(specularNr++);
-
-        shader.setInt(("material." + name + number).c_str(), i);
-
-        
-        glBindTexture(GL_TEXTURE_2D, textures[i].id);
-        
+            shader.setInt(("material." + name + number).c_str(), i);
+            glBindTexture(GL_TEXTURE_2D, textures[i].id);
+        }
     }
+
+   
+    
+    shader.Use();
+  
+    Application::GetInstance().openGL.get()->SetUpVertShader(&shader);
+
+    // Set color for single color shader
+    //if (shader.ID == singleColorShader->ID) {
+    //    shader.setVec4("color", glm::vec4(1.0f, 0.5f, 0.0f, 0.8f));
+    //}
     
 
-    
+    glBindVertexArray(VAO);
+    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+
+    glActiveTexture(GL_TEXTURE0); //reset texture units for next draw call!
+
     if (drawFaceNormals) {
-        
-        
-        glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), true);
-        glUniform4f(glGetUniformLocation(shader.ID, "lineColor"), 0.0f, 1.0f, 0.0f, 1.0f); //green for vertex
+
+        singleColorShader->Use();
+        Application::GetInstance().openGL.get()->SetUpVertShader(singleColorShader);
+        singleColorShader->setVec4("color", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 
         
         glBegin(GL_LINES);
@@ -99,14 +114,14 @@ void Mesh::Draw(Shader &shader) {
         }
 
         glEnd();
-        glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), false);
+        /*glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), false);*/
     }
 
     if (drawVertNormals) {
 
-
-        glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), true);
-        glUniform4f(glGetUniformLocation(shader.ID, "lineColor"), 0.0f, 0.9f, 1.0f, 1.0f); //blue for face
+        singleColorShader->Use();
+        Application::GetInstance().openGL.get()->SetUpVertShader(singleColorShader);
+        singleColorShader->setVec4("color", glm::vec4(0.0f, 0.9f, 1.0f, 1.0f));
 
         glBegin(GL_LINES);
         
@@ -126,15 +141,10 @@ void Mesh::Draw(Shader &shader) {
             glVertex3fv(glm::value_ptr(end));
         }
         glEnd();
-        glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), false);
+        /*glUniform1i(glGetUniformLocation(shader.ID, "useLineColor"), false);*/
     }
     
-
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
-
-    glActiveTexture(GL_TEXTURE0); //reset texture units for next draw call!
+    
 }
 
 void Mesh::CalculateNormals() {
@@ -167,4 +177,5 @@ void Mesh::CalculateNormals() {
     }
     
 }
+
 

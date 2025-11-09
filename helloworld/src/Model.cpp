@@ -171,7 +171,7 @@ void Model::Draw(Shader& shader) {
         }
 
         //draw the mesh
-        renderer->GetMesh()->Draw(shader);
+        renderer->Render(&shader);
     }
 }
 

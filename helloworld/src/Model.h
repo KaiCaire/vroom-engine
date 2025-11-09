@@ -40,6 +40,8 @@ public:
     bool useDefaultTexture = false;
     std::unordered_map<std::shared_ptr<Mesh>, std::vector<Texture>> originalTextures;
 
+
+
     std::string fullPath;
 
     void loadModel(std::string path);

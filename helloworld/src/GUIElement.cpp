@@ -237,6 +237,7 @@ void GUIElement::ConfigSetUp(bool* show) {
 		vector<glm::vec2> options = Application::GetInstance().window.get()->resolutions;
 		glm::vec2 current = Application::GetInstance().window.get()->currentRes;
 
+
 		//find index of current resolution
 		int index = 0;
 
@@ -262,8 +263,11 @@ void GUIElement::ConfigSetUp(bool* show) {
 			ImGui::EndCombo();
 		}
 	}
-	ImGui::Separator();
+	/*ImGui::Separator();*/
+	//bool drawZbuffer = &Application::GetInstance().openGL.get()->drawZbuffer;
+	ImGui::Checkbox("Draw Z-Buffer", &Application::GetInstance().openGL.get()->drawZbuffer);
 
+	ImGui::Separator();
 	//hardware and memory consuption
 	ImGui::Text("Hardware and Memory Information:");
 	ImGui::BulletText("Memory Consumption: %.2f MB", GetMemoryUsageMB());

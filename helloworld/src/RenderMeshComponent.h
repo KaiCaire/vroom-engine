@@ -23,10 +23,15 @@ public:
     Mesh*  GetMeshPointer() const { return mesh.get(); }
 
     // Rendering
-    void Render(Shader* shader);  
+    void Render(Shader* shader); 
+    void DrawOutline(Shader* shader);
+
+    
 
 private:
     std::shared_ptr<Mesh> mesh;  // Pointer to mesh data (not owned by this component)
     bool drawFaceNormals;
     bool drawVertNormals;
+    bool drawOutline = true;
+    Shader* singleColorShader;
 };
