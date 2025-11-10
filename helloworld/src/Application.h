@@ -16,6 +16,7 @@ class Mesh;
 class Model;
 class GUIManager;
 class Camera;
+class Scene;
 
 
 //class Physics;
@@ -102,6 +103,7 @@ public:
 	std::shared_ptr<FileSystem> fileSystem;
 	std::shared_ptr<Texture> textures;
 	std::shared_ptr<Camera> camera;
+	std::shared_ptr<Scene> scene;
 	
 	bool requestExit = false;
 
