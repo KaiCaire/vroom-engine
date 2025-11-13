@@ -2,15 +2,15 @@
 #include <pcg_random.hpp> //header only library! no config required
 #include <random>
 
-UUID::UUID() {
+UUIDGen::UUIDGen() {
     
 }
 
-UUID::~UUID() {
+UUIDGen::~UUIDGen() {
 
 }
 
-uint64_t UUID::GenerateUUID() {
+uint64_t UUIDGen::GenerateUUID() {
     static pcg_extras::seed_seq_from<std::random_device> seed_source;
     static pcg32 rng(seed_source);
     static std::uniform_int_distribution<uint64_t> distribution(1, UINT64_MAX);

@@ -1,13 +1,11 @@
 #pragma once
-#pragma once
 
-#include <random>
-#include <pcg_random.hpp> //header only! no config required
+#include <cstdint> // for uint64_t
 
-class UUID {
+class UUIDGen {
 public:
-	UUID();
-	~UUID();
+	UUIDGen();
+	~UUIDGen();
 
 	static uint64_t GenerateUUID();
 
