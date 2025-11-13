@@ -25,7 +25,7 @@ public:
 
     // Rendering
     void Render(Shader* shader); 
-    void DrawOutline(Shader* shader);
+    /*void DrawOutline(Shader* shader);*/
     bool drawOutline = false;
     
 

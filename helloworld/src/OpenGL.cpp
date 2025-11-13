@@ -260,8 +260,8 @@ void OpenGL::SetUpVertShader(Shader* shader) {
 }
 
 // In OpenGL class
-void OpenGL::SetUpViewProjection(Shader* shader) {
-	shader->Use();
-	shader->setMat4("view", viewMat);
-	shader->setMat4("projection", projectionMat);
-}
+//void OpenGL::SetUpViewProjection(Shader* shader) {
+//	shader->Use();
+//	shader->setMat4("view", viewMat);
+//	shader->setMat4("projection", projectionMat);
+//}

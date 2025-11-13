@@ -454,7 +454,8 @@ void GUIElement::InspectorSetUp(bool* show)
 		
 			
 			/*if (!selectedMesh) {
-				meshComponent.get()->drawOutline = !meshComponent.get()->drawOutline;
+				meshComponent.get()->
+				= !meshComponent.get()->drawOutline;
 				selectedMesh = true;
 			}*/
 
