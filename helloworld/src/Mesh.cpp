@@ -6,7 +6,7 @@
 #include "Render.h"
 
 
-Mesh::Mesh(vector<Vertex> _vertices, vector<unsigned int> _indices, vector<Texture> _textures) {
+Mesh::Mesh(vector<Vertex> _vertices, vector<unsigned int> _indices, vector<Texture> _textures)/* : Resource(uuid, ResourceType::MESH)*/{
 
     this->vertices = _vertices;
     this->indices = _indices;

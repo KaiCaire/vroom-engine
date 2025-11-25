@@ -290,14 +290,14 @@ void Render::AddModel(Model* model) {
 	modelsToDraw.push_back(model);
 }
 
-bool Render::DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) const {
-
-	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-	return true;
-}
+//bool Render::DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) const {
+//
+//	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
+//	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//
+//
+//	return true;
+//}
 
 void Render::DrawGrid() {
 

@@ -5,13 +5,14 @@
 #include "GameObject.h"
 #include <vector>
 #include <string>
+#include "UUID.h"
 #include <unordered_map>
 
 class Model {
 public:
-    Model(std::string path) 
+    Model(const char* path) 
     { 
-        loadModel(path);
+        ImportScene(path);
     }
 
     Model(Mesh mesh);
@@ -40,14 +41,14 @@ public:
     bool useDefaultTexture = false;
     std::unordered_map<std::shared_ptr<Mesh>, std::vector<Texture>> originalTextures;
 
-    std::string fullPath;
+    std::string fullPath, metaPath;
 
-    void loadModel(std::string path);
+    void ImportScene(const char* path);
     
    /* void processNode(aiNode* node, const aiScene* scene);*/
     Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 
-    void processNodeWithGameObjects(aiNode* node, const aiScene* scene, std::shared_ptr<GameObject> parent);
+    void processNodeWithGameObjects(const aiNode* node, const aiScene* scene, std::shared_ptr<GameObject> parent);
     void createComponentsForMesh(std::shared_ptr<GameObject> gameObject, aiMesh* aiMesh, const aiScene* scene);
 
     vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
@@ -59,5 +60,7 @@ public:
     void DestroyGameObject(std::shared_ptr<GameObject> gameObject);
     void CleanUpDestroyedObjects();
     std::shared_ptr<GameObject> CreateEmptyGameObject(const std::string& name, std::shared_ptr<GameObject> parent = nullptr);
+
+    std::shared_ptr<GameObject> CreateGameObject(const std::string& name, VroomUUID meshUID, std::shared_ptr<GameObject> parent, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale);
 
 };

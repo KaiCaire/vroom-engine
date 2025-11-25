@@ -1,4 +1,5 @@
 #pragma once
+#include "Resource.h"
 #include "glm/glm.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -40,12 +41,23 @@ public:
     void Draw(Shader &shader);
     bool drawVertNormals = false;
     bool drawFaceNormals = false;
-    
+
+    void SetUUID(VroomUUID _uuid) 
+    { 
+        uuid = _uuid; 
+    }
+
+    //void SaveBin() override;
+    //void LoadBin() override;
+
+    //void SaveMeta() const override;
+    //void LoadMeta() override;
+    //
 
 private:
     //  render data
     unsigned int VAO, VBO, EBO;
-
+    VroomUUID uuid = 0;
     void setupMesh();
     
 };

@@ -93,8 +93,8 @@ bool OpenGL::Start() {
 	texCoordsShader->Use();
 
 
-	std::string modelPath = "../Assets/Models/BakerHouse/BakerHouse.fbx";
-	
+	//std::string modelPath = "../Assets/Models/BakerHouse/BakerHouse.fbx";
+	std::string modelPath = "../Assets/Models/Street/Street environment_V01.FBX";
 
 	ourModel = new Model(modelPath.c_str());
 	modelObjects.push_back(ourModel);

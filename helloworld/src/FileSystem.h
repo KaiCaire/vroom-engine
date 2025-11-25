@@ -1,11 +1,13 @@
 #pragma once
 #include "Module.h"
 #include "Log.h"
+#include "UUID.h"
 
-#include "assimp/cimport.h"
-#include "assimp/scene.h"
-#include "assimp/postprocess.h"
-#include "assimp/mesh.h"
+#include <fstream>
+#include <chrono>
+#include <filesystem>
+
+
 
 class FileSystem : public Module {
 
@@ -17,11 +19,34 @@ public:
 	bool Start() override;
 	bool CleanUp() override;
 
-	aiMesh LoadFile(const char* filePath);
-	aiMesh SaveFile(const char* filePath);
+	bool Exists(const char* path);
+	bool CreateDir(const char* path);
 
 
-private:
-	
+	//binary file handling (for resources)
+	char* ReadBinData(const char* filePath, uint* size = nullptr); //load entire file into buffer that is passed as argument (address)
+	void WriteBinData(const char* filePath, const char* buffer, uint size); //save entire buffer to file
+
+	void SaveJSON(const char* path, const nlohmann::json& json);
+	nlohmann::json LoadJSON(const char* path);
+
+	//Meta file handling 
+	void CreateMeta(const char* path, VroomUUID uuid, uint size = 0); //create buffer, fill it & save to Assets
+
+	VroomUUID GetUUIDFromMeta(const char* metaPath);
+	bool IsMetaValid(const char* metaPath); //check if meta needs to b reimported (modtime, corrupted, missing...)
+	bool NeedsReimport(const char* metaPath, const char* sourceFilePath);
+
+	std::string GetFileNameFromPath(const char* path);
+	std::string GetDirFromPath(const char* path);
+	std::string GetFileFromPath(const char* path);
+
+	std::string NormalizePath(const char* path);
+
+	uint64_t GetFileModTime(const std::string& path);
+
+	bool ExistsInDirectory(const char* directory, const char* fileName);
+	bool ExistsInSubDirectories(const char* directory, const char* fileName);
+
 
 };

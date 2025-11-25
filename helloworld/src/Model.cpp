@@ -15,10 +15,11 @@
 #include "Log.h"
 #include "GUIManager.h"
 
+
 using namespace std;
 
 
-void Model::loadModel(string path) {
+void Model::ImportScene(const char* path) {
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
@@ -28,14 +29,25 @@ void Model::loadModel(string path) {
     }
 
     
+    FileSystem* fs = Application::GetInstance().fileSystem.get();
+    // Parse path info
+    fullPath = fs->NormalizePath(path);
+    fileName = fs->GetFileNameFromPath(path);
 
-    fullPath = path;
-    std::replace(fullPath.begin(), fullPath.end(), '\\', '/');
-    LOG("FullPath = %s", fullPath);
-    fileExtension = fullPath.substr(fullPath.find_last_of(".") + 1);
-    directory = fullPath.substr(0, fullPath.find_last_of('/'));
-    fileName = fullPath.substr(fullPath.find_last_of('/') + 1, fullPath.find_last_of('.') - (fullPath.find_last_of('/') + 1));
+    // Check for existing meta
+    std::string metaPath = std::string(path) + ".meta";
+    std::vector<VroomUUID> existingMeshUIDs;
+    bool alreadyImported = false;
 
+    if (fs->Exists(metaPath.c_str())) {
+        if (fs->IsMetaValid(metaPath.c_str())) {
+            // Already imported and valid
+
+            alreadyImported = true;
+            LOG("Scene already imported: %s", fullPath);
+
+        }
+    }
 
 
     stbi_set_flip_vertically_on_load(fileExtension == "obj");
@@ -45,7 +57,7 @@ void Model::loadModel(string path) {
     rootGameObject.get()->SetOwnerModel(this);
 
     rootGameObject->AddComponent(ComponentType::TRANSFORM);
-    /*processNodeWithGameObjects(scene->mRootNode, scene, rootGameObject);*/
+    
     for (int i = 0; i < scene->mRootNode->mNumChildren; i++) {
         processNodeWithGameObjects(scene->mRootNode->mChildren[i], scene, rootGameObject);
     }
@@ -175,8 +187,20 @@ void Model::Draw(Shader& shader) {
     }
 }
 
-void Model::processNodeWithGameObjects(aiNode* node, const aiScene* scene, shared_ptr<GameObject> parent) {
-    auto gameObject = make_shared<GameObject>(node->mName.C_Str());
+void Model::processNodeWithGameObjects(const aiNode* node, const aiScene* scene, shared_ptr<GameObject> parent) {
+
+    aiMatrix4x4 accumulatedTransform;
+    const aiNode* currentNode = node;
+
+    while (std::string(currentNode->mName.C_Str()).find("_$AssimpFbx$_") != std::string::npos) {
+        accumulatedTransform = accumulatedTransform * currentNode->mTransformation;
+        if (currentNode->mNumChildren > 1) {
+            LOG("WARNING: FBX dummy node has multiple children");
+        }
+        currentNode = currentNode->mChildren[0];
+    }
+
+    auto gameObject = make_shared<GameObject>(currentNode->mName.C_Str());
     gameObjects.push_back(gameObject);
 
     LOG("Created GameObject: '%s' (Parent: '%s')",
@@ -187,46 +211,78 @@ void Model::processNodeWithGameObjects(aiNode* node, const aiScene* scene, share
     auto transformComp = gameObject->AddComponent(ComponentType::TRANSFORM);
     auto transform = static_cast<TransformComponent*>(transformComp.get());
 
+    // Combine transforms
+    aiMatrix4x4 localTransform = accumulatedTransform * currentNode->mTransformation;
+
     aiVector3D position, scaling;
     aiQuaternion rotation;
-    node->mTransformation.Decompose(scaling, rotation, position);
+    localTransform.Decompose(scaling, rotation, position);
 
-    transform->SetPosition(glm::vec3(position.x, position.y, position.z));
+    // Normalize scale
+    float div_scale = std::max(scaling.x, scaling.y);
+    div_scale = std::max(div_scale, scaling.z);
+    if (div_scale > 0.0f) {
+        scaling /= div_scale;
+    }
+
+   /* transform->SetPosition(glm::vec3(position.x, position.y, position.z));
     transform->SetRotation(glm::quat(rotation.w, rotation.x, rotation.y, rotation.z));
-    transform->SetScale(glm::vec3(scaling.x, scaling.y, scaling.z));
+    transform->SetScale(glm::vec3(scaling.x, scaling.y, scaling.z));*/
 
-    LOG("  - Transform: Pos(%.2f, %.2f, %.2f) Scale(%.2f, %.2f, %.2f)",
-        position.x, position.y, position.z,
-        scaling.x, scaling.y, scaling.z);
+    glm::vec3 pos(position.x, position.y, position.z);
+    glm::quat rot(rotation.w, rotation.x, rotation.y, rotation.z);
+    glm::vec3 scale(scaling.x, scaling.y, scaling.z);
+
 
     if (parent) {
         gameObject->SetParent(parent);
         LOG("  - Set parent to '%s'", parent->GetName().c_str());
     }
 
-    LOG("  - Processing %d meshes for '%s'", node->mNumMeshes, gameObject->GetName().c_str());
-    for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-        aiMesh* aimesh = scene->mMeshes[node->mMeshes[i]];
+    std::string nodeName = currentNode->mName.C_Str();
+    uint meshIndex = -1;
 
-        if (node->mNumMeshes > 1) {
-            string meshName = string(node->mName.C_Str()) + "_Mesh" + to_string(i);
-            auto meshGO = make_shared<GameObject>(meshName);
+
+
+    /*LOG("  - Processing %d meshes for '%s'", currentNode->mNumMeshes, gameObject->GetName().c_str());*/
+    if (currentNode->mNumMeshes > 1) {
+        for (unsigned int i = 0; i < currentNode->mNumMeshes; i++) {
+
+            meshIndex = currentNode->mMeshes[i];
+            aiMesh* aimesh = scene->mMeshes[meshIndex];
+
+            
+            auto meshGO = make_shared<GameObject>(nodeName);
             gameObjects.push_back(meshGO);
 
             meshGO->AddComponent(ComponentType::TRANSFORM);
             meshGO->SetParent(gameObject);
 
             createComponentsForMesh(meshGO, aimesh, scene);
+        }
+       
 
-        }
-        else {
-            createComponentsForMesh(gameObject, aimesh, scene);
-        }
     }
+    else if (currentNode->mNumMeshes == 1) {
+        meshIndex = currentNode->mMeshes[0]; // ← Global index
+        aiMesh* aiMesh = scene->mMeshes[meshIndex];
 
-    LOG("  - Processing %d children for '%s'", node->mNumChildren, gameObject->GetName().c_str());
-    for (unsigned int i = 0; i < node->mNumChildren; i++)
-        processNodeWithGameObjects(node->mChildren[i], scene, gameObject);
+
+        createComponentsForMesh(gameObject, aiMesh, scene);
+    }
+    //else { //no meshes-> create empty GO
+    //    auto emptyGO = make_shared<GameObject>(nodeName);
+    //    emptyGO->AddComponent(ComponentType::TRANSFORM);
+    //    emptyGO->SetParent(gameObject);
+    //    gameObjects.push_back(emptyGO);
+    //}
+
+
+
+    LOG("  - Processing %d children for '%s'", currentNode->mNumChildren, gameObject->GetName().c_str());
+
+    for (unsigned int i = 0; i < currentNode->mNumChildren; i++)
+        processNodeWithGameObjects(currentNode->mChildren[i], scene, gameObject);
 }
 
 Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
@@ -555,3 +611,29 @@ void Model::AssignDefaultTexture(std::vector<Texture>& textures) {
     }
 }
 
+std::shared_ptr<GameObject> Model::CreateGameObject(const std::string& name, VroomUUID meshUID, std::shared_ptr<GameObject> parent, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale) {
+
+    auto go = std::make_shared<GameObject>(name);
+
+
+    if (parent) {
+        go->SetParent(parent);  // Just pass the shared_ptr directly
+    }
+
+
+    // Add Transform component
+    auto transformComp = go->AddComponent(ComponentType::TRANSFORM);
+    auto transform = std::static_pointer_cast<TransformComponent>(transformComp);
+    transform->SetPosition(position);
+    transform->SetRotation(rotation);
+    transform->SetScale(scale);
+
+    // Add RenderMeshComponent
+    auto rendererComp = go->AddComponent(ComponentType::MESH_RENDERER);
+    auto renderer = std::static_pointer_cast<RenderMeshComponent>(rendererComp);
+    renderer->SetMeshID(meshUID);
+
+    LOG("Created GameObject '%s' with mesh (UUID: %llu)", name.c_str(), meshUID);
+
+    return go;
+}

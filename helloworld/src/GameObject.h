@@ -7,13 +7,17 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include "UUID.h"
+
 
 class Model;
 
 class GameObject : public std::enable_shared_from_this<GameObject> {
 public:
     // Constructor
-    GameObject(const std::string& name = "GameObject");
+    
+    GameObject(const std::string& name, const VroomUUID uuid);
+    GameObject(const std::string& name = "GameObject"); 
     ~GameObject(); // Destructor can remain trivial; shared_ptr handles cleanup
 
     // Update this GameObject and its children
@@ -57,8 +61,11 @@ public:
         return ownerModel; 
     }
 
+    
+
 
 private:
+    uint64_t uuid;
     std::string name;
     bool active = true;
     bool markedForDestroy = false;

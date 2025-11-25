@@ -5,8 +5,13 @@
 #include <algorithm>
 #include "Log.h"
 
-GameObject::GameObject(const std::string& name_)
-    : name(name_), active(true) {
+
+GameObject::GameObject(const std::string& name, const VroomUUID uuid)
+    : name(name), active(true), uuid(uuid) {
+}
+
+GameObject::GameObject(const std::string& name)
+    : name(name), active(true), uuid(UUIDGen::GenerateUUID()) {
 }
 
 // No manual deletion needed; shared_ptr cleans up automatically
