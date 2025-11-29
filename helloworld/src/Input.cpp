@@ -15,6 +15,7 @@
 #include "Render.h"
 #include "Importer.h"
 #include "TextureImporter.h"
+#include "Textures.h"
 
 #include "SDL3/SDL.h"
 #include <vector>
@@ -269,7 +270,8 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 			// Update originalTextures map if it exists
 			if (meshPtr && parentModel->originalTextures.find(meshPtr) != parentModel->originalTextures.end()) {
 				parentModel->originalTextures[meshPtr].clear();
-				parentModel->originalTextures[meshPtr].push_back(*droppedTex);
+				//parentModel->originalTextures[meshPtr].push_back(*droppedTex);
+				parentModel->originalTextures[meshPtr].push_back(droppedTex);
 			}
 		}
 

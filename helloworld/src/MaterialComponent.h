@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include "Textures.h"
+#include <memory>
 
 class MaterialComponent : public Component {
 public:

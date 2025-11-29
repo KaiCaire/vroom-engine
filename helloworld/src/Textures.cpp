@@ -13,7 +13,7 @@
 
 using namespace std;
 
-Texture::Texture(): Resource(ResourceType::TEXTURE) {
+Texture::Texture(): Resource(ResourceType::TEXTURE), id(0), texW(0), texH(0) {
     //name = "texture";
     //id = 0;  // Changed from -1 to 0 (OpenGL convention for uninitialized)
     //mapType = "";

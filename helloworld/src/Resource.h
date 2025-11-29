@@ -28,6 +28,10 @@ public:
     virtual ~Resource() = default;
     bool isLoaded;
 
+    // Prevent copying of Resources
+    Resource(const Resource&) = delete;
+    Resource& operator=(const Resource&) = delete;
+
     // Getters
     VroomUUID GetUUID() const { return uuid; }
     std::string GetName() const { return name; }

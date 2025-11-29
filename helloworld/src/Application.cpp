@@ -8,6 +8,7 @@
 #include "OpenGL.h"
 #include "FileSystem.h"
 #include "Textures.h"
+#include "Importer.h"
 
 #include "GUIManager.h"
 

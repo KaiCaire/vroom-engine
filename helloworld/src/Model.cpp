@@ -81,7 +81,7 @@ void Model::ImportScene(const char* path) {
     }
 }
 
-Model::Model(Mesh mesh) {
+Model::Model(std::shared_ptr<Mesh> sharedMesh) {
     auto gameObject = make_shared<GameObject>();
     gameObjects.push_back(gameObject);
     rootGameObject = gameObject;
@@ -110,7 +110,7 @@ Model::Model(Mesh mesh) {
 
 
     // Create & store mesh 
-    auto sharedMesh = make_shared<Mesh>(mesh);
+    //auto sharedMesh = make_shared<Mesh>(mesh);
     meshes.push_back(sharedMesh);
 
     // Add RenderMeshComponent and set the mesh
@@ -131,7 +131,8 @@ Model::Model(Mesh mesh) {
     std::shared_ptr<Texture> defaultColorTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
     modelMesh->GetMesh().get()->textures.push_back(defaultColorTex);
 
-    modelMat->SetDiffuseMap(std::make_shared<Texture>(defaultColorTex));
+    //modelMat->SetDiffuseMap(std::make_shared<Texture>(defaultColorTex));
+    modelMat->SetDiffuseMap(defaultColorTex);
 
     LOG("  - Added Material component with default texture");
      
@@ -539,6 +540,11 @@ std::shared_ptr<Texture> Model::GetOrLoadTexture(const std::string& fullPath, co
     // Not found, load new texture
     std::shared_ptr<Texture> texture = Application::GetInstance().importer.get()->textureImporter->Import(fullPath);
     /*texture.TextureFromFile(fullPath, fileName.c_str());*/
+
+    if (texture == nullptr) {
+        LOG("WARNING: GetOrLoadTexture failed to load texture from path: %s. Returning default texture or nullptr.", fullPath.c_str());
+        return nullptr;
+    }
     
     texture.get()->mapType = typeName;
     texture.get()->path = fullPath;

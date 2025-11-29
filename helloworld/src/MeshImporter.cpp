@@ -122,6 +122,12 @@ std::vector<std::shared_ptr<Texture>> MeshImporter::ProcessTextures(aiMesh* aiMe
 
                 if (!found) {
                     std::shared_ptr<Texture> tex = Application::GetInstance().importer.get()->textureImporter->Import(modelPath);
+                    
+                    if (tex == nullptr) {
+                        LOG("WARNING: Texture import failed for path '%s'. Skipping texture.", texturePath.c_str());
+                        continue; // Skip the rest of the loop iteration
+                    }
+                    
                     tex.get()->mapType = typeName;
                     tex.get()->path = texturePath;
                     textures_loaded.push_back(tex);
@@ -160,6 +166,12 @@ std::vector<std::shared_ptr<Texture>> MeshImporter::ProcessTextures(aiMesh* aiMe
             std::string fullDefaultTexPath = defaultTexPath + fileName;
             std::shared_ptr<Texture> defaultTex = Application::GetInstance().importer.get()->textureImporter->Import(fullDefaultTexPath);
             /*defaultTex.TextureFromFile(defaultTexPath, fileName.c_str());*/
+
+            if (defaultTex == nullptr) {
+                LOG("FATAL ERROR: Failed to load default texture! Skipping.");
+                // We cannot assign a default texture, so we return with no textures.
+                return textures;
+            }
             
             defaultTex.get()->mapType = "texture_diffuse";
             defaultTex.get()->path = defaultTexPath;

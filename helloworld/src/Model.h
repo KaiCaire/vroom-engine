@@ -28,7 +28,8 @@ public:
     std::string fileExtension;
 
     // Texture management
-    std::map<std::shared_ptr<Mesh>, std::vector<Texture>> originalTextures;
+    //std::map<std::shared_ptr<Mesh>, std::vector<Texture>> originalTextures;
+    std::map<std::shared_ptr<Mesh>, std::vector<std::shared_ptr<Texture>>> originalTextures;
     bool useDefaultTexture = false;
     std::shared_ptr<Texture> savedTexture = nullptr;
 
@@ -43,7 +44,7 @@ public:
 public:
     // Constructors
     Model();
-    Model(Mesh mesh);
+    Model(std::shared_ptr<Mesh> sharedMesh);
     ~Model();
 
     // Import scene from file

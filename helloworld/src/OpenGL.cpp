@@ -11,6 +11,9 @@
 #include "Camera.h"
 #include "GUIManager.h"
 
+#include <assimp/DefaultLogger.hpp>
+#include <assimp/LogStream.hpp>
+
 OpenGL::OpenGL() : Module()
 {
 	std::cout << "OpenGL Constructor" << std::endl;
@@ -45,7 +48,8 @@ bool OpenGL::Start() {
 
 	/*stbi_set_flip_vertically_on_load(true);*/
 
-
+	Assimp::DefaultLogger::create("Assimp_Log.txt", Assimp::Logger::VERBOSE);
+	LOG("Assimp Logger Initialized in OpenGL::Start()");
 
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
 
@@ -157,6 +161,9 @@ bool OpenGL::Update(float dt) {
 bool OpenGL::CleanUp() {
 	glDeleteVertexArrays(1, &VAO);
 
+	Assimp::DefaultLogger::kill();
+	LOG("Assimp Logger Shutdown in OpenGL::CleanUp()");
+
 	return true;
 }
 
@@ -226,10 +233,14 @@ Model* OpenGL::CreateCube() {
 	}
 
 	// Create mesh
-	Mesh cubeMesh(_vertices, _indices, _textures);
+	//Mesh cubeMesh(_vertices, _indices, _textures);
 
-	// Create model from mesh
-	Model* cubeModel = new Model(cubeMesh);
+	//// Create model from mesh
+	//Model* cubeModel = new Model(cubeMesh);
+
+	std::shared_ptr<Mesh> sharedCubeMesh = std::make_shared<Mesh>(_vertices, _indices, _textures);
+
+	Model* cubeModel = new Model(sharedCubeMesh);
 
 	// Add to manager
 	modelObjects.push_back(cubeModel);

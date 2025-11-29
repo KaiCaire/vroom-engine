@@ -2,7 +2,6 @@
 
 #include "Module.h"
 #include "SDL3/SDL.h"
-#include <memory>
 
 
 class Texture;
