@@ -11,11 +11,12 @@ class Input;
 class Render;
 class OpenGL;
 class FileSystem;
-class Texture;
+
 class Mesh;
 class Model;
 class GUIManager;
 class Camera;
+class Importer;
 
 
 //class Physics;
@@ -100,8 +101,9 @@ public:
 	std::shared_ptr<Render> render;
 	std::shared_ptr<OpenGL> openGL;
 	std::shared_ptr<FileSystem> fileSystem;
-	std::shared_ptr<Texture> textures;
+
 	std::shared_ptr<Camera> camera;
+	std::shared_ptr<Importer> importer;
 	
 	bool requestExit = false;
 

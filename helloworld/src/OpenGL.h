@@ -23,7 +23,9 @@ public:
 
 	Shader* texCoordsShader;
 	Model* ourModel;
-	vector<Model*> modelObjects;
+	
+
+	std::vector<Model*> modelObjects;
 
 
 	bool Start() override;

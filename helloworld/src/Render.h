@@ -5,7 +5,7 @@
 #include "FileSystem.h"
 #include <vector>
 
-
+using namespace std;
 
 
 class Render : public Module

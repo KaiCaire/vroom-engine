@@ -1,66 +1,80 @@
 #pragma once
-#include "Shader.h"
-#include "Mesh.h"
-#include "Textures.h"
-#include "GameObject.h"
 #include <vector>
+#include <memory>
 #include <string>
+#include <map>
+#include "GameObject.h"
+#include "Mesh.h"
+#include "Shader.h"
 #include "UUID.h"
-#include <unordered_map>
+#include <assimp/scene.h>
+
+
+// Forward declarations
+class Texture;
 
 class Model {
 public:
-    Model(const char* path) 
-    { 
-        ImportScene(path);
-    }
-
-    Model(Mesh mesh);
-    Model();
-    ~Model();
-
-    
-    std::shared_ptr<Texture> savedTexture;
-    
-    void Draw(Shader& shader); 
+    // Storage for meshes (Mesh is now a Resource)
     std::vector<std::shared_ptr<Mesh>> meshes;
-    std::shared_ptr<GameObject> rootGameObject;
+
+    // GameObjects
     std::vector<std::shared_ptr<GameObject>> gameObjects;
+    std::shared_ptr<GameObject> rootGameObject;
 
-    std::vector<std::shared_ptr<GameObject>>& GetGameObjects() { return gameObjects; }
+    // Model metadata
+    std::string fullPath;
+    std::string fileName;
+    std::string fileExtension;
 
-    shared_ptr<GameObject> GetRootGameObject() const 
-    { 
-        return rootGameObject; 
-    }
-    
-    std::string fileName, fileExtension, directory;
-    int processedMeshes = 0;
-
-    //store original texture for later use
+    // Texture management
+    std::map<std::shared_ptr<Mesh>, std::vector<Texture>> originalTextures;
     bool useDefaultTexture = false;
-    std::unordered_map<std::shared_ptr<Mesh>, std::vector<Texture>> originalTextures;
+    std::shared_ptr<Texture> savedTexture = nullptr;
 
-    std::string fullPath, metaPath;
-
-    void ImportScene(const char* path);
-    
-   /* void processNode(aiNode* node, const aiScene* scene);*/
-    Mesh processMesh(aiMesh* mesh, const aiScene* scene);
-
+    // Processing methods
     void processNodeWithGameObjects(const aiNode* node, const aiScene* scene, std::shared_ptr<GameObject> parent);
+
     void createComponentsForMesh(std::shared_ptr<GameObject> gameObject, aiMesh* aiMesh, const aiScene* scene);
 
-    vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
-    Texture GetOrLoadTexture(const string& fullPath, const string& fileName, const string& typeName);
-    void AssignDefaultTexture(std::vector<Texture>& textures);
+    std::shared_ptr<Texture> GetOrLoadTexture(const std::string& fullPath, const std::string& fileName, const std::string& typeName);
+    void AssignDefaultTexture(std::vector<std::shared_ptr<Texture>>& textures);
 
-    void LogGameObjectHierarchy(std::shared_ptr<GameObject>  go, int depth);
+public:
+    // Constructors
+    Model();
+    Model(Mesh mesh);
+    ~Model();
+
+    // Import scene from file
+    void ImportScene(const char* path);
+
+    // Rendering
+    void Draw(Shader& shader);
+
+    // GameObject management
+    std::shared_ptr<GameObject> CreateEmptyGameObject(const std::string& name,
+        std::shared_ptr<GameObject> parent = nullptr);
+
+    std::shared_ptr<GameObject> CreateGameObject(const std::string& name,
+        VroomUUID meshUID,
+        std::shared_ptr<GameObject> parent,
+        const glm::vec3& position,
+        const glm::quat& rotation,
+        const glm::vec3& scale);
 
     void DestroyGameObject(std::shared_ptr<GameObject> gameObject);
     void CleanUpDestroyedObjects();
-    std::shared_ptr<GameObject> CreateEmptyGameObject(const std::string& name, std::shared_ptr<GameObject> parent = nullptr);
 
-    std::shared_ptr<GameObject> CreateGameObject(const std::string& name, VroomUUID meshUID, std::shared_ptr<GameObject> parent, const glm::vec3& position, const glm::quat& rotation, const glm::vec3& scale);
+    // Hierarchy debugging
+    void LogGameObjectHierarchy(std::shared_ptr<GameObject> go, int depth);
 
+    // Getters
+    std::shared_ptr<GameObject> GetRootGameObject() const { return rootGameObject; }
+    const std::vector<std::shared_ptr<GameObject>>& GetGameObjects() const { return gameObjects; }
+    const std::vector<std::shared_ptr<Mesh>>& GetMeshes() const { return meshes; }
+
+    // Texture toggle
+    void SetUseDefaultTexture(bool use) { useDefaultTexture = use; }
+    bool GetUseDefaultTexture() const { return useDefaultTexture; }
 };

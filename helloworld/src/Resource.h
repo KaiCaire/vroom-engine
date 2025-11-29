@@ -1,68 +1,53 @@
 #pragma once
-#include "UUID.h"
 #include <string>
-#include <vector>
-#include <algorithm>
-#include "glm/glm.hpp"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include "Log.h"
+#include "UUID.h"
 
-
-
-#include "Application.h"
-#include "FileSystem.h"
-
-
-typedef std::uint64_t VroomUUID;
-typedef unsigned int uint;
-
-enum ResourceType {
-	TEXTURE,
-	MODEL,
-	MESH,
-	MATERIAL,
-	AUDIO,
-	SCENE,
-	BONE,
-	ANIM,
-	UNKNOWN
+enum class ResourceType {
+    UNKNOWN = 0,
+    MESH,
+    TEXTURE,
+    MATERIAL,
+    SHADER,
+    AUDIO
 };
 
 class Resource {
-public:
-	Resource(VroomUUID uuid, ResourceType type);
-	virtual ~Resource();
-	ResourceType GetType() const { return type; }
-	VroomUUID GetUUID() const { return uuid; }
-	void SetUUID(VroomUUID _uuid) { uuid = _uuid; }
-
-	const char* GetAssetFilePath() const { return assetsPath.c_str(); }
-	const char* GetLibraryFilePath() const { return libraryPath.c_str(); }
-
-	void SetAssetFilePath(const std::string& path) { assetsPath = path; }
-	void SetLibraryFilePath(const std::string& path) { libraryPath = path; }
-
-	bool IsLoadedToRAM() const { return isLoadedToRAM; }
-
-	uint GetRefCount() const { return refCount; }
-
-
-	virtual void SaveBin() = 0; //write binary data to Library
-	virtual void LoadBin() = 0; //read binary data from Library
-	virtual void FreeMemory() = 0; //unload resource from memory, freeing RAM
-
-	virtual void SaveMeta() const = 0;  //.meta to Assets
-	virtual void LoadMeta() = 0; //.meta from Assets
-
 protected:
-	VroomUUID uuid = 0;
-	std::string assetsPath; //Path to original file in Assets/
-	std::string libraryPath; //// Path to binary file in Library/
-	uint refCount = 0;
-	bool isLoadedToRAM = false; // Is data loaded in RAM?
+    VroomUUID uuid;
+    std::string name;
+    std::string filePath;
+    ResourceType type;
+    
+    int referenceCount;
 
-	ResourceType type;
+public:
+    Resource(ResourceType type)
+        : uuid(0), type(type), isLoaded(false), referenceCount(0) {
+    }
 
-	FileSystem* fs;
+    virtual ~Resource() = default;
+    bool isLoaded;
+
+    // Getters
+    VroomUUID GetUUID() const { return uuid; }
+    std::string GetName() const { return name; }
+    std::string GetFilePath() const { return filePath; }
+    ResourceType GetType() const { return type; }
+    bool IsLoaded() const { return isLoaded; }
+    int GetReferenceCount() const { return referenceCount; }
+
+    // Setters
+    void SetUUID(VroomUUID id) { uuid = id; }
+    void SetName(const std::string& n) { name = n; }
+    void SetFilePath(const std::string& path) { filePath = path; }
+
+    // Reference counting
+    void AddReference() { referenceCount++; }
+    void RemoveReference() {
+        if (referenceCount > 0) referenceCount--;
+    }
+
+    // Pure virtual - must be implemented by derived classes
+    virtual bool LoadToMemory() = 0;
+    virtual void UnloadFromMemory() = 0;
 };

@@ -1,20 +1,14 @@
+
+
 #pragma once
 #include "Resource.h"
-#include "glm/glm.hpp"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "Shader.h"
-#include "Textures.h"
 #include <vector>
-#include <SDL3/SDL_opengl.h>
-#include "assimp/cimport.h"
-#include "assimp/scene.h"
-#include "assimp/postprocess.h"
-#include "assimp/mesh.h"
+#include <memory>  
+#include <glm/glm.hpp>
+#include "Shader.h"
+#include "UUID.h"
 
 
-using namespace std;
 
 struct Vertex {
     glm::vec3 Position;
@@ -22,42 +16,49 @@ struct Vertex {
     glm::vec2 texCoord;
 };
 
+//struct Texture {
+//    unsigned int id;
+//    std::string mapType;
+//    std::string path;
+//    // Add TextureFromFile method here or in a cpp
+//   /* void TextureFromFile(const std::string& path, const char* fileName);*/
+//};
+
 class Texture;
- 
 
-class Mesh {
+class Mesh : public Resource {
 public:
-    // mesh data
-    vector<Vertex>       vertices;
-    vector<unsigned int> indices;
-    vector<Texture>      textures;
+    // Mesh data
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<std::shared_ptr<Texture>> textures;
+    std::vector<glm::vec3> normals;
+    
+    // OpenGL buffers
+    unsigned int VAO, VBO, EBO;
 
-    vector<glm::vec3>    normals;
+    // Constructors
+    Mesh();
+    Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<Texture>> textures);
+
+    // Draw the mesh
+    void Draw(Shader& shader);
+
     
 
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures);
-    ~Mesh();
+    // Set mesh data (useful for updating mesh after creation)
+    void SetMeshData(const std::vector<Vertex>& verts, const std::vector<unsigned int>& inds, const std::vector<std::shared_ptr<Texture>>& texs);
+
+
+
+    // Resource interface implementation
+    bool LoadToMemory() override;
+    void UnloadFromMemory() override;
+
     void CalculateNormals();
-    void Draw(Shader &shader);
     bool drawVertNormals = false;
     bool drawFaceNormals = false;
 
-    void SetUUID(VroomUUID _uuid) 
-    { 
-        uuid = _uuid; 
-    }
-
-    //void SaveBin() override;
-    //void LoadBin() override;
-
-    //void SaveMeta() const override;
-    //void LoadMeta() override;
-    //
-
 private:
-    //  render data
-    unsigned int VAO, VBO, EBO;
-    VroomUUID uuid = 0;
     void setupMesh();
-    
 };

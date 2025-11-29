@@ -2,9 +2,10 @@
 
 #include "Module.h"
 #include "SDL3/SDL.h"
+#include <memory>
 
 
-
+class Texture;
 
 #define MAX_KEYS 300
 #define NUM_MOUSE_BUTTONS 5
@@ -86,7 +87,7 @@ private:
 	int mouseMotionY;
 	int mouseX;
 	int mouseY;
-  int mouseWheelY;
+	int mouseWheelY;
 
 	const char* droppedFileDir;
 	/*std::vector<std::shared_ptr<GameObject>> selectedObjects;*/

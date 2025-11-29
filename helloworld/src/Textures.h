@@ -1,42 +1,37 @@
-#pragma once
-
-#include "Module.h"
+#include "Resource.h"
 #include <string>
-#include <vector>
 
-using namespace std;
+// Forward declarations
+typedef unsigned int GLuint;
+typedef unsigned int GLenum;
+typedef unsigned int uint;
 
-
-class Texture : public Module
+// Texture is now a Resource
+class Texture : public Resource 
 {
 public:
+    // Texture data
+    unsigned int id;        // OpenGL texture ID
+    std::string mapType;    // e.g., "texture_diffuse", "texture_specular"
+    std::string path;       // Full file path (kept for backward compatibility)
+    int texW, texH;         // Dimensions
+    
+    // Constructor
+    Texture();
+    ~Texture();
+    
+    // OLD method - kept for backward compatibility (deprecated)
+    /*uint TextureFromFile(const std::string directory, const char* filename);*/
+    
+    // Resource interface implementation
+    bool LoadToMemory() override;
+    void UnloadFromMemory() override;
 
-	Texture();
 
-	
-	virtual ~Texture();
-
-	bool Awake();
-
-	bool Start();
-
-	bool CleanUp();
-
-	uint TextureFromFile(std::string directory, const char* filename);
-
-	
-
-
-public:
-	
-	uint id;
-	std::string mapType;
-	std::string path;
-	int texW, texH;
-
-	std::vector<Texture> textures_loaded;
-
-	std::string defaultTexDir = "../Assets/Textures/checkers.jpg";
-	
-	
 };
+
+
+	
+	
+
+

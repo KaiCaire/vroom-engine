@@ -13,6 +13,8 @@
 #include "MaterialComponent.h"
 #include "Textures.h"
 #include "Render.h"
+#include "TextureImporter.h"
+#include "Importer.h"
 
 #include <SDL3/SDL_opengl.h>
 #include <glm/glm.hpp>
@@ -23,6 +25,8 @@
 #include <glm/gtx/transform.hpp>
 
 #include <vector>
+
+
 
 GUIElement::GUIElement(ElementType t, GUIManager* m)
 {
@@ -414,7 +418,7 @@ void GUIElement::InspectorSetUp(bool* show)
 		//get mesh component
 		auto meshComponent = std::dynamic_pointer_cast<RenderMeshComponent>(selected->GetComponent(ComponentType::MESH_RENDERER));
 		//get texture for next step
-		vector<Texture> textureComponent;
+		vector<std::shared_ptr<Texture>> textureComponent;
 
 		bool showFaceNormals = manager->drawFaceNormals;
 		bool showVertNormals = manager->drawVertNormals;
@@ -449,10 +453,10 @@ void GUIElement::InspectorSetUp(bool* show)
 
 				if (materialComp && materialComp->GetDiffuseMap()) {
 					auto currentTex = materialComp->GetDiffuseMap();
-					ImGui::Text("Current Texture ID: %u", currentTex->id);
-					ImGui::BulletText("Path: %s", currentTex->path.c_str());
-					ImGui::BulletText("Width: %d", currentTex->texW);
-					ImGui::BulletText("Height: %d", currentTex->texH);
+					ImGui::Text("Current Texture ID: %u", currentTex.get()->GetUUID());
+					ImGui::BulletText("Path: %s", currentTex.get()->path.c_str());
+					ImGui::BulletText("Width: %d", currentTex.get()->texW);
+					ImGui::BulletText("Height: %d", currentTex.get()->texH);
 				}
 
 				// Checker texture toggle
@@ -465,10 +469,10 @@ void GUIElement::InspectorSetUp(bool* show)
 							parentModel->savedTexture = materialComp->GetDiffuseMap();
 
 							// Load checker
-							string fullPath = Application::GetInstance().textures.get()->defaultTexDir;
+							string fullPath = Application::GetInstance().importer.get()->defaultTexDir;
 							string fileName = fullPath.substr(fullPath.find_last_of('/') + 1);
 							auto checkerTex = std::make_shared<Texture>();
-							checkerTex->TextureFromFile(fullPath, fileName.c_str());
+							checkerTex = Application::GetInstance().importer.get()->textureImporter->Import(fullPath);
 
 							materialComp->SetDiffuseMap(checkerTex);
 						}

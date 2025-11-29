@@ -13,6 +13,8 @@
 #include <iostream>
 #include "Model.h"
 #include "Render.h"
+#include "Importer.h"
+#include "TextureImporter.h"
 
 #include "SDL3/SDL.h"
 #include <vector>
@@ -20,6 +22,7 @@
 
 using namespace std;
 class RenderMeshComponent;
+
 
 Input::Input() : Module()
 {
@@ -151,14 +154,9 @@ bool Input::PreUpdate()
 		case SDL_EVENT_DROP_FILE:
 			/*windowID = Application::GetInstance().window.get()->GetWindowID();*/
 			droppedFileDir = event.drop.data;
-			
-			
-			
 
 			ProcessDroppedFile(droppedFileDir);
-			
-			
-			
+					
 			//not needed in SDL3, the new allocated memory created  gets freed automatically
 			/*SDL_free(&droppedFileDir);*/
 			break;
@@ -191,25 +189,23 @@ bool Input::CleanUp()
 }
 
 void Input::ProcessDroppedFile(std::string sourcePath) {
-
 	std::replace(sourcePath.begin(), sourcePath.end(), '\\', '/');
-
 	LOG("Dropped File Directory = %s", sourcePath.c_str());
-		
-	//find last dot of directory to get file extension (.fbx, .obj, .png, .jpg, etc)
 
-	//handle model files
+	// Find file extension
 	string fileExtension = sourcePath.substr(sourcePath.find_last_of(".") + 1);
+
+	// Handle model files
 	if (fileExtension == "fbx" || fileExtension == "FBX" || fileExtension == "obj") {
-		importedModel = new Model(droppedFileDir);
+		importedModel = new Model();  // Create empty model first
+		importedModel->ImportScene(sourcePath.c_str());  // Then import the scene
+
 		Application::GetInstance().render.get()->AddModel(importedModel);
 		Application::GetInstance().openGL.get()->modelObjects.push_back(importedModel);
 	}
-
-	//handle image files
+	// Handle image files
 	else if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "tga" || fileExtension == "dds") {
 		std::shared_ptr<GameObject> selectedObj = Application::GetInstance().guiManager.get()->selectedObject;
-
 		if (!selectedObj) {
 			LOG("No GameObject Selected. Select a GameObject in the hierarchy and try again");
 			return;
@@ -218,7 +214,6 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 		auto meshComp = std::dynamic_pointer_cast<RenderMeshComponent>(
 			selectedObj->GetComponent(ComponentType::MESH_RENDERER)
 		);
-
 		if (!meshComp) {
 			LOG("You selected an empty GameObject. Select a GameObject from the hierarchy with a mesh and try again");
 			return;
@@ -228,7 +223,6 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 		auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
 			selectedObj->GetComponent(ComponentType::MATERIAL)
 		);
-
 		if (!materialComp) {
 			LOG("No MaterialComponent found, creating one");
 			selectedObj->AddComponent(ComponentType::MATERIAL);
@@ -236,7 +230,6 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 				selectedObj->GetComponent(ComponentType::MATERIAL)
 			);
 		}
-
 		if (!materialComp) {
 			LOG("ERROR: Failed to get/create MaterialComponent");
 			return;
@@ -244,50 +237,47 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 
 		// Load the dropped texture
 		string fileName = sourcePath.substr(sourcePath.find_last_of('/') + 1);
-		auto droppedTex = std::make_shared<Texture>();
-		bool success = droppedTex->TextureFromFile(sourcePath, fileName.c_str());
+		auto droppedTex = Application::GetInstance().importer.get()->textureImporter->Import(sourcePath);
+		/*bool success = droppedTex->TextureFromFile(sourcePath, fileName.c_str());*/
 
-		if (!success || droppedTex->id == 0) {
+
+		if (droppedTex == nullptr) {
 			LOG("ERROR: Failed to load texture: %s", sourcePath.c_str());
 			return;
 		}
 
-		droppedTex->mapType = "texture_diffuse";
-		droppedTex->path = sourcePath;
+		droppedTex.get()->mapType = "texture_diffuse";
+		droppedTex.get()->path = sourcePath;
 
 		// Set it on the MaterialComponent
 		materialComp->SetDiffuseMap(droppedTex);
 
-		// Also add to mesh textures (for your current rendering system)
+		// Also add to mesh textures
 		auto meshPtr = meshComp->GetMesh();
 		if (meshPtr) {
 			// Clear old textures and add new one
 			meshPtr->textures.clear();
-			meshPtr->textures.push_back(*droppedTex);
+			meshPtr->textures.push_back(droppedTex);
 		}
 
-		// KEY FIX: Update the parent model's savedTexture
+		// Update the parent model's savedTexture
 		auto parentModel = Application::GetInstance().guiManager.get()->FindGameObjectModel(selectedObj);
 		if (parentModel) {
 			parentModel->savedTexture = droppedTex;  // Save the new texture
-			parentModel->useDefaultTexture = false;   // Make sure checker is off
+			parentModel->SetUseDefaultTexture(false);   // Turn off checker texture
 
-			// Also update originalTextures map if it exists
+			// Update originalTextures map if it exists
 			if (meshPtr && parentModel->originalTextures.find(meshPtr) != parentModel->originalTextures.end()) {
 				parentModel->originalTextures[meshPtr].clear();
 				parentModel->originalTextures[meshPtr].push_back(*droppedTex);
 			}
 		}
 
-		LOG("Texture '%s' (ID: %d) applied to '%s'",
-			fileName.c_str(),
-			droppedTex->id,
-			selectedObj->GetName().c_str());
+		LOG("Texture '%s' (ID: %d) applied to '%s'", fileName.c_str(), droppedTex.get()->id, selectedObj->GetName().c_str());
 
 		// Add to global texture cache
-		Application::GetInstance().textures.get()->textures_loaded.push_back(*droppedTex);
+		Application::GetInstance().importer.get()->textures_loaded.push_back(droppedTex);
 	}
-	
 }
 
 bool Input::GetWindowEvent(EventWindow ev)

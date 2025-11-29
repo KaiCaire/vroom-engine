@@ -2,14 +2,21 @@
 #include "Application.h"
 #include "OpenGL.h"
 #include "FileSystem.h"
+
+#include "MeshImporter.h"
+#include "TextureImporter.h"
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
 #include "MaterialComponent.h"
-#include <string>
-#include <vector>
+
+
 #include <algorithm>
 #include "Mesh.h"
 #include "assimp/importer.hpp"
+#include "assimp/cimport.h"
+#include "assimp/scene.h"
+#include "assimp/postprocess.h"
+#include "assimp/mesh.h"
 #include "stb_image.h"
 #include "Textures.h"
 #include "Log.h"
@@ -117,11 +124,11 @@ Model::Model(Mesh mesh) {
     auto modelMat = static_cast<MaterialComponent*>(materialComp.get());
 
     //load and assign default material texture
-    string checkersTexDir = Application::GetInstance().textures.get()->defaultTexDir;
+    string checkersTexDir = Application::GetInstance().importer.get()->defaultTexDir;
     string checkersTexName = checkersTexDir.substr(checkersTexDir.find_last_of('/') + 1);
     
 
-    Texture defaultColorTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
+    std::shared_ptr<Texture> defaultColorTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
     modelMesh->GetMesh().get()->textures.push_back(defaultColorTex);
 
     modelMat->SetDiffuseMap(std::make_shared<Texture>(defaultColorTex));
@@ -158,29 +165,29 @@ void Model::Draw(Shader& shader) {
         if (!mesh) continue;
 
         //trigger checkerboard texture
-        if (useDefaultTexture) {
-            //store original texture if not yet stored
-            if (originalTextures.find(mesh) == originalTextures.end()) {
-                originalTextures[mesh] = mesh->textures;
-            }
+        //if (useDefaultTexture) {
+        //    //store original texture if not yet stored
+        //    if (originalTextures.find(mesh) == originalTextures.end()) {
+        //        originalTextures[mesh] = mesh->textures;
+        //    }
 
-            mesh->textures.clear();
+        //    mesh->textures.clear();
 
-            std::string checkersTexDir = Application::GetInstance().textures->defaultTexDir;
-            std::string checkersTexName = checkersTexDir.substr(checkersTexDir.find_last_of('/') + 1);
-            Texture checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
+        //    std::string checkersTexDir = Application::GetInstance().importer->defaultTexDir;
+        //    std::string checkersTexName = checkersTexDir.substr(checkersTexDir.find_last_of('/') + 1);
+        //    std::shared_ptr<Texture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
 
-            mesh->textures.push_back(checkersTex);
-        }
-        else {
-            //restore original texture
-            auto ogTex = originalTextures.find(mesh);
-            if (ogTex != originalTextures.end()) {
-                mesh->textures = ogTex->second;
-                //originalTextures.erase(ogTex);
-            }
+        //    mesh->textures.push_back(checkersTex);
+        //}
+        //else {
+        //    //restore original texture
+        //    auto ogTex = originalTextures.find(mesh);
+        //    if (ogTex != originalTextures.end()) {
+        //        mesh->textures = ogTex->second;
+        //        //originalTextures.erase(ogTex);
+        //    }
 
-        }
+        //}
 
         //draw the mesh
         renderer->GetMesh()->Draw(shader);
@@ -285,193 +292,139 @@ void Model::processNodeWithGameObjects(const aiNode* node, const aiScene* scene,
         processNodeWithGameObjects(currentNode->mChildren[i], scene, gameObject);
 }
 
-Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
-    vector<Vertex> vertices;
-    vector<unsigned int> indices;
-    vector<Texture> textures;
-    
-
-    for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-        Vertex vertex;
-        vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-
-        if (mesh->HasNormals())
-            vertex.Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-
-        if (mesh->mTextureCoords[0])
-            vertex.texCoord = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
-        else
-            vertex.texCoord = glm::vec2(0.0f, 0.0f);
-
-        vertices.push_back(vertex);
-    }
-
-    for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
-        aiFace face = mesh->mFaces[i];
-        for (unsigned int j = 0; j < face.mNumIndices; j++)
-            indices.push_back(face.mIndices[j]);
-    }
-
-    if (mesh->mMaterialIndex >= 0) {
-        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-        auto diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-
-        auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-
-    }
-    else {
-        AssignDefaultTexture(textures);
-        /*string checkersTexDir = Application::GetInstance().textures.get()->defaultTexDir;
-        string checkersTexName = checkersTexDir.substr(0, checkersTexDir.find_last_of('/') + 1);
-        Texture defaultTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
-        textures.push_back(defaultTex);*/
-        
-        
-    }
-
-    processedMeshes++;
-    LOG("Processed mesh %d", processedMeshes);
-    return Mesh(vertices, indices, textures);
-}
-
-vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName) {
-    vector<Texture> textures;
-
-    for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
-        aiString str;
-        mat->GetTexture(type, i, &str);
-        
-        textures.push_back(GetOrLoadTexture(fullPath, str.C_Str(), typeName));
-    }
-
-    
-
-    return textures;
-}
+//Mesh Model::processMesh(aiMesh* mesh, const aiScene* scene) {
+//    vector<Vertex> vertices;
+//    vector<unsigned int> indices;
+//    vector<Texture> textures;
+//    
+//
+//    for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+//        Vertex vertex;
+//        vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
+//
+//        if (mesh->HasNormals())
+//            vertex.Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+//
+//        if (mesh->mTextureCoords[0])
+//            vertex.texCoord = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+//        else
+//            vertex.texCoord = glm::vec2(0.0f, 0.0f);
+//
+//        vertices.push_back(vertex);
+//    }
+//
+//    for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+//        aiFace face = mesh->mFaces[i];
+//        for (unsigned int j = 0; j < face.mNumIndices; j++)
+//            indices.push_back(face.mIndices[j]);
+//    }
+//
+//    if (mesh->mMaterialIndex >= 0) {
+//        aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+//        auto diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+//        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+//
+//        auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+//        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+//
+//    }
+//    else {
+//        AssignDefaultTexture(textures);
+//        /*string checkersTexDir = Application::GetInstance().textures.get()->defaultTexDir;
+//        string checkersTexName = checkersTexDir.substr(0, checkersTexDir.find_last_of('/') + 1);
+//        Texture defaultTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
+//        textures.push_back(defaultTex);*/
+//        
+//        
+//    }
+//
+//    processedMeshes++;
+//    LOG("Processed mesh %d", processedMeshes);
+//    return Mesh(vertices, indices, textures);
+//}
+//
+//vector<Texture> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName) {
+//    vector<Texture> textures;
+//
+//    for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
+//        aiString str;
+//        mat->GetTexture(type, i, &str);
+//        
+//        textures.push_back(GetOrLoadTexture(fullPath, str.C_Str(), typeName));
+//    }
+//
+//    
+//
+//    return textures;
+//}
 
 void Model::createComponentsForMesh(std::shared_ptr<GameObject> gameObject, aiMesh* aiMesh, const aiScene* scene)
 {
-    LOG("Creating components for mesh in GameObject '%s'", gameObject->GetName().c_str());
-    LOG("  - Vertices: %d, Faces: %d", aiMesh->mNumVertices, aiMesh->mNumFaces);
+    LOG("=== createComponentsForMesh START ===");
+    LOG("GameObject: '%s'", gameObject->GetName().c_str());
+    LOG("aiMesh vertices: %d, faces: %d", aiMesh->mNumVertices, aiMesh->mNumFaces);
 
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-    std::vector<Texture> textures;
+    // MeshImporter returns a Mesh directly
+    auto mesh = Application::GetInstance().importer->meshImporter->Import(aiMesh, scene, fullPath);
 
-    // --- Process vertices ---
-    for (unsigned int i = 0; i < aiMesh->mNumVertices; ++i)
-    {
-        Vertex vertex;
-
-        vertex.Position = glm::vec3(
-            aiMesh->mVertices[i].x,
-            aiMesh->mVertices[i].y,
-            aiMesh->mVertices[i].z
-        );
-
-        if (aiMesh->HasNormals())
-        {
-            vertex.Normal = glm::vec3(
-                aiMesh->mNormals[i].x,
-                aiMesh->mNormals[i].y,
-                aiMesh->mNormals[i].z
-            );
-        }
-
-        if (aiMesh->mTextureCoords[0])
-        {
-            vertex.texCoord = glm::vec2(
-                aiMesh->mTextureCoords[0][i].x,
-                aiMesh->mTextureCoords[0][i].y
-            );
-        }
-        else
-        {
-            vertex.texCoord = glm::vec2(0.0f, 0.0f);
-        }
-
-        vertices.push_back(vertex);
+    if (!mesh) {
+        LOG("ERROR: MeshImporter::Import returned nullptr!");
+        return;
     }
 
-    // --- Process indices ---
-    for (unsigned int i = 0; i < aiMesh->mNumFaces; ++i)
-    {
-        aiFace face = aiMesh->mFaces[i];
-        for (unsigned int j = 0; j < face.mNumIndices; ++j)
-            indices.push_back(face.mIndices[j]);
-    }
+    LOG("Mesh created: vertices=%d, indices=%d, textures=%d",
+        mesh->vertices.size(), mesh->indices.size(), mesh->textures.size());
 
-    // --- Load material textures ---
-    if (aiMesh->mMaterialIndex >= 0)
-    {
-        aiMaterial* material = scene->mMaterials[aiMesh->mMaterialIndex];
+    // Store the mesh in the model
+    meshes.push_back(mesh);
+    LOG("Mesh stored in model (total: %d)", (int)meshes.size());
 
-        auto diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-
-        auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-        textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
-
-        auto roughnessMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE_ROUGHNESS, "texture_roughness");
-        textures.insert(textures.end(), roughnessMaps.begin(), roughnessMaps.end());
-
-        auto metallicMaps = loadMaterialTextures(material, aiTextureType_METALNESS, "texture_metallic");
-        textures.insert(textures.end(), metallicMaps.begin(), metallicMaps.end());
-
-        auto normalMaps = loadMaterialTextures(material, aiTextureType_NORMALS, "texture_normal");
-        textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-
-        auto aoMaps = loadMaterialTextures(material, aiTextureType_AMBIENT_OCCLUSION, "texture_ao");
-        textures.insert(textures.end(), aoMaps.begin(), aoMaps.end());
-    }
-    if(textures.empty()) {
-        AssignDefaultTexture(textures);
-        std::vector<Texture> diffuseMaps;
-        textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
-    }
-
-    // --- Create Mesh ---
-    auto mesh = std::make_shared<Mesh>(vertices, indices, textures);
-    meshes.push_back(mesh); // store shared_ptr
-
-    // --- Add RenderMeshComponent Component ---
+    // --- Add RenderMeshComponent ---
     auto rendererComp = gameObject->AddComponent(ComponentType::MESH_RENDERER);
+    if (!rendererComp) {
+        LOG("ERROR: Failed to add MESH_RENDERER component!");
+        return;
+    }
+
     auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
-    if (renderer)
-    {
-        renderer->SetMesh(mesh); // pass shared_ptr<Mesh>
-        LOG("  - Added RenderMeshComponent component to '%s'", gameObject->GetName().c_str());
+    if (!renderer) {
+        LOG("ERROR: Failed to cast to RenderMeshComponent!");
+        return;
+    }
+
+    // Set the mesh directly
+    renderer->SetMesh(mesh);
+
+    // Verify
+    auto verifyMesh = renderer->GetMesh();
+    if (!verifyMesh) {
+        LOG("ERROR: After SetMesh, GetMesh returns nullptr!");
+    }
+    else {
+        LOG("SUCCESS: Mesh set in renderer (vertices=%d)", verifyMesh->vertices.size());
     }
 
     // --- Add Material Component ---
     auto materialComp = gameObject->AddComponent(ComponentType::MATERIAL);
     auto matComponent = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
-    if (matComponent && aiMesh->mMaterialIndex >= 0)
-    {
+
+    if (matComponent && aiMesh->mMaterialIndex >= 0) {
         aiMaterial* aiMat = scene->mMaterials[aiMesh->mMaterialIndex];
 
         aiColor4D color;
-        if (AI_SUCCESS == aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_DIFFUSE, &color))
-        {
+        if (AI_SUCCESS == aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_DIFFUSE, &color)) {
             matComponent->SetDiffuseColor(glm::vec4(color.r, color.g, color.b, color.a));
-            LOG("    - Material color: (%.2f, %.2f, %.2f, %.2f)", color.r, color.g, color.b, color.a);
         }
 
         float shininess;
-        if (AI_SUCCESS == aiGetMaterialFloat(aiMat, AI_MATKEY_SHININESS, &shininess))
-        {
+        if (AI_SUCCESS == aiGetMaterialFloat(aiMat, AI_MATKEY_SHININESS, &shininess)) {
             matComponent->SetShininess(shininess);
-            LOG("    - Material shininess: %.2f", shininess);
         }
+    }
 
-        LOG("  - Added Material component to '%s'", gameObject->GetName().c_str());
-    }
-    if (aiMesh->mMaterialIndex <= 0) {
-        AssignDefaultTexture(textures);
-    }
+    LOG("=== createComponentsForMesh END ===\n");
 }
+
 
 Model::~Model() {
     // shared_ptr automatically cleans up
@@ -573,38 +526,39 @@ std::shared_ptr<GameObject> Model::CreateEmptyGameObject(const std::string& name
     return newGameObject;
 }
 
-Texture Model::GetOrLoadTexture(const string& fullPath, const string& fileName, const string& typeName) {
+std::shared_ptr<Texture> Model::GetOrLoadTexture(const std::string& fullPath, const std::string& fileName, const std::string& typeName) {
 
-    auto& textures_loaded = Application::GetInstance().textures.get()->textures_loaded;
+    auto& textures_loaded = Application::GetInstance().importer.get()->textures_loaded;
     // Check if already loaded
     for (auto& loadedTex : textures_loaded) {
-        if (loadedTex.path == fullPath) {
+        if (loadedTex.get()->path == fullPath) {
             return loadedTex; // Return the cached texture
         }
     }
 
     // Not found, load new texture
-    Texture texture;
-    texture.TextureFromFile(fullPath, fileName.c_str());
-    texture.mapType = typeName;
-    texture.path = fullPath;
+    std::shared_ptr<Texture> texture = Application::GetInstance().importer.get()->textureImporter->Import(fullPath);
+    /*texture.TextureFromFile(fullPath, fileName.c_str());*/
+    
+    texture.get()->mapType = typeName;
+    texture.get()->path = fullPath;
     textures_loaded.push_back(texture);
 
     return texture;
 }
 
-void Model::AssignDefaultTexture(std::vector<Texture>& textures) {
-    string fullPath = Application::GetInstance().textures.get()->defaultTexDir;
+void Model::AssignDefaultTexture(std::vector<std::shared_ptr<Texture>>& textures) {
+    string fullPath = Application::GetInstance().importer.get()->defaultTexDir;
     string fileName = fullPath.substr(fullPath.find_last_of('/') + 1);
     string directory = fullPath.substr(0, fullPath.find_last_of('/') + 1);
 
     LOG("AssignDefaultTexture: fullPath=%s, fileName=%s", fullPath.c_str(), fileName.c_str());
 
-    Texture defaultTex = GetOrLoadTexture(fullPath, fileName, "texture_diffuse");
+    std::shared_ptr<Texture> defaultTex = GetOrLoadTexture(fullPath, fileName, "texture_diffuse");
 
-    if (defaultTex.id != 0) {
+    if (defaultTex.get()->GetUUID() != 0) {
         textures.push_back(defaultTex);
-        LOG("  -> Default texture assigned (ID: %d)", defaultTex.id);
+        LOG("  -> Default texture assigned (ID: %d)", defaultTex.get()->GetUUID());
     }
     else {
         LOG("  -> ERROR: Failed to assign default texture!");

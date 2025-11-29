@@ -96,7 +96,8 @@ bool OpenGL::Start() {
 	//std::string modelPath = "../Assets/Models/BakerHouse/BakerHouse.fbx";
 	std::string modelPath = "../Assets/Models/Street/Street environment_V01.FBX";
 
-	ourModel = new Model(modelPath.c_str());
+	ourModel = new Model();
+	ourModel->ImportScene(modelPath.c_str());
 	modelObjects.push_back(ourModel);
 	Application::GetInstance().guiManager.get()->AddGameObject(ourModel);
 	Application::GetInstance().render.get()->AddModel(ourModel);
@@ -172,7 +173,7 @@ Model* OpenGL::CreateCube() {
 
 	std::vector<Vertex> _vertices;
 	std::vector<unsigned int> _indices;
-	std::vector<Texture> _textures;
+	std::vector<std::shared_ptr<Texture>> _textures;
 
 	// Helper arrays for normals and texcoords
 	const glm::vec3 normals[6] = {

@@ -5,12 +5,14 @@
 #include <imgui_impl_opengl3.h>
 
 #include "SDL3/SDL.h"
-
+#include <memory>
 #include "Module.h"
 #include "FileSystem.h"
 #include "GameObject.h"
 
 enum ElementType{ Additional, MenuBar, Console, Config, Hierarchy, Inspector};
+
+class Texture;
 
 class GUIElement {
 public:
