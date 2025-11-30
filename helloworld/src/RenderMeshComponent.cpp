@@ -31,7 +31,7 @@ void RenderMeshComponent::OnEditor() {
     //laracode aqui
 }
 
-void RenderMeshComponent::SetMesh(std::shared_ptr<Mesh> newMesh) {
+void RenderMeshComponent::SetMesh(std::shared_ptr<ResourceMesh> newMesh) {
     mesh = newMesh;
 }
 

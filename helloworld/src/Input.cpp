@@ -15,7 +15,7 @@
 #include "Render.h"
 #include "Importer.h"
 #include "TextureImporter.h"
-#include "Textures.h"
+#include "ResourceTexture.h"
 
 #include "SDL3/SDL.h"
 #include <vector>

@@ -1,13 +1,13 @@
 #include "Application.h"
 #include "Log.h"
-#include "Textures.h"
+#include "ResourceTexture.h"
 #include <glm/glm.hpp>
 #include "MeshImporter.h"
 #include "TextureImporter.h"
-#include "Mesh.h"
+#include "ResourceMesh.h"
 
 
-std::shared_ptr<Mesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene* scene,
+std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene* scene,
     const std::string& modelPath) {
     if (!aiMesh) {
         LOG("ERROR: MeshImporter received null aiMesh");
@@ -23,11 +23,11 @@ std::shared_ptr<Mesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene* scene,
     auto textures = ProcessTextures(aiMesh, scene, modelPath);
 
     // Create the Mesh object (Mesh is now a Resource)
-    std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>(vertices, indices, textures);
+    std::shared_ptr<ResourceMesh> mesh = std::make_shared<ResourceMesh>(vertices, indices, textures);
 
     // Set resource metadata
     mesh->SetName(aiMesh->mName.C_Str());
-    mesh->SetFilePath(modelPath);
+    mesh->SetAssetFilePath(modelPath);
 
     // TODO: Generate or retrieve UUID from meta file
     // mesh->SetUID(generatedUID);
@@ -91,10 +91,10 @@ std::vector<unsigned int> MeshImporter::ProcessIndices(aiMesh* aiMesh) {
     return indices;
 }
 
-std::vector<std::shared_ptr<Texture>> MeshImporter::ProcessTextures(aiMesh* aiMesh, const aiScene* scene, const std::string& modelPath) {
-    std::vector<std::shared_ptr<Texture>> textures;
+std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMesh* aiMesh, const aiScene* scene, const std::string& modelPath) {
+    std::vector<std::shared_ptr<ResourceTexture>> textures;
 
-    std::vector<std::shared_ptr<Texture>> textures_loaded = Application::GetInstance().importer.get()->textures_loaded;
+    std::vector<std::shared_ptr<ResourceTexture>> textures_loaded = Application::GetInstance().importer.get()->textures_loaded;
 
     if (aiMesh->mMaterialIndex >= 0) {
         aiMaterial* material = scene->mMaterials[aiMesh->mMaterialIndex];
@@ -121,7 +121,7 @@ std::vector<std::shared_ptr<Texture>> MeshImporter::ProcessTextures(aiMesh* aiMe
                 }
 
                 if (!found) {
-                    std::shared_ptr<Texture> tex = Application::GetInstance().importer.get()->textureImporter->Import(modelPath);
+                    std::shared_ptr<ResourceTexture> tex = Application::GetInstance().importer.get()->textureImporter->Import(modelPath);
                     
                     if (tex == nullptr) {
                         LOG("WARNING: Texture import failed for path '%s'. Skipping texture.", texturePath.c_str());
@@ -164,7 +164,7 @@ std::vector<std::shared_ptr<Texture>> MeshImporter::ProcessTextures(aiMesh* aiMe
         if (!found) {
 
             std::string fullDefaultTexPath = defaultTexPath + fileName;
-            std::shared_ptr<Texture> defaultTex = Application::GetInstance().importer.get()->textureImporter->Import(fullDefaultTexPath);
+            std::shared_ptr<ResourceTexture> defaultTex = Application::GetInstance().importer.get()->textureImporter->Import(fullDefaultTexPath);
             /*defaultTex.TextureFromFile(defaultTexPath, fileName.c_str());*/
 
             if (defaultTex == nullptr) {

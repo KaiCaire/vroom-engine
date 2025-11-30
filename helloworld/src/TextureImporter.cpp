@@ -1,5 +1,5 @@
 #include "TextureImporter.h"
-#include "Textures.h"
+#include "ResourceTexture.h"
 #include "Application.h"
 #include "FileSystem.h"
 #include "OpenGL.h"
@@ -7,81 +7,116 @@
 #include "stb_image.h"
 #include <iostream>
 
-std::shared_ptr<Texture> TextureImporter::Import(const std::string& filePath) {
+
+std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& filePath) {
     if (filePath.empty()) {
         LOG("ERROR: TextureImporter received empty file path");
         return nullptr;
     }
 
-    LOG("TextureImporter: Loading texture from '%s'", filePath.c_str());
-
-    // Create Texture resource
-    auto texture = std::make_shared<Texture>();
-
-    // Normalize path using FileSystem
     FileSystem* fs = Application::GetInstance().fileSystem.get();
     std::string normalizedPath = fs->NormalizePath(filePath.c_str());
 
-    // Generate OpenGL texture
-    glGenTextures(1, &texture.get()->id);
-    glBindTexture(GL_TEXTURE_2D, texture.get()->id);
+    LOG("TextureImporter: Importing texture from '%s'", normalizedPath.c_str());
 
-    // Load image data
+    // Check if file exists
+    if (!fs->Exists(normalizedPath.c_str())) {
+        LOG("ERROR: Texture file does not exist: %s", normalizedPath.c_str());
+        return nullptr;
+    }
+
+    // Create Texture resource
+    auto texture = std::make_shared<ResourceTexture>();
+
+    // Set paths
+    texture->SetAssetFilePath(normalizedPath);
+    texture->SetName(fs->GetFileFromPath(normalizedPath.c_str()));
+
+    // Check for existing .meta
+    std::string metaPath = normalizedPath + ".meta";
+    VroomUUID uuid = 0;
+
+    if (fs->Exists(metaPath.c_str()) && fs->IsMetaValid(metaPath.c_str())) {
+        // Load existing UUID
+        uuid = fs->GetUUIDFromMeta(metaPath.c_str());
+        texture->SetUUID(uuid);
+        texture->LoadMeta();  // Load other metadata
+
+        LOG("Found existing texture meta (UUID: %llu)", uuid);
+
+        // Check if reimport needed
+        if (!fs->NeedsReimport(metaPath.c_str(), normalizedPath.c_str())) {
+            // Try to load from Library cache
+            std::string libraryPath = "Library/Textures/tex_" + std::to_string(uuid) + ".bin";
+            texture->SetLibraryFilePath(libraryPath);
+
+            if (fs->Exists(libraryPath.c_str())) {
+                LOG("Loading texture from cache: %s", libraryPath.c_str());
+                texture->LoadBin();      // Load from binary
+                texture->LoadToGPU();    // Upload to GPU
+                return texture;
+            }
+        }
+    }
+    else {
+        // Generate new UUID
+        uuid = UUIDGen::GenerateUUID();
+        texture->SetUUID(uuid);
+        LOG("Generated new UUID for texture: %llu", uuid);
+    }
+
+    // Import from source file (no cache or needs reimport)
+    LOG("Importing texture from source file...");
+
+    // Load image data using stb_image
     int width, height, nChannels;
     unsigned char* data = stbi_load(normalizedPath.c_str(), &width, &height, &nChannels, 0);
 
     if (!data) {
-        std::cout << "Failed to load texture: " << normalizedPath << std::endl;
-        std::cout << "Reason: " << stbi_failure_reason() << std::endl;
-        LOG("Failed to load texture: %s", normalizedPath.c_str());
+        LOG("ERROR: Failed to load texture: %s", normalizedPath.c_str());
         LOG("Reason: %s", stbi_failure_reason());
         return nullptr;
     }
 
-    texture.get()->texW = width;
-    texture.get()->texH = height;
+    // Set texture data
+    texture->texW = width;
+    texture->texH = height;
+    texture->nChannels = nChannels;
+    texture->data = data;  // Texture now owns the data
+    texture->mapType = "texture_diffuse";  // Default
 
-    // Determine format
-    GLenum format = GL_RGB;
+    // Generate OpenGL texture and upload to GPU
+    glGenTextures(1, &texture->gpu_id);
+    glBindTexture(GL_TEXTURE_2D, texture->gpu_id);
 
-    switch (nChannels) {
-    case 1: format = GL_RED; break;
-    case 3: format = GL_RGB; break;
-    case 4: format = GL_RGBA; break;
-    default: format = GL_RGB;
-    }
+    texture->LoadToGPU();  // Use Texture's method to upload
 
-    // Upload to GPU
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+    // Note: Don't free data yet if you want to save to binary
+    // texture->data will be used in SaveBin()
 
-    // Set texture parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    // Set library path
+    std::string libraryPath = "Library/Textures/tex_" + std::to_string(uuid) + ".bin";
+    texture->SetLibraryFilePath(libraryPath);
 
-    // Set resource metadata using FileSystem
-    std::string filename = fs->GetFileFromPath(normalizedPath.c_str());
+    // Save to Library cache
+    texture->SaveBin();
 
-    texture.get()->path = normalizedPath;
-    texture.get()->SetFilePath(normalizedPath);
-    texture.get()->SetName(filename);
-    texture.get()->mapType = "texture_diffuse";  // Default, can be changed later
-    texture.get()->isLoaded = true;
+    // Save/update .meta file
+    texture->SaveMeta();
 
-    stbi_image_free(data);
+    // Now free the data (already uploaded to GPU and saved to disk)
+    stbi_image_free(texture->data);
+    texture->data = nullptr;
 
-    // TODO: Generate or retrieve UUID from meta file
-    // texture->SetUID(generatedUID);
+    texture->isLoadedToRAM = true;
 
-    LOG("TextureImporter: Successfully imported texture '%s' (ID: %d, %dx%d)",
-        filename.c_str(), texture.get()->id, texture.get()->texW, texture.get()->texH);
+    LOG("TextureImporter: Successfully imported '%s' (UUID: %llu, GPU ID: %u, %dx%d)",
+        texture->GetName().c_str(), texture->GetUUID(), texture->gpu_id,
+        texture->texH, texture->texH);
 
     return texture;
 }
-
-std::shared_ptr<Texture> TextureImporter::Import(const std::string& directory,
+std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& directory,
     const char* filename) {
     // Normalize directory using FileSystem
     FileSystem* fs = Application::GetInstance().fileSystem.get();

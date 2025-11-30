@@ -4,7 +4,7 @@
 #include "Application.h"
 #include "Window.h"
 #include "Render.h"
-#include "Textures.h"
+#include "ResourceTexture.h"
 #include "stb_image.h"
 #include "Model.h"
 #include "Input.h"
@@ -180,7 +180,7 @@ Model* OpenGL::CreateCube() {
 
 	std::vector<Vertex> _vertices;
 	std::vector<unsigned int> _indices;
-	std::vector<std::shared_ptr<Texture>> _textures;
+	std::vector<std::shared_ptr<ResourceTexture>> _textures;
 
 	// Helper arrays for normals and texcoords
 	const glm::vec3 normals[6] = {
@@ -238,7 +238,7 @@ Model* OpenGL::CreateCube() {
 	//// Create model from mesh
 	//Model* cubeModel = new Model(cubeMesh);
 
-	std::shared_ptr<Mesh> sharedCubeMesh = std::make_shared<Mesh>(_vertices, _indices, _textures);
+	std::shared_ptr<ResourceMesh> sharedCubeMesh = std::make_shared<ResourceMesh>(_vertices, _indices, _textures);
 
 	Model* cubeModel = new Model(sharedCubeMesh);
 

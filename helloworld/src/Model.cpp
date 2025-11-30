@@ -11,14 +11,14 @@
 
 
 #include <algorithm>
-#include "Mesh.h"
+#include "ResourceMesh.h"
 #include "assimp/importer.hpp"
 #include "assimp/cimport.h"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #include "assimp/mesh.h"
 #include "stb_image.h"
-#include "Textures.h"
+#include "ResourceTexture.h"
 #include "Log.h"
 #include "GUIManager.h"
 
@@ -81,7 +81,7 @@ void Model::ImportScene(const char* path) {
     }
 }
 
-Model::Model(std::shared_ptr<Mesh> sharedMesh) {
+Model::Model(std::shared_ptr<ResourceMesh> sharedMesh) {
     auto gameObject = make_shared<GameObject>();
     gameObjects.push_back(gameObject);
     rootGameObject = gameObject;
@@ -128,7 +128,7 @@ Model::Model(std::shared_ptr<Mesh> sharedMesh) {
     string checkersTexName = checkersTexDir.substr(checkersTexDir.find_last_of('/') + 1);
     
 
-    std::shared_ptr<Texture> defaultColorTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
+    std::shared_ptr<ResourceTexture> defaultColorTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
     modelMesh->GetMesh().get()->textures.push_back(defaultColorTex);
 
     //modelMat->SetDiffuseMap(std::make_shared<Texture>(defaultColorTex));
@@ -176,7 +176,7 @@ void Model::Draw(Shader& shader) {
 
         //    std::string checkersTexDir = Application::GetInstance().importer->defaultTexDir;
         //    std::string checkersTexName = checkersTexDir.substr(checkersTexDir.find_last_of('/') + 1);
-        //    std::shared_ptr<Texture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
+        //    std::shared_ptr<ResourceTexture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
 
         //    mesh->textures.push_back(checkersTex);
         //}
@@ -527,7 +527,7 @@ std::shared_ptr<GameObject> Model::CreateEmptyGameObject(const std::string& name
     return newGameObject;
 }
 
-std::shared_ptr<Texture> Model::GetOrLoadTexture(const std::string& fullPath, const std::string& fileName, const std::string& typeName) {
+std::shared_ptr<ResourceTexture> Model::GetOrLoadTexture(const std::string& fullPath, const std::string& fileName, const std::string& typeName) {
 
     auto& textures_loaded = Application::GetInstance().importer.get()->textures_loaded;
     // Check if already loaded
@@ -538,7 +538,7 @@ std::shared_ptr<Texture> Model::GetOrLoadTexture(const std::string& fullPath, co
     }
 
     // Not found, load new texture
-    std::shared_ptr<Texture> texture = Application::GetInstance().importer.get()->textureImporter->Import(fullPath);
+    std::shared_ptr<ResourceTexture> texture = Application::GetInstance().importer.get()->textureImporter->Import(fullPath);
     /*texture.TextureFromFile(fullPath, fileName.c_str());*/
 
     if (texture == nullptr) {
@@ -553,14 +553,14 @@ std::shared_ptr<Texture> Model::GetOrLoadTexture(const std::string& fullPath, co
     return texture;
 }
 
-void Model::AssignDefaultTexture(std::vector<std::shared_ptr<Texture>>& textures) {
+void Model::AssignDefaultTexture(std::vector<std::shared_ptr<ResourceTexture>>& textures) {
     string fullPath = Application::GetInstance().importer.get()->defaultTexDir;
     string fileName = fullPath.substr(fullPath.find_last_of('/') + 1);
     string directory = fullPath.substr(0, fullPath.find_last_of('/') + 1);
 
     LOG("AssignDefaultTexture: fullPath=%s, fileName=%s", fullPath.c_str(), fileName.c_str());
 
-    std::shared_ptr<Texture> defaultTex = GetOrLoadTexture(fullPath, fileName, "texture_diffuse");
+    std::shared_ptr<ResourceTexture> defaultTex = GetOrLoadTexture(fullPath, fileName, "texture_diffuse");
 
     if (defaultTex.get()->GetUUID() != 0) {
         textures.push_back(defaultTex);

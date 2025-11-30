@@ -12,7 +12,7 @@
 
 enum ElementType{ Additional, MenuBar, Console, Config, Hierarchy, Inspector};
 
-class Texture;
+class ResourceTexture;
 
 class GUIElement {
 public:

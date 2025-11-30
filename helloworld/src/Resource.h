@@ -2,6 +2,25 @@
 #include <string>
 #include "UUID.h"
 
+#include "Application.h"
+#include "FileSystem.h"
+
+namespace Paths {
+
+    inline const char* ASSETS_DIR = "../Assets";
+    inline const char* MODEL_ASSETS_DIR = "../Assets/Models";
+    inline const char* TEXTURE_ASSETS_DIR = "../Assets/Textures";
+    inline const char* SCENE_ASSETS_DIR = "../Assets/Scenes";
+    inline const char* MESH_LIB_DIR = "Library/Meshes/";
+    inline const char* TEXTURE_LIB_DIR = "Library/Textures/";
+    inline const char* MODEL_LIB_DIR = "Library/Models/";
+    inline const char* MATERIAL_LIB_DIR = "Library/Materials/";
+}
+
+
+typedef unsigned int uint;
+
+
 enum class ResourceType {
     UNKNOWN = 0,
     MESH,
@@ -12,21 +31,10 @@ enum class ResourceType {
 };
 
 class Resource {
-protected:
-    VroomUUID uuid;
-    std::string name;
-    std::string filePath;
-    ResourceType type;
-    
-    int referenceCount;
-
 public:
-    Resource(ResourceType type)
-        : uuid(0), type(type), isLoaded(false), referenceCount(0) {
-    }
-
+    
+    Resource(ResourceType type);
     virtual ~Resource() = default;
-    bool isLoaded;
 
     // Prevent copying of Resources
     Resource(const Resource&) = delete;
@@ -35,15 +43,22 @@ public:
     // Getters
     VroomUUID GetUUID() const { return uuid; }
     std::string GetName() const { return name; }
-    std::string GetFilePath() const { return filePath; }
+    //std::string GetFilePath() const { return filePath; }
     ResourceType GetType() const { return type; }
-    bool IsLoaded() const { return isLoaded; }
+    bool IsLoadedToRAM() const { return isLoadedToRAM; }
     int GetReferenceCount() const { return referenceCount; }
 
     // Setters
     void SetUUID(VroomUUID id) { uuid = id; }
     void SetName(const std::string& n) { name = n; }
-    void SetFilePath(const std::string& path) { filePath = path; }
+    /*void SetFilePath(const std::string& path) { filePath = path; }*/
+
+    const char* GetAssetFilePath() const { return assetsPath.c_str(); }
+    const char* GetLibraryFilePath() const { return libraryPath.c_str(); }
+
+    void SetAssetFilePath(const std::string& path) { assetsPath = path; }
+    void SetLibraryFilePath(const std::string& path) { libraryPath = path; }
+
 
     // Reference counting
     void AddReference() { referenceCount++; }
@@ -51,7 +66,31 @@ public:
         if (referenceCount > 0) referenceCount--;
     }
 
-    // Pure virtual - must be implemented by derived classes
-    virtual bool LoadToMemory() = 0;
-    virtual void UnloadFromMemory() = 0;
+    bool isLoadedToRAM = false; // Is data loaded in RAM?
+
+
+    //virtual bool LoadToMemory() = 0;
+    //virtual void UnloadFromMemory() = 0;
+    
+
+    virtual void SaveBin() = 0; //write binary data to Library
+    virtual void LoadBin() = 0; //read binary data from Library
+    virtual void FreeMemory() = 0; //unload resource from memory, freeing RAM
+
+    virtual void SaveMeta() const = 0; //.meta to Assets
+    virtual void LoadMeta() = 0; //.meta from Assets
+
+protected:
+    VroomUUID uuid;
+    std::string name;
+
+    std::string assetsPath;
+    std::string libraryPath;
+
+    ResourceType type;
+    uint referenceCount;
+
+   
+
+    FileSystem* fs;
 };

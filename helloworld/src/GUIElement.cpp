@@ -11,7 +11,7 @@
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
 #include "MaterialComponent.h"
-#include "Textures.h"
+#include "ResourceTexture.h"
 #include "Render.h"
 #include "TextureImporter.h"
 #include "Importer.h"
@@ -418,20 +418,20 @@ void GUIElement::InspectorSetUp(bool* show)
 		//get mesh component
 		auto meshComponent = std::dynamic_pointer_cast<RenderMeshComponent>(selected->GetComponent(ComponentType::MESH_RENDERER));
 		//get texture for next step
-		vector<std::shared_ptr<Texture>> textureComponent;
+		vector<std::shared_ptr<ResourceTexture>> textureComponent;
 
 		bool showFaceNormals = manager->drawFaceNormals;
 		bool showVertNormals = manager->drawVertNormals;
 
 		
 		if (meshComponent) {
-			std::shared_ptr<Mesh> mesh = meshComponent.get()->GetMesh();
+			std::shared_ptr<ResourceMesh> mesh = meshComponent.get()->GetMesh();
 			if(mesh) textureComponent = mesh.get()->textures;
 
 			//check if header is open
 			if (ImGui::CollapsingHeader("Mesh")) {
 				//get values
-				std::shared_ptr<Mesh> mesh = meshComponent.get()->GetMesh();
+				/*std::shared_ptr<ResourceMesh> mesh = meshComponent.get()->GetMesh();*/
 				vector<Vertex> vert = mesh.get()->vertices;
 				vector<unsigned int> ind = mesh.get()->indices;
 
@@ -471,7 +471,7 @@ void GUIElement::InspectorSetUp(bool* show)
 							// Load checker
 							string fullPath = Application::GetInstance().importer.get()->defaultTexDir;
 							string fileName = fullPath.substr(fullPath.find_last_of('/') + 1);
-							auto checkerTex = std::make_shared<Texture>();
+							auto checkerTex = std::make_shared<ResourceTexture>();
 							checkerTex = Application::GetInstance().importer.get()->textureImporter->Import(fullPath);
 
 							materialComp->SetDiffuseMap(checkerTex);

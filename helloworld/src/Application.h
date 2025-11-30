@@ -12,8 +12,10 @@ class Render;
 class OpenGL;
 class FileSystem;
 
-class Mesh;
-class Model;
+
+
+//class Model;
+class ResourceManager;
 class GUIManager;
 class Camera;
 class Importer;
@@ -101,6 +103,7 @@ public:
 	std::shared_ptr<Render> render;
 	std::shared_ptr<OpenGL> openGL;
 	std::shared_ptr<FileSystem> fileSystem;
+	/*std::shared_ptr<ResourceManager> resourceManager;*/
 
 	std::shared_ptr<Camera> camera;
 	std::shared_ptr<Importer> importer;

@@ -2,7 +2,7 @@
 #include "Component.h"
 #include <glm/glm.hpp>
 #include <string>
-#include "Textures.h"
+#include "ResourceTexture.h"
 #include <memory>
 
 class MaterialComponent : public Component {
@@ -29,23 +29,23 @@ public:
     void SetRoughness(float rough) { roughness = rough; }
     float GetRoughness() const { return roughness; }
 
-    void SetDiffuseMap(std::shared_ptr<Texture> tex) { diffuseMap = tex; }
-    std::shared_ptr<Texture> GetDiffuseMap() const { return diffuseMap; }
+    void SetDiffuseMap(std::shared_ptr<ResourceTexture> tex) { diffuseMap = tex; }
+    std::shared_ptr<ResourceTexture> GetDiffuseMap() const { return diffuseMap; }
 
-    void SetNormalMap(std::shared_ptr<Texture> tex) { normalMap = tex; }
-    std::shared_ptr<Texture> GetNormalMap() const { return normalMap; }
+    void SetNormalMap(std::shared_ptr<ResourceTexture> tex) { normalMap = tex; }
+    std::shared_ptr<ResourceTexture> GetNormalMap() const { return normalMap; }
 
-    void SetSpecularMap(std::shared_ptr<Texture> tex) { specularMap = tex; }
-    std::shared_ptr<Texture> GetSpecularMap() const { return specularMap; }
+    void SetSpecularMap(std::shared_ptr<ResourceTexture> tex) { specularMap = tex; }
+    std::shared_ptr<ResourceTexture> GetSpecularMap() const { return specularMap; }
 
-    void SetMetallicMap(std::shared_ptr<Texture> tex) { metallicMap = tex; }
-    std::shared_ptr<Texture> GetMetallicMap() const { return metallicMap; }
+    void SetMetallicMap(std::shared_ptr<ResourceTexture> tex) { metallicMap = tex; }
+    std::shared_ptr<ResourceTexture> GetMetallicMap() const { return metallicMap; }
 
-    void SetRoughnessMap(std::shared_ptr<Texture> tex) { roughnessMap = tex; }
-    std::shared_ptr<Texture> GetRoughnessMap() const { return roughnessMap; }
+    void SetRoughnessMap(std::shared_ptr<ResourceTexture> tex) { roughnessMap = tex; }
+    std::shared_ptr<ResourceTexture> GetRoughnessMap() const { return roughnessMap; }
 
-    void SetAOMap(std::shared_ptr<Texture> tex) { aoMap = tex; }
-    std::shared_ptr<Texture> GetAOMap() const { return aoMap; }
+    void SetAOMap(std::shared_ptr<ResourceTexture> tex) { aoMap = tex; }
+    std::shared_ptr<ResourceTexture> GetAOMap() const { return aoMap; }
 
 private:
     // Material properties
@@ -61,12 +61,12 @@ private:
     
     /*Texture defaultColorTex;*/
     //can be null
-    std::shared_ptr<Texture> diffuseMap;
-    std::shared_ptr<Texture> specularMap;
-    std::shared_ptr<Texture> normalMap;
-    std::shared_ptr<Texture> metallicMap;
-    std::shared_ptr<Texture> roughnessMap;
-    std::shared_ptr<Texture> aoMap;
+    std::shared_ptr<ResourceTexture> diffuseMap;
+    std::shared_ptr<ResourceTexture> specularMap;
+    std::shared_ptr<ResourceTexture> normalMap;
+    std::shared_ptr<ResourceTexture> metallicMap;
+    std::shared_ptr<ResourceTexture> roughnessMap;
+    std::shared_ptr<ResourceTexture> aoMap;
 
    
 

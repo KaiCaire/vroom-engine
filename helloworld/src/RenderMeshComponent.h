@@ -1,6 +1,6 @@
 #pragma once
 #include "Component.h"
-#include "Mesh.h"  
+#include "ResourceMesh.h"  
 #include "MaterialComponent.h"
 
 class Shader;  // Forward declaration
@@ -18,9 +18,9 @@ public:
     void OnEditor() override;
 
     // Mesh management
-    void SetMesh(std::shared_ptr<Mesh> newMesh);
-    std::shared_ptr<Mesh>  GetMesh() const { return mesh; }
-    Mesh*  GetMeshPointer() const { return mesh.get(); }
+    void SetMesh(std::shared_ptr<ResourceMesh> newMesh);
+    std::shared_ptr<ResourceMesh>  GetMesh() const { return mesh; }
+    ResourceMesh*  GetMeshPointer() const { return mesh.get(); }
 
     void RenderMeshComponent::SetMeshID(VroomUUID id) {
         mesh->SetUUID(id);
@@ -29,7 +29,7 @@ public:
     void Render(Shader* shader);  
 
 private:
-    std::shared_ptr<Mesh> mesh;  // Pointer to mesh data (not owned by this component)
+    std::shared_ptr<ResourceMesh> mesh;  // Pointer to mesh data (not owned by this component)
     unsigned int meshId = 0;
     bool drawFaceNormals;
     bool drawVertNormals;

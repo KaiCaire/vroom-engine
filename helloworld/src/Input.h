@@ -4,7 +4,8 @@
 #include "SDL3/SDL.h"
 
 
-class Texture;
+class ResourceTexture;
+class Model;
 
 #define MAX_KEYS 300
 #define NUM_MOUSE_BUTTONS 5

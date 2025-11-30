@@ -7,7 +7,7 @@
 
 class MeshImporter;
 class TextureImporter;
-class Texture;
+class ResourceTexture;
 
 class Importer : public Module {
 public:
@@ -22,6 +22,6 @@ public:
 	TextureImporter* textureImporter;
 
 
-	std::vector<std::shared_ptr<Texture>> textures_loaded;
+	std::vector<std::shared_ptr<ResourceTexture>> textures_loaded;
 	std::string defaultTexDir = "../Assets/Textures/checkers.jpg";
 };

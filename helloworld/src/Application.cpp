@@ -7,7 +7,7 @@
 #include "Render.h"
 #include "OpenGL.h"
 #include "FileSystem.h"
-#include "Textures.h"
+#include "ResourceTexture.h"
 #include "Importer.h"
 
 #include "GUIManager.h"
@@ -41,6 +41,7 @@ Application::Application() {
 
     AddModule(std::static_pointer_cast<Module>(camera));
     AddModule(std::static_pointer_cast<Module>(importer));
+    /*AddModule(std::static_pointer_cast<Module>(resourceManager));*/
 
 
     // Render last 

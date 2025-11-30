@@ -2,7 +2,7 @@
 
 #include "Component.h"
 #include "TransformComponent.h"
-#include "Mesh.h"
+#include "ResourceMesh.h"
 #include "Model.h"
 #include <vector>
 #include <string>
