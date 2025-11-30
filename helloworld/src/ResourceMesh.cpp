@@ -194,95 +194,149 @@ void ResourceMesh::CalculateNormals() {
 }
 
 void ResourceMesh::SaveBin() {
+
+    if (!isLoadedToRAM) {
+        LOG("ERROR: Cannot save mesh binary - data not loaded to RAM");
+        return;
+    }
+
+    std::string binPath = GetLibraryFilePath();
+    if (binPath.empty()) {
+        LOG("ERROR: Library path not set for mesh");
+        return;
+    }
     
     std::string directory = fs->GetDirFromPath(libraryPath.c_str());
     if (!directory.empty() && !fs->Exists(directory.c_str())) {
         fs->CreateDir(directory.c_str());
     }
    
-    uint vertexDataSize = (uint)vertices.size() * sizeof(float);
-    uint indexDataSize = (uint)indices.size() * sizeof(unsigned int);
+    // Calculate total size needed
+    uint vertexCount = vertices.size();
+    uint indexCount = indices.size();
+    uint textureCount = textures.size();
 
-    uint headerSize = sizeof(VroomUUID) + sizeof(uint) * 2;
-    uint totalSize = headerSize + vertexDataSize + indexDataSize;
-    
-    char* buffer = new char[totalSize];
-    char* cursor = buffer;
+    // Calculate buffer size
+    size_t bufferSize = sizeof(uint) * 3; // header (3 counts)
+    bufferSize += vertexCount * sizeof(Vertex);
+    bufferSize += indexCount * sizeof(unsigned int);
 
-    VroomUUID uuid = GetUUID();
-    memcpy(cursor, &uuid, sizeof(VroomUUID));
-    cursor += sizeof(VroomUUID);
-
-    uint currentNumVertices = (uint)vertices.size();
-    memcpy(cursor, &currentNumVertices, sizeof(uint));
-    cursor += sizeof(uint);
-
-    uint currentNumIndices = (uint)indices.size();
-    memcpy(cursor, &currentNumIndices, sizeof(uint));
-    cursor += sizeof(uint);
-
-    
-    if (!vertices.empty()) {
-        memcpy(cursor, vertices.data(), vertexDataSize);
-        cursor += vertexDataSize;
+    // Add texture string sizes
+    for (const auto& tex : textures) {
+        bufferSize += sizeof(uint); // path length
+        bufferSize += tex.get()->path.length();
+        bufferSize += sizeof(uint); // type length
+        bufferSize += tex.get()->mapType.length();
     }
 
-    if (!indices.empty()) {
-        memcpy(cursor, indices.data(), indexDataSize);
-        cursor += indexDataSize;
+    // Create buffer
+    char* buffer = new char[bufferSize];
+    char* ptr = buffer;
+
+    // Write header
+    std::memcpy(ptr, &vertexCount, sizeof(uint));
+    ptr += sizeof(uint);
+    std::memcpy(ptr, &indexCount, sizeof(uint));
+    ptr += sizeof(uint);
+    std::memcpy(ptr, &textureCount, sizeof(uint));
+    ptr += sizeof(uint);
+
+    // Write vertices
+    std::memcpy(ptr, vertices.data(), vertexCount * sizeof(Vertex));
+    ptr += vertexCount * sizeof(Vertex);
+
+    // Write indices
+    std::memcpy(ptr, indices.data(), indexCount * sizeof(unsigned int));
+    ptr += indexCount * sizeof(unsigned int);
+
+    // Write texture info
+    for (const auto& tex : textures) {
+        uint pathLength = tex.get()->path.length();
+        std::memcpy(ptr, &pathLength, sizeof(uint));
+        ptr += sizeof(uint);
+        std::memcpy(ptr, tex.get()->path.c_str(), pathLength);
+        ptr += pathLength;
+
+        uint typeLength = tex.get()->mapType.length();
+        std::memcpy(ptr, &typeLength, sizeof(uint));
+        ptr += sizeof(uint);
+        std::memcpy(ptr, tex.get()->mapType.c_str(), typeLength);
+        ptr += typeLength;
     }
 
-    fs->WriteBinData(libraryPath.c_str(), buffer, totalSize);
+    // Write using FileSystem
+    fs->WriteBinData(binPath.c_str(), buffer, bufferSize);
+
 
     delete[] buffer;
 
-    LOG("Mesh saved in: %s (Vertices: %u, Indices: %u)", libraryPath.c_str(), currentNumVertices, currentNumIndices);
+    LOG("Mesh binary saved: %s", binPath.c_str());
 }
 
 
 void ResourceMesh::LoadBin() {
-    uint fileSize;
-    char* buffer = fs->ReadBinData(libraryPath.c_str(), &fileSize);
-    if (!buffer) {
-        LOG("Error loading mesh: %s", libraryPath.c_str());
+    std::string binPath = GetLibraryFilePath();
+    if (binPath.empty()) {
+        LOG("ERROR: Library path not set for mesh");
         return;
     }
 
-    char* cursor = buffer;
+    FileSystem* fs = Application::GetInstance().fileSystem.get();
+    if (!fs->Exists(binPath.c_str())) {
+        LOG("ERROR: Mesh binary file does not exist: %s", binPath.c_str());
+        return;
+    }
 
-    // --- READ HEADER ---
-    VroomUUID loadedUUID;
-    memcpy(&loadedUUID, cursor, sizeof(VroomUUID));
-    cursor += sizeof(VroomUUID);
+    // Read using FileSystem
+    uint size = 0;
+    char* buffer = fs->ReadBinData(binPath.c_str(), &size);
+    if (!buffer) {
+        LOG("ERROR: Failed to read mesh binary: %s", binPath.c_str());
+        return;
+    }
 
-    // Read counts
+    char* ptr = buffer;
 
-    memcpy(&numVertices, cursor, sizeof(uint));
-    cursor += sizeof(uint);
-    memcpy(&numIndices, cursor, sizeof(uint));
-    cursor += sizeof(uint);
+    // Read header
+    uint vertexCount, indexCount, textureCount;
+    std::memcpy(&vertexCount, ptr, sizeof(uint));
+    ptr += sizeof(uint);
+    std::memcpy(&indexCount, ptr, sizeof(uint));
+    ptr += sizeof(uint);
+    std::memcpy(&textureCount, ptr, sizeof(uint));
+    ptr += sizeof(uint);
 
-    // 2. Calculate expected data sizes
-    uint vertexDataSize = numVertices * sizeof(float);
-    uint indexDataSize = numIndices * sizeof(unsigned int);
+    // Read vertices
+    vertices.resize(vertexCount);
+    std::memcpy(vertices.data(), ptr, vertexCount * sizeof(Vertex));
+    ptr += vertexCount * sizeof(Vertex);
 
-    // 3. Allocate vectors and copy data
+    // Read indices
+    indices.resize(indexCount);
+    std::memcpy(indices.data(), ptr, indexCount * sizeof(unsigned int));
+    ptr += indexCount * sizeof(unsigned int);
 
-    // Copy vertex data
-    vertices.resize(numVertices);
-    memcpy(vertices.data(), cursor, vertexDataSize);
-    cursor += vertexDataSize;
+    // Read texture info
+    textures.resize(textureCount);
+    for (uint i = 0; i < textureCount; i++) {
+        uint pathLength;
+        std::memcpy(&pathLength, ptr, sizeof(uint));
+        ptr += sizeof(uint);
 
-    // Copy index data
-    indices.resize(numIndices);
-    memcpy(indices.data(), cursor, indexDataSize);
-    
+        textures[i].get()->path.assign(ptr, pathLength);
+        ptr += pathLength;
 
-    
+        uint typeLength;
+        std::memcpy(&typeLength, ptr, sizeof(uint));
+        ptr += sizeof(uint);
+
+        textures[i].get()->mapType.assign(ptr, typeLength);
+        ptr += typeLength;
+    }
+
     delete[] buffer;
-
     isLoadedToRAM = true;
-    LOG("Mesh loaded: %s (Vertices: %u, Indices: %u)", libraryPath.c_str(), numVertices, numIndices);
+    LOG("Mesh binary loaded: %s (%d vertices, %d indices)", binPath.c_str(), vertexCount, indexCount);
 }
 
 void ResourceMesh::FreeMemory() {
@@ -300,29 +354,64 @@ void ResourceMesh::FreeMemory() {
 }
 
 void ResourceMesh::SaveMeta() const {
-     std::string metaPath = assetsPath + ".meta";
-     nlohmann::json meta = fs->LoadJSON(metaPath.c_str());
+    std::string assetPath = GetAssetFilePath();
+    if (assetPath.empty()) {
+        LOG("ERROR: Asset path not set for mesh");
+        return;
+    }
 
-     meta["uuid"] = GetUUID();
-     meta["modTime"] = fs->GetFileModTime(assetsPath);
-     meta["name"] = name;
-     meta["numVertices"] = numVertices; 
-     meta["numIndices"] = numIndices;   
+    std::string metaPath = assetPath + ".meta";
+   
 
-     fs->SaveJSON(metaPath.c_str(), meta);
+    nlohmann::json meta;
+    meta["uuid"] = GetUUID();
+    meta["modTime"] = fs->GetFileModTime(assetPath);
+    meta["type"] = "mesh";
+    meta["vertexCount"] = vertices.size();
+    meta["indexCount"] = indices.size();
+    meta["textureCount"] = textures.size();
+
+    fs->SaveJSON(metaPath.c_str(), meta);
+    LOG("Mesh meta saved: %s", metaPath.c_str());
 }
 
 
 void ResourceMesh::LoadMeta() {
-     std::string metaPath = assetsPath + ".meta";
-     if (!fs->Exists(metaPath.c_str())) { return; }
-     nlohmann::json meta = fs->LoadJSON(metaPath.c_str());
+    std::string assetPath = GetAssetFilePath();
+    if (assetPath.empty()) {
+        LOG("ERROR: Asset path not set for mesh");
+        return;
+    }
 
-     if (meta.contains("name")) name = meta["name"];
-     if (meta.contains("numVertices")) numVertices = meta["numVertices"]; 
-     if (meta.contains("numIndices")) numIndices = meta["numIndices"];    
+    std::string metaPath = assetPath + ".meta";
+
+    if (!fs->Exists(metaPath.c_str())) {
+        LOG("WARNING: Meta file does not exist: %s", metaPath.c_str());
+        return;
+    }
+
+    nlohmann::json meta = fs->LoadJSON(metaPath.c_str());
+
+    // Load UUID
+    if (meta.contains("uuid")) SetUUID(meta["uuid"]);
+    
+
+    // Load type
+    if (meta.contains("type")) {
+        std::string type = meta["type"];
+        if (type != "mesh") {
+            LOG("WARNING: Meta file type mismatch. Expected 'mesh', got '%s'", type.c_str());
+        }
+    }
+
+    
+    uint savedVertexCount = meta.contains("vertexCount") ? meta["vertexCount"].get<uint>() : 0;
+    uint savedIndexCount = meta.contains("indexCount") ? meta["indexCount"].get<uint>() : 0;
+    uint savedTextureCount = meta.contains("textureCount") ? meta["textureCount"].get<uint>() : 0;
+
+    LOG("Mesh meta loaded: %s (UUID: %llu, vertices: %d, indices: %d, textures: %d)",
+        metaPath.c_str(), GetUUID(), savedVertexCount, savedIndexCount, savedTextureCount);
 }
-
 void ResourceMesh::UnloadFromGPU() {
     if (!isLoadedToGPU) {
         // LOG("Mesh already unloaded from GPU or never loaded: %s", name.c_str());
@@ -336,5 +425,5 @@ void ResourceMesh::UnloadFromGPU() {
 
     VAO = VBO = EBO = 0;
     isLoadedToGPU = false;
-    // LOG("Mesh unloaded from GPU: %s", name.c_str());
+
 }

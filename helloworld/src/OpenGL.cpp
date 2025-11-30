@@ -4,9 +4,10 @@
 #include "Application.h"
 #include "Window.h"
 #include "Render.h"
+#include "SceneManager.h"
 #include "ResourceTexture.h"
 #include "stb_image.h"
-#include "Model.h"
+#include "ModelImporter.h"
 #include "Input.h"
 #include "Camera.h"
 #include "GUIManager.h"
@@ -43,8 +44,8 @@ bool OpenGL::Start() {
 		return false;
 	}
 
-	viewMat = Application::GetInstance().camera->viewMat;
-	projectionMat = Application::GetInstance().camera->projectionMat;
+	glm::mat4 viewMat = Application::GetInstance().camera->viewMat;
+	glm::mat4 projectionMat = Application::GetInstance().camera->projectionMat;
 
 	/*stbi_set_flip_vertically_on_load(true);*/
 
@@ -63,51 +64,42 @@ bool OpenGL::Start() {
 	is the cause for several frustrating errors; keep this in mind!*/
 	//3D transformation matrices  --> Vclip = Mprojection⋅Mview⋅Mmodel⋅Vlocal
 
-	modelMat = glm::mat4(1.0f);
-	modelMat = glm::rotate(modelMat, glm::radians(45.0f), glm::vec3(0.0f, -1.0f, 0.0f)); //transforms vertex coordinates into world coordinates.
-	//^rotates on the x axis so it looks like laying on the floor
-	/*modelMat = glm::scale(modelMat, glm::vec3(0.05, 0.05, 0.05));*/
+	//glm::mat4 modelMat = glm::mat4(1.0f);
+	//modelMat = glm::rotate(modelMat, glm::radians(45.0f), glm::vec3(0.0f, -1.0f, 0.0f)); //transforms vertex coordinates into world coordinates.
+	////^rotates on the x axis so it looks like laying on the floor
+	///*modelMat = glm::scale(modelMat, glm::vec3(0.05, 0.05, 0.05));*/
 
-	texCoordsShader->Use();
-	uint modelMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "model");
-	glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(modelMat));
+	//texCoordsShader->Use();
+	//uint modelMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "model");
+	//glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(modelMat));
 
-	viewMat = glm::mat4(1.0f);
-	// translate scene in the reverse direction of moving direction
-	viewMat = glm::translate(viewMat, glm::vec3(0.0f, -2.0f, -15.0f));
+	//viewMat = glm::mat4(1.0f);
+	//// translate scene in the reverse direction of moving direction
+	//viewMat = glm::translate(viewMat, glm::vec3(0.0f, -2.0f, -15.0f));
 
-	//OpenGL = righthanded system --> move cam in  positive z-axis (= translate scene towards negative z-axis)
-	texCoordsShader->Use();
-	uint viewMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "view");
-	glUniformMatrix4fv(viewMatLoc, 1, GL_FALSE, glm::value_ptr(viewMat));
+	////OpenGL = righthanded system --> move cam in  positive z-axis (= translate scene towards negative z-axis)
+	//texCoordsShader->Use();
+	//uint viewMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "view");
+	//glUniformMatrix4fv(viewMatLoc, 1, GL_FALSE, glm::value_ptr(viewMat));
 
 
-	//projection mat = perspective (FOV, aspectRatio, nearPlane, farPlane)
-	int windowW, windowH;
-	Application::GetInstance().window.get()->GetSize(windowW, windowH);
+	////projection mat = perspective (FOV, aspectRatio, nearPlane, farPlane)
+	//int windowW, windowH;
+	//Application::GetInstance().window.get()->GetSize(windowW, windowH);
 
-	projectionMat = glm::mat4(1.0f);
-	projectionMat = glm::perspective(glm::radians(45.0f), (float)windowW / windowH, 0.1f, 100.0f);
-	texCoordsShader->Use();
-	uint projectionMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "projection");
-	glUniformMatrix4fv(projectionMatLoc, 1, GL_FALSE, glm::value_ptr(projectionMat));
+	//projectionMat = glm::mat4(1.0f);
+	//projectionMat = glm::perspective(glm::radians(45.0f), (float)windowW / windowH, 0.1f, 100.0f);
+	//texCoordsShader->Use();
+	//uint projectionMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "projection");
+	//glUniformMatrix4fv(projectionMatLoc, 1, GL_FALSE, glm::value_ptr(projectionMat));
 
 	glEnable(GL_DEPTH_TEST);
 
 	texCoordsShader->Use();
-
-
-	//std::string modelPath = "../Assets/Models/BakerHouse/BakerHouse.fbx";
-	std::string modelPath = "../Assets/Models/Street/Street environment_V01.FBX";
-
-	ourModel = new Model();
-	ourModel->ImportScene(modelPath.c_str());
-	modelObjects.push_back(ourModel);
-	Application::GetInstance().guiManager.get()->AddGameObject(ourModel);
-	Application::GetInstance().render.get()->AddModel(ourModel);
-
 	viewMat = glm::mat4(1.0f);
 
+
+	Application::GetInstance().sceneManager->LoadDefaultScene();
 
 	return true;
 }
@@ -125,33 +117,41 @@ bool OpenGL::Update(float dt) {
 
 
 
-	//grid
+	////grid
 
-	glUseProgram(texCoordsShader->ID);
+	//glUseProgram(texCoordsShader->ID);
 
-	//use shader's line color instead of texture
-	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), true);
-	glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 1.0f, 1.0f, 0.5f); //white grid
+	////use shader's line color instead of texture
+	//glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), true);
+	//glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 1.0f, 1.0f, 0.5f); //white grid
 
-	Application::GetInstance().render.get()->DrawGrid();
+	//Application::GetInstance().render.get()->DrawGrid(*texCoordsShader);
 
-	// Restore to normal texture mode
-	glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), false);
+	//// Restore to normal texture mode
+	//glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), false);
 
-	viewMat = Application::GetInstance().camera->viewMat;
-	projectionMat = Application::GetInstance().camera->projectionMat;
+	//viewMat = Application::GetInstance().camera->viewMat;
+	//projectionMat = Application::GetInstance().camera->projectionMat;
 
-	texCoordsShader->Use();
-	texCoordsShader->setMat4("model", modelMat);
-	texCoordsShader->setMat4("view", viewMat);
-	texCoordsShader->setMat4("projection", projectionMat);
+	//texCoordsShader->Use();
+	//texCoordsShader->setMat4("model", modelMat);
+	//texCoordsShader->setMat4("view", viewMat);
+	//texCoordsShader->setMat4("projection", projectionMat);
 
 	//draw all meshes
 	
+	//TODO:
+	//for (int i = 0; i < Application::GetInstance().render.get()->modelsToDraw.size(); i++) {
+	//	Application::GetInstance().render.get()->modelsToDraw[i]->Draw(*texCoordsShader);
+	//}
 
-	for (int i = 0; i < Application::GetInstance().render.get()->modelsToDraw.size(); i++) {
-		Application::GetInstance().render.get()->modelsToDraw[i]->Draw(*texCoordsShader);
-	}
+
+
+	// Let Render module handle all drawing
+	Application::GetInstance().render.get()->RenderFrame(*texCoordsShader);
+
+	return true;
+
 
 	return true;
 
@@ -168,86 +168,5 @@ bool OpenGL::CleanUp() {
 }
 
 
-Model* OpenGL::CreateCube() {
-	const glm::vec3 v000(-0.5f, -0.5f, -0.5f);
-	const glm::vec3 v001(-0.5f, -0.5f, 0.5f);
-	const glm::vec3 v010(-0.5f, 0.5f, -0.5f);
-	const glm::vec3 v011(-0.5f, 0.5f, 0.5f);
-	const glm::vec3 v100(0.5f, -0.5f, -0.5f);
-	const glm::vec3 v101(0.5f, -0.5f, 0.5f);
-	const glm::vec3 v110(0.5f, 0.5f, -0.5f);
-	const glm::vec3 v111(0.5f, 0.5f, 0.5f);
 
-	std::vector<Vertex> _vertices;
-	std::vector<unsigned int> _indices;
-	std::vector<std::shared_ptr<ResourceTexture>> _textures;
-
-	// Helper arrays for normals and texcoords
-	const glm::vec3 normals[6] = {
-		glm::vec3(0.0f, 0.0f, 1.0f),   // Front
-		glm::vec3(0.0f, 0.0f, -1.0f),  // Back
-		glm::vec3(1.0f, 0.0f, 0.0f),   // Right
-		glm::vec3(-1.0f, 0.0f, 0.0f),  // Left
-		glm::vec3(0.0f, 1.0f, 0.0f),   // Top
-		glm::vec3(0.0f, -1.0f, 0.0f)   // Bottom
-	};
-
-	const glm::vec2 texCoords[4] = {
-		glm::vec2(0.0f, 0.0f), // Bottom left
-		glm::vec2(1.0f, 0.0f), // Bottom right
-		glm::vec2(1.0f, 1.0f), // Top right
-		glm::vec2(0.0f, 1.0f)  // Top left
-	};
-
-	// Face definitions: position and normal index
-	const glm::vec3 facePositions[6][4] = {
-		{v001, v101, v111, v011}, // Front (+Z)
-		{v100, v000, v010, v110}, // Back (-Z)
-		{v101, v100, v110, v111}, // Right (+X)
-		{v000, v001, v011, v010}, // Left (-X)
-		{v011, v111, v110, v010}, // Top (+Y)
-		{v000, v100, v101, v001}  // Bottom (-Y)
-	};
-
-
-	for (int face = 0; face < 6; face++) {
-		for (int vert = 0; vert < 4; vert++) {
-			Vertex vertex;
-			vertex.Position = facePositions[face][vert];
-			vertex.Normal = normals[face];
-			vertex.texCoord = texCoords[vert];
-			_vertices.push_back(vertex);
-		}
-	}
-
-	// Build indices (2 triangles per face)
-	for (int i = 0; i < 6; i++) {
-		int base = i * 4;
-		_indices.push_back(base);
-		_indices.push_back(base + 1);
-		_indices.push_back(base + 2);
-
-		_indices.push_back(base);
-		_indices.push_back(base + 2);
-		_indices.push_back(base + 3);
-	}
-
-	// Create mesh
-	//Mesh cubeMesh(_vertices, _indices, _textures);
-
-	//// Create model from mesh
-	//Model* cubeModel = new Model(cubeMesh);
-
-	std::shared_ptr<ResourceMesh> sharedCubeMesh = std::make_shared<ResourceMesh>(_vertices, _indices, _textures);
-
-	Model* cubeModel = new Model(sharedCubeMesh);
-
-	// Add to manager
-	modelObjects.push_back(cubeModel);
-	Application::GetInstance().guiManager.get()->AddGameObject(cubeModel);
-	cubeModel->GetRootGameObject().get()->SetName("Cube");
-
-	return cubeModel;
-
-}
 

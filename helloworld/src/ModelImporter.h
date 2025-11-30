@@ -13,14 +13,14 @@
 // Forward declarations
 class ResourceTexture;
 
-class Model {
+class ModelImporter {
 public:
     // Storage for meshes (Mesh is now a Resource)
     std::vector<std::shared_ptr<ResourceMesh>> meshes;
 
-    // GameObjects
+     //GameObjects
     std::vector<std::shared_ptr<GameObject>> gameObjects;
-    std::shared_ptr<GameObject> rootGameObject;
+    std::shared_ptr<GameObject> modelRootGO;
 
     // Model metadata
     std::string fullPath;
@@ -43,34 +43,31 @@ public:
 
 public:
     // Constructors
-    Model();
-    Model(std::shared_ptr<ResourceMesh> sharedMesh);
-    ~Model();
+    ModelImporter();
+    ModelImporter(std::shared_ptr<ResourceMesh> sharedMesh);
+    ~ModelImporter();
 
     // Import scene from file
-    void ImportScene(const char* path);
+    std::shared_ptr<GameObject> ImportScene(const char* path);
 
     // Rendering
     void Draw(Shader& shader);
 
-    // GameObject management
-    std::shared_ptr<GameObject> CreateEmptyGameObject(const std::string& name,
-        std::shared_ptr<GameObject> parent = nullptr);
+    //GAMEOBJECT MANAGEMENT MOVED TO SCENE
+    //std::shared_ptr<GameObject> CreateEmptyGameObject(const std::string& name, std::shared_ptr<GameObject> parent = nullptr);
 
-    std::shared_ptr<GameObject> CreateGameObject(const std::string& name, VroomUUID meshUID, std::shared_ptr<GameObject> parent,
-        const glm::vec3& position,
-        const glm::quat& rotation,
-        const glm::vec3& scale);
+    //std::shared_ptr<GameObject> CreateGameObject(const std::string& name, VroomUUID meshUID, std::shared_ptr<GameObject> parent, const glm::vec3& position, const glm::quat& rotation,const glm::vec3& scale);
 
-    void DestroyGameObject(std::shared_ptr<GameObject> gameObject);
-    void CleanUpDestroyedObjects();
+    //void DestroyGameObject(std::shared_ptr<GameObject> gameObject);
+    //void CleanUpDestroyedObjects();
 
     // Hierarchy debugging
-    void LogGameObjectHierarchy(std::shared_ptr<GameObject> go, int depth);
+    //void LogGameObjectHierarchy(std::shared_ptr<GameObject> go, int depth);
 
     // Getters
-    std::shared_ptr<GameObject> GetRootGameObject() const { return rootGameObject; }
-    const std::vector<std::shared_ptr<GameObject>>& GetGameObjects() const { return gameObjects; }
+    //std::shared_ptr<GameObject> GetRootGameObject() const { return rootGameObject; }
+    //const std::vector<std::shared_ptr<GameObject>>& GetGameObjects() const { return gameObjects; }
+
     const std::vector<std::shared_ptr<ResourceMesh>>& GetMeshes() const { return meshes; }
 
     // Texture toggle

@@ -4,6 +4,11 @@
 #include "Log.h"
 #include "FileSystem.h"
 #include "ResourceMesh.h"
+#include "SceneManager.h"
+#include "RenderMeshComponent.h"
+#include "ResourceManager.h"
+#include "Camera.h"
+#include "OpenGL.h"
 
 
 
@@ -113,193 +118,15 @@ void Render::SetBackgroundColor(SDL_Color color)
 	background = color;
 }
 
-void Render::SetViewPort(const SDL_Rect& rect)
-{
-	SDL_SetRenderViewport(renderer, &rect);
-}
 
-void Render::ResetViewPort()
-{
-	SDL_SetRenderViewport(renderer, &viewport);
-}
-
-// Blit to screen
-bool Render::DrawTexture(SDL_Texture* texture, int x, int y, const SDL_Rect* section, float speed, double angle, int pivotX, int pivotY) const
-{
-	bool ret = true;
-	int scale = Application::GetInstance().window->GetScale();
-
-	// SDL3 uses float rects for rendering
-	SDL_FRect rect;
-	rect.x = (float)((int)(camera.x * speed) + x * scale);
-	rect.y = (float)((int)(camera.y * speed) + y * scale);
-
-	if (section != NULL)
-	{
-		rect.w = (float)(section->w * scale);
-		rect.h = (float)(section->h * scale);
-	}
-	else
-	{
-		float tw = 0.0f, th = 0.0f;
-		if (!SDL_GetTextureSize(texture, &tw, &th))
-		{
-			LOG("SDL_GetTextureSize failed: %s", SDL_GetError());
-			return false;
-		}
-		rect.w = tw * scale;
-		rect.h = th * scale;
-	}
-
-	const SDL_FRect* src = NULL;
-	SDL_FRect srcRect;
-	if (section != NULL)
-	{
-		srcRect.x = (float)section->x;
-		srcRect.y = (float)section->y;
-		srcRect.w = (float)section->w;
-		srcRect.h = (float)section->h;
-		src = &srcRect;
-	}
-
-	SDL_FPoint* p = NULL;
-	SDL_FPoint pivot;
-	if (pivotX != INT_MAX && pivotY != INT_MAX)
-	{
-		pivot.x = (float)pivotX;
-		pivot.y = (float)pivotY;
-		p = &pivot;
-	}
-
-	// SDL3: returns bool; map to int-style check
-	int rc = SDL_RenderTextureRotated(renderer, texture, src, &rect, angle, p, SDL_FLIP_NONE) ? 0 : -1;
-	if (rc != 0)
-	{
-		LOG("Cannot blit to screen. SDL_RenderTextureRotated error: %s", SDL_GetError());
-		ret = false;
-	}
-
-	return ret;
-}
-
-bool Render::DrawRectangle(const SDL_Rect& rect, Uint8 r, Uint8 g, Uint8 b, Uint8 a, bool filled, bool use_camera) const
-{
-	bool ret = true;
-	int scale = Application::GetInstance().window->GetScale();
-
-	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-	SDL_SetRenderDrawColor(renderer, r, g, b, a);
-
-	SDL_FRect rec;
-	if (use_camera)
-	{
-		rec.x = (float)((int)(camera.x + rect.x * scale));
-		rec.y = (float)((int)(camera.y + rect.y * scale));
-		rec.w = (float)(rect.w * scale);
-		rec.h = (float)(rect.h * scale);
-	}
-	else
-	{
-		rec.x = (float)(rect.x * scale);
-		rec.y = (float)(rect.y * scale);
-		rec.w = (float)(rect.w * scale);
-		rec.h = (float)(rect.h * scale);
-	}
-
-	int result = (filled ? SDL_RenderFillRect(renderer, &rec) : SDL_RenderRect(renderer, &rec)) ? 0 : -1;
-
-	if (result != 0)
-	{
-		LOG("Cannot draw quad to screen. SDL_RenderFillRect/SDL_RenderRect error: %s", SDL_GetError());
-		ret = false;
-	}
-
-	return ret;
-}
-
-bool Render::DrawLine(int x1, int y1, int x2, int y2, Uint8 r, Uint8 g, Uint8 b, Uint8 a, bool use_camera) const
-{
-	bool ret = true;
-	int scale = Application::GetInstance().window->GetScale();
-
-	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-	SDL_SetRenderDrawColor(renderer, r, g, b, a);
-
-	float X1, Y1, X2, Y2;
-
-	if (use_camera)
-	{
-		X1 = (float)(camera.x + x1 * scale);
-		Y1 = (float)(camera.y + y1 * scale);
-		X2 = (float)(camera.x + x2 * scale);
-		Y2 = (float)(camera.y + y2 * scale);
-	}
-	else
-	{
-		X1 = (float)(x1 * scale);
-		Y1 = (float)(y1 * scale);
-		X2 = (float)(x2 * scale);
-		Y2 = (float)(y2 * scale);
-	}
-
-	int result = SDL_RenderLine(renderer, X1, Y1, X2, Y2) ? 0 : -1;
-
-	if (result != 0)
-	{
-		LOG("Cannot draw quad to screen. SDL_RenderLine error: %s", SDL_GetError());
-		ret = false;
-	}
-
-	return ret;
-}
-
-bool Render::DrawCircle(int x, int y, int radius, Uint8 r, Uint8 g, Uint8 b, Uint8 a, bool use_camera) const
-{
-	bool ret = true;
-	int scale = Application::GetInstance().window->GetScale();
-
-	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-	SDL_SetRenderDrawColor(renderer, r, g, b, a);
-
-	int result = -1;
-	SDL_FPoint points[360];
-
-	float factor = (float)M_PI / 180.0f;
-
-	float cx = (float)((use_camera ? camera.x : 0) + x * scale);
-	float cy = (float)((use_camera ? camera.y : 0) + y * scale);
-
-	for (int i = 0; i < 360; ++i)
-	{
-		points[i].x = cx + (float)(radius * cos(i * factor));
-		points[i].y = cy + (float)(radius * sin(i * factor));
-	}
-
-	result = SDL_RenderPoints(renderer, points, 360) ? 0 : -1;
-
-	if (result != 0)
-	{
-		LOG("Cannot draw quad to screen. SDL_RenderPoints error: %s", SDL_GetError());
-		ret = false;
-	}
-
-	return ret;
-}
-
-void Render::AddModel(Model* model) {
-	modelsToDraw.push_back(model);
-}
-
-//bool Render::DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) const {
-//
-//	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
-//	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//
-//
-//	return true;
-//}
 
 void Render::DrawGrid() {
+
+	Shader* gridShader = Application::GetInstance().openGL.get()->texCoordsShader;
+	gridShader->Use();
+	// Enable line color mode
+	glUniform1i(glGetUniformLocation(gridShader->ID, "useLineColor"), true);
+	glUniform4f(glGetUniformLocation(gridShader->ID, "lineColor"), 1.0f, 1.0f, 1.0f, 0.5f);
 
 	float lineX = -100.0f;
 	float lineZ = -100.0f;
@@ -328,5 +155,297 @@ void Render::DrawGrid() {
 
 	glClearColor;
 
+	// Restore texture mode
+	glUniform1i(glGetUniformLocation(gridShader->ID, "useLineColor"), false);
+}
+
+void Render::UpdateShaderMatrices(Shader& shader) {
+	auto camera = Application::GetInstance().camera.get();
+
+	shader.Use();
+	//All objects share the SAME camera(view + projection)
+	shader.setMat4("view", camera->viewMat); 
+	shader.setMat4("projection", camera->projectionMat);
+	// Model matrix is set per object in DrawActiveScene
+
 
 }
+
+void Render::RenderFrame(Shader& shader) {
+	// Setup shader matrices
+	UpdateShaderMatrices(shader);
+
+	// Draw grid
+	DrawGrid();
+
+	// Draw scene
+	DrawActiveScene(shader);
+}
+
+void Render::DrawActiveScene(Shader& shader) {
+	auto sceneManager = Application::GetInstance().sceneManager.get();
+	auto scene = sceneManager->GetActiveScene();
+
+	if (!scene) {
+		LOG("WARNING: No active scene to render");
+		return;
+	}
+
+	// Iterate through all GameObjects in the scene
+	for (auto& gameObject : scene->GetAllGameObjects()) {
+		if (!gameObject || !gameObject->IsActive() || gameObject->IsMarkedForDestroy()) {
+			continue;
+		}
+
+		DrawGameObject(gameObject, shader);
+	}
+}
+
+void Render::DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader) {
+	
+	auto rendererComp = go->GetComponent(ComponentType::MESH_RENDERER);
+	if (!rendererComp) return;
+
+	auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
+	if (!renderer) return;
+
+	// Get mesh from ResourceManager using UUID
+	auto resourceManager = Application::GetInstance().resourceManager.get();
+	VroomUUID meshUUID = renderer->GetMeshUUID();
+
+	if (meshUUID == 0) {
+		return;  // No mesh assigned
+	}
+
+	auto resource = resourceManager->FindResource(meshUUID);
+	if (!resource) {
+		LOG("WARNING: Mesh UUID %llu not found in ResourceManager", meshUUID);
+		return;
+	}
+
+	auto mesh = std::dynamic_pointer_cast<ResourceMesh>(resource);
+	if (!mesh || !mesh->isLoadedToGPU) {
+		return;
+	}
+
+	// Get transform and set model matrix
+	auto transformComp = go->GetComponent(ComponentType::TRANSFORM);
+	if (transformComp) {
+		auto transform = std::dynamic_pointer_cast<TransformComponent>(transformComp);
+		glm::mat4 modelMat = transform->GetModelMatrix();
+
+		//Each GameObject has a UNIQUE position/rotation/scale
+		shader.setMat4("model", modelMat);
+	}
+
+	// Draw the mesh
+	mesh->Draw(shader);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//UNUSED (from 2D Plarformer Template)
+
+
+//void Render::SetViewPort(const SDL_Rect& rect)
+//{
+//	SDL_SetRenderViewport(renderer, &rect);
+//}
+//
+//void Render::ResetViewPort()
+//{
+//	SDL_SetRenderViewport(renderer, &viewport);
+//}
+//
+//// Blit to screen
+//bool Render::DrawTexture(SDL_Texture* texture, int x, int y, const SDL_Rect* section, float speed, double angle, int pivotX, int pivotY) const
+//{
+//	bool ret = true;
+//	int scale = Application::GetInstance().window->GetScale();
+//
+//	// SDL3 uses float rects for rendering
+//	SDL_FRect rect;
+//	rect.x = (float)((int)(camera.x * speed) + x * scale);
+//	rect.y = (float)((int)(camera.y * speed) + y * scale);
+//
+//	if (section != NULL)
+//	{
+//		rect.w = (float)(section->w * scale);
+//		rect.h = (float)(section->h * scale);
+//	}
+//	else
+//	{
+//		float tw = 0.0f, th = 0.0f;
+//		if (!SDL_GetTextureSize(texture, &tw, &th))
+//		{
+//			LOG("SDL_GetTextureSize failed: %s", SDL_GetError());
+//			return false;
+//		}
+//		rect.w = tw * scale;
+//		rect.h = th * scale;
+//	}
+//
+//	const SDL_FRect* src = NULL;
+//	SDL_FRect srcRect;
+//	if (section != NULL)
+//	{
+//		srcRect.x = (float)section->x;
+//		srcRect.y = (float)section->y;
+//		srcRect.w = (float)section->w;
+//		srcRect.h = (float)section->h;
+//		src = &srcRect;
+//	}
+//
+//	SDL_FPoint* p = NULL;
+//	SDL_FPoint pivot;
+//	if (pivotX != INT_MAX && pivotY != INT_MAX)
+//	{
+//		pivot.x = (float)pivotX;
+//		pivot.y = (float)pivotY;
+//		p = &pivot;
+//	}
+//
+//	// SDL3: returns bool; map to int-style check
+//	int rc = SDL_RenderTextureRotated(renderer, texture, src, &rect, angle, p, SDL_FLIP_NONE) ? 0 : -1;
+//	if (rc != 0)
+//	{
+//		LOG("Cannot blit to screen. SDL_RenderTextureRotated error: %s", SDL_GetError());
+//		ret = false;
+//	}
+//
+//	return ret;
+//}
+//
+//bool Render::DrawRectangle(const SDL_Rect& rect, Uint8 r, Uint8 g, Uint8 b, Uint8 a, bool filled, bool use_camera) const
+//{
+//	bool ret = true;
+//	int scale = Application::GetInstance().window->GetScale();
+//
+//	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+//	SDL_SetRenderDrawColor(renderer, r, g, b, a);
+//
+//	SDL_FRect rec;
+//	if (use_camera)
+//	{
+//		rec.x = (float)((int)(camera.x + rect.x * scale));
+//		rec.y = (float)((int)(camera.y + rect.y * scale));
+//		rec.w = (float)(rect.w * scale);
+//		rec.h = (float)(rect.h * scale);
+//	}
+//	else
+//	{
+//		rec.x = (float)(rect.x * scale);
+//		rec.y = (float)(rect.y * scale);
+//		rec.w = (float)(rect.w * scale);
+//		rec.h = (float)(rect.h * scale);
+//	}
+//
+//	int result = (filled ? SDL_RenderFillRect(renderer, &rec) : SDL_RenderRect(renderer, &rec)) ? 0 : -1;
+//
+//	if (result != 0)
+//	{
+//		LOG("Cannot draw quad to screen. SDL_RenderFillRect/SDL_RenderRect error: %s", SDL_GetError());
+//		ret = false;
+//	}
+//
+//	return ret;
+//}
+//
+//bool Render::DrawLine(int x1, int y1, int x2, int y2, Uint8 r, Uint8 g, Uint8 b, Uint8 a, bool use_camera) const
+//{
+//	bool ret = true;
+//	int scale = Application::GetInstance().window->GetScale();
+//
+//	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+//	SDL_SetRenderDrawColor(renderer, r, g, b, a);
+//
+//	float X1, Y1, X2, Y2;
+//
+//	if (use_camera)
+//	{
+//		X1 = (float)(camera.x + x1 * scale);
+//		Y1 = (float)(camera.y + y1 * scale);
+//		X2 = (float)(camera.x + x2 * scale);
+//		Y2 = (float)(camera.y + y2 * scale);
+//	}
+//	else
+//	{
+//		X1 = (float)(x1 * scale);
+//		Y1 = (float)(y1 * scale);
+//		X2 = (float)(x2 * scale);
+//		Y2 = (float)(y2 * scale);
+//	}
+//
+//	int result = SDL_RenderLine(renderer, X1, Y1, X2, Y2) ? 0 : -1;
+//
+//	if (result != 0)
+//	{
+//		LOG("Cannot draw quad to screen. SDL_RenderLine error: %s", SDL_GetError());
+//		ret = false;
+//	}
+//
+//	return ret;
+//}
+//
+//bool Render::DrawCircle(int x, int y, int radius, Uint8 r, Uint8 g, Uint8 b, Uint8 a, bool use_camera) const
+//{
+//	bool ret = true;
+//	int scale = Application::GetInstance().window->GetScale();
+//
+//	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+//	SDL_SetRenderDrawColor(renderer, r, g, b, a);
+//
+//	int result = -1;
+//	SDL_FPoint points[360];
+//
+//	float factor = (float)M_PI / 180.0f;
+//
+//	float cx = (float)((use_camera ? camera.x : 0) + x * scale);
+//	float cy = (float)((use_camera ? camera.y : 0) + y * scale);
+//
+//	for (int i = 0; i < 360; ++i)
+//	{
+//		points[i].x = cx + (float)(radius * cos(i * factor));
+//		points[i].y = cy + (float)(radius * sin(i * factor));
+//	}
+//
+//	result = SDL_RenderPoints(renderer, points, 360) ? 0 : -1;
+//
+//	if (result != 0)
+//	{
+//		LOG("Cannot draw quad to screen. SDL_RenderPoints error: %s", SDL_GetError());
+//		ret = false;
+//	}
+//
+//	return ret;
+//}
+
+//void Render::AddModel(Model* model) {
+//	modelsToDraw.push_back(model);
+//}
+
+//bool Render::DrawMesh(Mesh mesh, unsigned int shaderProgram, unsigned int VAO) const {
+//
+//	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
+//	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//
+//
+//	return true;
+//}

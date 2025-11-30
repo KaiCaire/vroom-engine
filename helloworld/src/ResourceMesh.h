@@ -34,7 +34,7 @@ public:
     // Constructors
     ResourceMesh();
     ResourceMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<ResourceTexture>> textures);
-
+    ResourceMesh(std::shared_ptr<ResourceMesh> mesh);
     // Draw the mesh
     void Draw(Shader& shader);
 

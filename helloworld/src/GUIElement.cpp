@@ -6,7 +6,7 @@
 #include "GUIManager.h"
 #include "SystemInfo.h"
 #include "OpenGL.h"
-#include "Model.h"
+#include "ModelImporter.h"
 
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"

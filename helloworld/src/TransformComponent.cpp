@@ -94,6 +94,26 @@ glm::mat4 TransformComponent::GetGlobalTransform() const {
     return globalMatrix;
 }
 
+glm::mat4 TransformComponent::GetModelMatrix() const {
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, localPosition);
+    model = model * glm::mat4_cast(localRotation);
+
+    //glm::scale takes the current model matrix and scales it, returning the result.
+    model = glm::scale(model, localScale);
+
+    // If has parent, multiply by parent's matrix
+    if (auto parent = GetOwner()->GetParent()) {
+        auto parentTransform = parent->GetComponent(ComponentType::TRANSFORM);
+        if (parentTransform) {
+            auto parentTrans = std::dynamic_pointer_cast<TransformComponent>(parentTransform);
+            model = parentTrans->GetModelMatrix() * model;
+        }
+    }
+
+    return model;
+}
+
 void TransformComponent::MarkAsDirty() {
     isDirty = true;
     isGlobalDirty = true;

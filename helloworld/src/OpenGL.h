@@ -2,7 +2,7 @@
 #include "Module.h"
 #include "Shader.h"
 
-#include "Model.h"
+#include "ModelImporter.h"
 
 class OpenGL : public Module {
 
@@ -17,20 +17,20 @@ public:
 	unsigned int EBO;
 
 	/*Texture texture1, texture2;*/
-	int width, height, nChannels;
-	glm::mat4 modelMat, viewMat, projectionMat;
-	glm::vec3* cubePositions = new glm::vec3[10];
+	/*int width, height, nChannels;*/
+	/*glm::mat4 modelMat, viewMat, projectionMat;*/
+	/*glm::vec3* cubePositions = new glm::vec3[10];*/
 
 	Shader* texCoordsShader;
-	Model* ourModel;
+	/*Model* ourModel;*/
 	
 
-	std::vector<Model*> modelObjects;
+	/*std::vector<Model*> modelObjects;*/
 
 
 	bool Start() override;
 	bool Update(float dt) override;
 	bool CleanUp() override;
 
-	Model* CreateCube();
+	//Model* CreateCube();
 };

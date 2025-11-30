@@ -22,15 +22,15 @@ public:
     std::shared_ptr<ResourceMesh>  GetMesh() const { return mesh; }
     ResourceMesh*  GetMeshPointer() const { return mesh.get(); }
 
-    void RenderMeshComponent::SetMeshID(VroomUUID id) {
-        mesh->SetUUID(id);
-    }
-    // Rendering
+
+    VroomUUID GetMeshUUID() { return meshUUID; }
+    void SetMeshUUID(VroomUUID id) { mesh->SetUUID(id);}
+
     void Render(Shader* shader);  
 
 private:
     std::shared_ptr<ResourceMesh> mesh;  // Pointer to mesh data (not owned by this component)
-    unsigned int meshId = 0;
-    bool drawFaceNormals;
-    bool drawVertNormals;
+    unsigned int meshUUID = 0;
+    //bool drawFaceNormals;
+    //bool drawVertNormals;
 };

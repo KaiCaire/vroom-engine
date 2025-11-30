@@ -3,14 +3,14 @@
 #include "Component.h"
 #include "TransformComponent.h"
 #include "ResourceMesh.h"
-#include "Model.h"
+#include "ModelImporter.h"
 #include <vector>
 #include <string>
 #include <memory>
 #include "UUID.h"
 
 
-class Model;
+class ModelImporter;
 
 class GameObject : public std::enable_shared_from_this<GameObject> {
 public:
@@ -53,11 +53,11 @@ public:
         isEmpty = true;
     }
 
-    void SetOwnerModel(Model* model) { 
+    void SetOwnerModel(ModelImporter* model) { 
         ownerModel = model; 
     }
 
-    Model* GetOwnerModel() { 
+    ModelImporter* GetOwnerModel() { 
         return ownerModel; 
     }
 
@@ -72,7 +72,7 @@ private:
     bool isEmpty = false;
 
     //store model owner for root objects
-    Model* ownerModel = nullptr;
+    ModelImporter* ownerModel = nullptr;
 
     std::weak_ptr<GameObject> parent;                          // Weak pointer to parent
     std::vector<std::shared_ptr<GameObject>> children;         // Shared pointers to children

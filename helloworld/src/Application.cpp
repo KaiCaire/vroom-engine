@@ -29,7 +29,7 @@ Application::Application() {
     render = std::make_shared<Render>();
     openGL = std::make_shared<OpenGL>();
     fileSystem = std::make_shared<FileSystem>();
-
+    sceneManager = std::make_shared<SceneManager>();
     camera = std::make_shared<Camera>();
     importer = std::make_shared<Importer>();
 
@@ -41,8 +41,8 @@ Application::Application() {
 
     AddModule(std::static_pointer_cast<Module>(camera));
     AddModule(std::static_pointer_cast<Module>(importer));
-    /*AddModule(std::static_pointer_cast<Module>(resourceManager));*/
-
+    AddModule(std::static_pointer_cast<Module>(resourceManager));
+    AddModule(std::static_pointer_cast<Module>(sceneManager));
 
     // Render last 
     AddModule(std::static_pointer_cast<Module>(openGL));
@@ -143,8 +143,12 @@ void Application::PrepareUpdate()
 // ---------------------------------------------
 void Application::FinishUpdate()
 {
-    if (openGL && openGL->ourModel) {
+    /*if (openGL && openGL->ourModel) {
         openGL->ourModel->CleanUpDestroyedObjects();
+    }*/
+
+    if (sceneManager && sceneManager->GetActiveScene()) {
+        sceneManager->GetActiveScene()->CleanUpDestroyedObjects();
     }
 }
 

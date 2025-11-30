@@ -40,6 +40,7 @@ public:
 	std::string GetFileNameFromPath(const char* path);
 	std::string GetDirFromPath(const char* path);
 	std::string GetFileFromPath(const char* path);
+	std::string GetExtensionFromPath(const char* path);
 
 	std::string NormalizePath(const char* path);
 

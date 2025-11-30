@@ -65,9 +65,3 @@ void RenderMeshComponent::Render(Shader* shader) {
     mesh->Draw(*shader);
 }
 
-
-//void RenderMeshComponent::DrawNormals() {
-//    
-//    mesh->CalculateNormals();
-//}
-

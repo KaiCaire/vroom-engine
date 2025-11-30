@@ -8,6 +8,7 @@
 class MeshImporter;
 class TextureImporter;
 class ResourceTexture;
+class ModelImporter;
 
 class Importer : public Module {
 public:
@@ -20,6 +21,7 @@ public:
 
 	MeshImporter* meshImporter;
 	TextureImporter* textureImporter;
+	ModelImporter* modelImporter;
 
 
 	std::vector<std::shared_ptr<ResourceTexture>> textures_loaded;

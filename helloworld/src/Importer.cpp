@@ -1,5 +1,5 @@
 #include "Importer.h"
-#include "Model.h"
+#include "ModelImporter.h"
 #include "MeshImporter.h"
 #include "TextureImporter.h"
 // #include "MaterialImporter.h"
@@ -20,7 +20,7 @@ bool Importer::Start() {
     stream = aiGetPredefinedLogStream(aiDefaultLogStream_DEBUGGER, nullptr);
     aiAttachLogStream(&stream);
 
-    //sceneImporter = new SceneImporter();
+    modelImporter = new ModelImporter();
     meshImporter = new MeshImporter();
     textureImporter = new TextureImporter();
     /* materialImporter = new MaterialImporter();*/
@@ -28,12 +28,12 @@ bool Importer::Start() {
 }
 
 bool Importer::CleanUp() {
-  /*  delete sceneImporter;*/
+    delete modelImporter;
     delete meshImporter;
     delete textureImporter;
     //delete materialImporter;
 
-    /*sceneImporter = nullptr;*/
+    modelImporter = nullptr;
     meshImporter = nullptr;
     textureImporter = nullptr;
     //materialImporter = nullptr;

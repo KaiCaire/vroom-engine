@@ -56,6 +56,7 @@ void FileSystem::WriteBinData(const char* filePath, const char* buffer, uint siz
 	}
 }
 
+
 void FileSystem::SaveJSON(const char* path, const nlohmann::json& json_to_save) {
 
 
@@ -108,6 +109,20 @@ std::string FileSystem::GetFileFromPath(const char* path) {
 
 	return fileName;
 }
+
+std::string FileSystem::GetExtensionFromPath(const char* path) {
+	std::string filePath = NormalizePath(path);
+	size_t dotPos = filePath.find_last_of('.');
+	if (dotPos == std::string::npos) return ""; // no extension
+
+	std::string ext = filePath.substr(dotPos + 1);
+
+	//make extension lowercase
+	for (char& c : ext) { c = std::tolower(static_cast<unsigned char>(c)); }
+
+	return ext;
+}
+
 
 std::string FileSystem::NormalizePath(const char* path) {
 	std::string normalizedPath = path;
