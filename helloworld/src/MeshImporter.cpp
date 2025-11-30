@@ -163,9 +163,11 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
 
         if (!found) {
 
-            std::string fullDefaultTexPath = defaultTexPath + fileName;
-            std::shared_ptr<ResourceTexture> defaultTex = Application::GetInstance().importer.get()->textureImporter->Import(fullDefaultTexPath);
+            /*std::string fullDefaultTexPath = defaultTexPath + fileName;
+            std::shared_ptr<ResourceTexture> defaultTex = Application::GetInstance().importer.get()->textureImporter->Import(fullDefaultTexPath);*/
             /*defaultTex.TextureFromFile(defaultTexPath, fileName.c_str());*/
+            std::shared_ptr<ResourceTexture> defaultTex = Application::GetInstance().importer.get()->textureImporter->Import(defaultTexPath);
+
 
             if (defaultTex == nullptr) {
                 LOG("FATAL ERROR: Failed to load default texture! Skipping.");

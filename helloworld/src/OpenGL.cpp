@@ -142,7 +142,7 @@ bool OpenGL::Update(float dt) {
 	projectionMat = Application::GetInstance().camera->projectionMat;
 
 	texCoordsShader->Use();
-	texCoordsShader->setMat4("model", modelMat);
+	//texCoordsShader->setMat4("model", modelMat);
 	texCoordsShader->setMat4("view", viewMat);
 	texCoordsShader->setMat4("projection", projectionMat);
 

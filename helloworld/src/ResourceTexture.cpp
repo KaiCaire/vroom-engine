@@ -136,6 +136,9 @@ void ResourceTexture::FreeMemory() {
 
 void ResourceTexture::LoadToGPU() {
 
+    glGenTextures(1, &gpu_id);
+    glBindTexture(GL_TEXTURE_2D, gpu_id);
+    
     GLenum format;
     switch (nChannels) {
     case 1:

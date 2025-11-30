@@ -153,6 +153,18 @@ void Model::Draw(Shader& shader) {
         if (!gameObject || gameObject->IsMarkedForDestroy() || !gameObject->IsActive())
             continue;
 
+        //get transform component
+        auto transformComp = gameObject->GetComponent(ComponentType::TRANSFORM);
+        if (!transformComp)
+            continue;
+
+        auto transform = std::dynamic_pointer_cast<TransformComponent>(transformComp);
+        if (!transform)
+            continue;
+
+        glm::mat4 modelMatrix = transform->GetGlobalTransform();
+        shader.setMat4("model", modelMatrix);
+
         //check for mesh renderer
         auto rendererComp = gameObject->GetComponent(ComponentType::MESH_RENDERER);
         if (!rendererComp)
@@ -164,6 +176,16 @@ void Model::Draw(Shader& shader) {
 
         auto mesh = renderer->GetMesh();
         if (!mesh) continue;
+
+        //auto transformComp = gameObject->GetComponent(ComponentType::TRANSFORM);
+        //if (transformComp) {
+        //    auto transform = std::dynamic_pointer_cast<TransformComponent>(transformComp);
+        //    // Get the Model Matrix (Global Transform)
+        //    glm::mat4 modelMatrix = transform->GetGlobalTransform();
+
+        //    // Pass the matrix to the shader (assuming your shader has a 'model' uniform)
+        //    shader.setMat4("model", modelMatrix);
+        //}
 
         //trigger checkerboard texture
         //if (useDefaultTexture) {
@@ -189,6 +211,24 @@ void Model::Draw(Shader& shader) {
         //    }
 
         //}
+
+        if (!mesh->textures.empty() && mesh->textures[0])
+        {
+            // Activate Texture Unit 0 (GL_TEXTURE0)
+            glActiveTexture(GL_TEXTURE0);
+
+            // Bind the actual OpenGL texture ID. 
+            // This assumes ResourceTexture has a method GetID() which returns the GLuint texture ID.
+            GLuint textureID = mesh->textures[0]->id;
+            glBindTexture(GL_TEXTURE_2D, textureID);
+
+            // Tell the shader sampler 'material.texture_diffuse1' to use the texture bound to unit 0
+            // This assumes your Shader class has a setInt method
+            shader.setInt("material.texture_diffuse1", 0);
+        }
+
+        // Restore default texture unit (good practice)
+        glActiveTexture(GL_TEXTURE0);
 
         //draw the mesh
         renderer->GetMesh()->Draw(shader);
@@ -240,6 +280,10 @@ void Model::processNodeWithGameObjects(const aiNode* node, const aiScene* scene,
     glm::vec3 pos(position.x, position.y, position.z);
     glm::quat rot(rotation.w, rotation.x, rotation.y, rotation.z);
     glm::vec3 scale(scaling.x, scaling.y, scaling.z);
+
+    transform->SetPosition(pos);
+    transform->SetRotation(rot);
+    transform->SetScale(scale);
 
 
     if (parent) {
