@@ -311,6 +311,9 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         return;
     }
 
+    //register resource
+    Application::GetInstance().resourceManager->RegisterResource(mesh);
+
     // Store mesh info for model meta
     meshMetaInfo.push_back({aiMesh->mName.C_Str(), mesh->GetUUID(), mesh->vertices.size(), mesh->indices.size() });
 

@@ -24,13 +24,16 @@ public:
 
 
     VroomUUID GetMeshUUID() { return meshUUID; }
-    void SetMeshUUID(VroomUUID id) { mesh->SetUUID(id);}
+    void SetMeshUUID(VroomUUID id) {
+        meshUUID = id;
+        if(mesh) mesh->SetUUID(id);
+    }
 
     void Render(Shader* shader);  
 
 private:
     std::shared_ptr<ResourceMesh> mesh;  // Pointer to mesh data (not owned by this component)
-    unsigned int meshUUID = 0;
+    VroomUUID meshUUID = 0;
     //bool drawFaceNormals;
     //bool drawVertNormals;
 };

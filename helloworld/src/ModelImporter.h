@@ -5,6 +5,7 @@
 #include <map>
 #include "GameObject.h"
 #include "ResourceMesh.h"
+#include "ResourceManager.h"
 #include "Shader.h"
 #include "UUID.h"
 #include <assimp/scene.h>

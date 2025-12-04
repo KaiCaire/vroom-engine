@@ -11,6 +11,10 @@ RenderMeshComponent::RenderMeshComponent(std::shared_ptr<GameObject> owner)
 }
 
 RenderMeshComponent::~RenderMeshComponent() {
+
+    if (mesh) {
+        mesh->RemoveReference();
+    }
     
     mesh = nullptr;
 }
@@ -32,7 +36,17 @@ void RenderMeshComponent::OnEditor() {
 }
 
 void RenderMeshComponent::SetMesh(std::shared_ptr<ResourceMesh> newMesh) {
+    if (mesh) {
+        mesh->RemoveReference();
+    }
+
     mesh = newMesh;
+    if (newMesh) {
+        meshUUID = newMesh->GetUUID();
+        newMesh->AddReference();
+        LOG("RenderMeshComponent assigned Mesh UUID: %llu and added reference.", meshUUID);
+    }
+    else meshUUID = 0;
 }
 
 void RenderMeshComponent::Render(Shader* shader) {

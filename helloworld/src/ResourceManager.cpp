@@ -43,7 +43,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
     auto it = resources.find(uuid);
     if (it != resources.end()) {
         LOG("Resource %llu already loaded (refCount: %d)", uuid, it->second->GetReferenceCount());
-        //it->second->AddReference();
+        it->second->AddReference();
         return it->second;
     }
 
@@ -92,7 +92,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
     auto it = resources.find(uuid);
     if (it != resources.end()) {
         LOG("Resource '%s' already loaded (UUID: %llu)", normalizedPath.c_str(), uuid);
-        //it->second->AddReference();
+        it->second->AddReference();
         return it->second;
     }
 
@@ -187,7 +187,7 @@ void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource)
     VroomUUID uuid = resource->GetUUID();
 
     resources[uuid] = resource;
-    //resource->AddReference();
+    resource->AddReference();
 
     LOG("Registered resource (UUID: %llu, Name: %s)", uuid, resource->GetName().c_str());
 }
