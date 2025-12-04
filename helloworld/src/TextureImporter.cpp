@@ -6,6 +6,7 @@
 #include "Log.h"
 #include "stb_image.h"
 #include <iostream>
+#include "ResourceManager.h"
 
 
 std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& filePath) {
@@ -47,7 +48,7 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
         // Check if reimport needed
         if (!fs->NeedsReimport(metaPath.c_str(), normalizedPath.c_str())) {
             // Try to load from Library cache
-            std::string libraryPath = "Library/Textures/tex_" + std::to_string(uuid) + ".bin";
+            std::string libraryPath = "Library/Textures/tex_" + std::to_string(uuid) + ".vroomtex";
             texture->SetLibraryFilePath(libraryPath);
 
             if (fs->Exists(libraryPath.c_str())) {
@@ -89,13 +90,10 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     glGenTextures(1, &texture->gpu_id);
     glBindTexture(GL_TEXTURE_2D, texture->gpu_id);
 
-    texture->LoadToGPU();  // Use Texture's method to upload
-
-    // Note: Don't free data yet if you want to save to binary
-    // texture->data will be used in SaveBin()
+    texture->LoadToGPU();  
 
     // Set library path
-    std::string libraryPath = "Library/Textures/tex_" + std::to_string(uuid) + ".bin";
+    std::string libraryPath = "Library/Textures/" + std::to_string(uuid) + ".vroomtex";
     texture->SetLibraryFilePath(libraryPath);
 
     // Save to Library cache
@@ -104,20 +102,25 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     // Save/update .meta file
     texture->SaveMeta();
 
-    // Now free the data (already uploaded to GPU and saved to disk)
-    stbi_image_free(texture->data);
-    texture->data = nullptr;
+    Application::GetInstance().resourceManager->RegisterResource(texture);
 
-    texture->isLoadedToRAM = true;
+    // Now free the data (already uploaded to GPU and saved to disk)
+    if (texture->data) {
+        stbi_image_free(texture->data);
+        texture->data = nullptr;
+    }
+
+    texture->isLoadedToRAM = false; 
+    texture->isLoadedToGPU = true;  
 
     LOG("TextureImporter: Successfully imported '%s' (UUID: %llu, GPU ID: %u, %dx%d)",
         texture->GetName().c_str(), texture->GetUUID(), texture->gpu_id,
-        texture->texH, texture->texH);
+        texture->texW, texture->texH);  
 
     return texture;
 }
-std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& directory,
-    const char* filename) {
+
+std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& directory, const char* filename) {
     // Normalize directory using FileSystem
     FileSystem* fs = Application::GetInstance().fileSystem.get();
     std::string normalizedDir = fs->NormalizePath(directory.c_str());

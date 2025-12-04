@@ -198,14 +198,19 @@ bool FileSystem::Exists(const char* path) {
 }
 
 bool FileSystem::CreateDir(const char* path) {
+
+	
+	if (Exists(path)) {
+		LOG("Directory already exists!");
+		return true;
+	}
 	if (std::filesystem::create_directories(path)) {
 		LOG("Directory %s created successfully", path);
 		return true;
 	}
-	else {
-		LOG("Failed to create directory %s", path);
-		return false;
-	}
+
+	LOG("Failed to create directory %s", path);
+	return false;
 
 }
 

@@ -5,6 +5,7 @@
 #include "Application.h"
 #include "FileSystem.h"
 
+
 namespace Paths {
 
     inline const char* ASSETS_DIR = "../Assets";
@@ -24,10 +25,11 @@ typedef unsigned int uint;
 enum class ResourceType {
     UNKNOWN = 0,
     MESH,
+    SCENE,
     TEXTURE,
     MATERIAL,
     SHADER,
-    AUDIO
+    AUDIO,  
 };
 
 class Resource {

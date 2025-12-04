@@ -47,6 +47,10 @@ public:
     const std::string& GetName() const { return name; }
     void SetName(const std::string& n) { name = n; }
 
+    //UUID
+    VroomUUID GetUUID() const { return uuid; }
+    void SetUUID(VroomUUID _uuid) { uuid = _uuid; }
+
     bool IsMarkedForDestroy() const { return markedForDestroy; }
     void MarkForDestroy() { markedForDestroy = true; }
     void SetAsEmpty() {

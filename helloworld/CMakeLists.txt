@@ -20,7 +20,7 @@ find_package(nlohmann_json CONFIG REQUIRED)
 
 
 add_executable(VroomEngine src/VroomEngine.cpp src/Application.cpp src/Application.h src/Module.h src/Window.cpp src/Window.h src/Render.cpp src/Render.h src/Input.cpp src/Input.h 
-src/OpenGL.h src/OpenGL.cpp src/Log.h src/Log.cpp src/FileSystem.h src/FileSystem.cpp src/Shader.h src/Shader.cpp src/ResourceMesh.h src/ResourceMesh.cpp src/Model.h src/Model.cpp src/ResourceTexture.h src/ResourceTexture.cpp src/Component.h src/Component.cpp src/GameObject.h src/GameObject.cpp src/TransformComponent.h src/TransformComponent.cpp src/RenderMeshComponent.h src/RenderMeshComponent.cpp
+src/OpenGL.h src/OpenGL.cpp src/Log.h src/Log.cpp src/FileSystem.h src/FileSystem.cpp src/Shader.h src/Shader.cpp src/ResourceMesh.h src/ResourceMesh.cpp src/ModelImporter.h src/ModelImporter.cpp src/ResourceTexture.h src/ResourceTexture.cpp src/Component.h src/Component.cpp src/GameObject.h src/GameObject.cpp src/TransformComponent.h src/TransformComponent.cpp src/RenderMeshComponent.h src/RenderMeshComponent.cpp
 src/MaterialComponent.h src/MaterialComponent.cpp src/Camera.h src/Camera.cpp src/GUIManager.h src/GUIManager.cpp src/GUIElement.cpp src/GUIElement.h src/UUID.h src/UUID.cpp src/Resource.h src/Resource.cpp src/MeshImporter.h src/MeshImporter.cpp src/Importer.h src/Importer.cpp src/TextureImporter.h src/TextureImporter.cpp src/Scene.h src/Scene.cpp src/SceneManager.h src/SceneManager.cpp src/ResourceManager.h src/ResourceManager.cpp)
 
 

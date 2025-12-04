@@ -24,6 +24,26 @@ ResourceMesh::ResourceMesh(std::vector<Vertex> vertices, std::vector<unsigned in
 
 }
 
+ResourceMesh::ResourceMesh(std::shared_ptr<ResourceMesh> mesh) : Resource(ResourceType::MESH), vertices(mesh->vertices), indices(mesh->indices), textures(mesh->textures), VAO(0), VBO(0), EBO(0)
+{
+    isLoadedToRAM = mesh->isLoadedToRAM;
+
+    drawVertNormals = mesh->drawVertNormals;
+    drawFaceNormals = mesh->drawFaceNormals;
+
+    // Normals may need recalculation
+    CalculateNormals();
+
+    // Upload to GPU
+    LoadToGPU();
+}
+
+ResourceMesh::~ResourceMesh() {
+    UnloadFromGPU();
+    FreeMemory();
+}
+
+
 void ResourceMesh::LoadToGPU() {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -140,6 +160,8 @@ void ResourceMesh::Draw(Shader& shader) {
     glBindVertexArray(0);
 
     glActiveTexture(GL_TEXTURE0);
+
+
 }
 
 void ResourceMesh::SetMeshData(const std::vector<Vertex>& verts, const std::vector<unsigned int>& inds, const std::vector<std::shared_ptr<ResourceTexture>>& texs) {
@@ -280,8 +302,7 @@ void ResourceMesh::LoadBin() {
         LOG("ERROR: Library path not set for mesh");
         return;
     }
-
-    FileSystem* fs = Application::GetInstance().fileSystem.get();
+    fs = Application::GetInstance().fileSystem.get();
     if (!fs->Exists(binPath.c_str())) {
         LOG("ERROR: Mesh binary file does not exist: %s", binPath.c_str());
         return;
@@ -317,7 +338,9 @@ void ResourceMesh::LoadBin() {
     ptr += indexCount * sizeof(unsigned int);
 
     // Read texture info
-    textures.resize(textureCount);
+    textures.clear();  
+    textures.reserve(textureCount);  
+
     for (uint i = 0; i < textureCount; i++) {
         uint pathLength;
         std::memcpy(&pathLength, ptr, sizeof(uint));
@@ -354,64 +377,66 @@ void ResourceMesh::FreeMemory() {
 }
 
 void ResourceMesh::SaveMeta() const {
-    std::string assetPath = GetAssetFilePath();
-    if (assetPath.empty()) {
-        LOG("ERROR: Asset path not set for mesh");
-        return;
-    }
+  //  std::string assetPath = GetAssetFilePath();
+  //  if (assetPath.empty()) {
+  //      LOG("ERROR: Asset path not set for mesh");
+  //      return;
+  //  }
 
-    std::string metaPath = assetPath + ".meta";
-   
+  //  std::string metaPath = assetPath + ".meta";
+  // 
 
-    nlohmann::json meta;
-    meta["uuid"] = GetUUID();
-    meta["modTime"] = fs->GetFileModTime(assetPath);
-    meta["type"] = "mesh";
-    meta["vertexCount"] = vertices.size();
-    meta["indexCount"] = indices.size();
-    meta["textureCount"] = textures.size();
+  //  nlohmann::json meta;
+  //  meta["uuid"] = GetUUID();
+  ///*  meta["modTime"] = fs->GetFileModTime(assetPath);*/
+  //  meta["type"] = "mesh";
+  //  meta["vertexCount"] = vertices.size();
+  //  meta["indexCount"] = indices.size();
+  //  meta["textureCount"] = textures.size();
 
-    fs->SaveJSON(metaPath.c_str(), meta);
-    LOG("Mesh meta saved: %s", metaPath.c_str());
+  //  fs->SaveJSON(metaPath.c_str(), meta);
+  //  LOG("Mesh meta saved: %s", metaPath.c_str());
 }
 
 
 void ResourceMesh::LoadMeta() {
-    std::string assetPath = GetAssetFilePath();
-    if (assetPath.empty()) {
-        LOG("ERROR: Asset path not set for mesh");
-        return;
-    }
+    //std::string assetPath = GetAssetFilePath();
+    //if (assetPath.empty()) {
+    //    LOG("ERROR: Asset path not set for mesh");
+    //    return;
+    //}
 
-    std::string metaPath = assetPath + ".meta";
+    //std::string metaPath = assetPath + ".meta";
 
-    if (!fs->Exists(metaPath.c_str())) {
-        LOG("WARNING: Meta file does not exist: %s", metaPath.c_str());
-        return;
-    }
+    //if (!fs->Exists(metaPath.c_str())) {
+    //    LOG("WARNING: Meta file does not exist: %s", metaPath.c_str());
+    //    return;
+    //}
 
-    nlohmann::json meta = fs->LoadJSON(metaPath.c_str());
+    //nlohmann::json meta = fs->LoadJSON(metaPath.c_str());
 
-    // Load UUID
-    if (meta.contains("uuid")) SetUUID(meta["uuid"]);
-    
+    //// Load UUID
+    //if (meta.contains("uuid")) SetUUID(meta["uuid"]);
+    //
 
-    // Load type
-    if (meta.contains("type")) {
-        std::string type = meta["type"];
-        if (type != "mesh") {
-            LOG("WARNING: Meta file type mismatch. Expected 'mesh', got '%s'", type.c_str());
-        }
-    }
+    //// Load type
+    //if (meta.contains("type")) {
+    //    std::string type = meta["type"];
+    //    if (type != "mesh") {
+    //        LOG("WARNING: Meta file type mismatch. Expected 'mesh', got '%s'", type.c_str());
+    //    }
+    //}
 
-    
-    uint savedVertexCount = meta.contains("vertexCount") ? meta["vertexCount"].get<uint>() : 0;
-    uint savedIndexCount = meta.contains("indexCount") ? meta["indexCount"].get<uint>() : 0;
-    uint savedTextureCount = meta.contains("textureCount") ? meta["textureCount"].get<uint>() : 0;
+    //
+    //uint savedVertexCount = meta.contains("vertexCount") ? meta["vertexCount"].get<uint>() : 0;
+    //uint savedIndexCount = meta.contains("indexCount") ? meta["indexCount"].get<uint>() : 0;
+    //uint savedTextureCount = meta.contains("textureCount") ? meta["textureCount"].get<uint>() : 0;
 
-    LOG("Mesh meta loaded: %s (UUID: %llu, vertices: %d, indices: %d, textures: %d)",
-        metaPath.c_str(), GetUUID(), savedVertexCount, savedIndexCount, savedTextureCount);
+    //LOG("Mesh meta loaded: %s (UUID: %llu, vertices: %d, indices: %d, textures: %d)",
+    //    metaPath.c_str(), GetUUID(), savedVertexCount, savedIndexCount, savedTextureCount);
 }
+
+
 void ResourceMesh::UnloadFromGPU() {
     if (!isLoadedToGPU) {
         // LOG("Mesh already unloaded from GPU or never loaded: %s", name.c_str());

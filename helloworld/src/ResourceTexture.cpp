@@ -18,6 +18,7 @@ ResourceTexture::ResourceTexture(): Resource(ResourceType::TEXTURE), id(0), texW
 
 ResourceTexture::~ResourceTexture() {
     FreeMemory();
+    UnloadFromGPU();
 }
 
 void ResourceTexture::SaveBin() {

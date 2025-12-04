@@ -9,11 +9,14 @@
 #include "ResourceMesh.h"
 #include "Log.h"
 
+
+
 ResourceManager::ResourceManager() : Module() {
     LOG("ResourceManager Constructor");
 }
 
 ResourceManager::~ResourceManager() {
+    
 }
 
 bool ResourceManager::Start() {
@@ -44,10 +47,30 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
         return it->second;
     }
 
-    // Not loaded - need to load from Library
-    // But we don't know the type! This is a problem.
-    // Solution: Store type in .meta or have a registry file
-    LOG("ERROR: Cannot load resource %llu - not in memory and type unknown", uuid);
+    // Determine type from library file extension
+    ResourceType type = ResourceType::UNKNOWN;
+
+    std::string texturePath = "Library/Textures/" + std::to_string(uuid) + ".vroomtex";
+    std::string meshPath = "Library/Meshes/" + std::to_string(uuid) + ".vroommesh";
+
+    if (fs->Exists(texturePath.c_str())) {
+        type = ResourceType::TEXTURE;
+    }
+    else if (fs->Exists(meshPath.c_str())) {
+        type = ResourceType::MESH;
+    }
+    else {
+        LOG("ERROR: Library file not found for UUID %llu", uuid);
+        return nullptr;
+    }
+
+    // Create and load from library
+    auto resource = CreateResource(type, uuid);
+    if (resource && LoadResourceFromLibrary(resource)) {
+        RegisterResource(resource);
+        return resource;
+    }
+
     return nullptr;
 }
 
@@ -107,7 +130,7 @@ VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceTyp
         }
         break;
     }
-    case ResourceType::MESH:
+    case ResourceType::SCENE:
         /*auto mesh = Application::GetInstance().importer.get()->meshImporter->Import(assetsPath.c_str());*/
         
         LOG("ERROR: Cannot import mesh directly - use ModelImporter::ImportScene");
@@ -149,13 +172,20 @@ std::shared_ptr<Resource> ResourceManager::CreateResource(ResourceType type, Vro
     return resource;
 }
 
-void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource) {
+void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource)
+{
     if (!resource) {
         LOG("ERROR: Tried to register null resource");
         return;
     }
 
+    // Generate UUID if resource does not have one yet
+    if (resource->GetUUID() == 0) {
+        resource->SetUUID(UUIDGen::GenerateUUID());
+    }
+
     VroomUUID uuid = resource->GetUUID();
+
     resources[uuid] = resource;
     resource->AddReference();
 
@@ -224,6 +254,9 @@ ResourceMesh* ResourceManager::GetPrimitiveMesh(PrimitiveType type) {
         LOG("Invalid Primitive Type");
         break;
     }
+
+    std::shared_ptr<ResourceMesh> sharedMesh(mesh); 
+    Application::GetInstance().resourceManager->RegisterResource(sharedMesh);
 
     return mesh;
 }

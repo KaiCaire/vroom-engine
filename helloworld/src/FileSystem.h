@@ -33,14 +33,17 @@ public:
 	//Meta file handling 
 	void CreateMeta(const char* path, VroomUUID uuid, uint size = 0); //create buffer, fill it & save to Assets
 
-	VroomUUID GetUUIDFromMeta(const char* metaPath);
+
 	bool IsMetaValid(const char* metaPath); //check if meta needs to b reimported (modtime, corrupted, missing...)
 	bool NeedsReimport(const char* metaPath, const char* sourceFilePath);
 
+
+	
 	std::string GetFileNameFromPath(const char* path);
 	std::string GetDirFromPath(const char* path);
 	std::string GetFileFromPath(const char* path);
 	std::string GetExtensionFromPath(const char* path);
+	VroomUUID GetUUIDFromMeta(const char* metaPath);
 
 	std::string NormalizePath(const char* path);
 

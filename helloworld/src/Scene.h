@@ -28,10 +28,19 @@ public:
 
     // Getters
     std::shared_ptr<GameObject> GetRoot() const { return root; }
+
     const std::vector<std::shared_ptr<GameObject>>& GetAllGameObjects() const { return allGameObjects; }
+
     std::string GetName() const { return sceneName; }
 
     void SetName(const std::string& name) { sceneName = name; }
+
+    // Find by UUID 
+    std::shared_ptr<GameObject> FindGameObjectByUUID(VroomUUID uuid);
+
+    //Find by name:
+    std::shared_ptr<GameObject> FindGameObjectByName(const std::string name);
+
 
 private:
     std::string sceneName;

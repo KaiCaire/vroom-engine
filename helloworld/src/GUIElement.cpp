@@ -7,6 +7,7 @@
 #include "SystemInfo.h"
 #include "OpenGL.h"
 #include "ModelImporter.h"
+#include "SceneManager.h"
 
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
@@ -238,7 +239,7 @@ void GUIElement::ConfigSetUp(bool* show) {
 	//window resolution
 	if (!fullscreen) {
 		//get resolutions and current resolution from window
-		vector<glm::vec2> options = Application::GetInstance().window.get()->resolutions;
+		std::vector<glm::vec2> options = Application::GetInstance().window.get()->resolutions;
 		glm::vec2 current = Application::GetInstance().window.get()->currentRes;
 
 		//find index of current resolution
@@ -310,29 +311,33 @@ void GUIElement::HierarchySetUp(bool* show)
 	if (ImGui::BeginMenu("Create...")) {
 		if (ImGui::MenuItem("Empty")) {
 			//Create empty 
-			auto empty = new Model();
-			Application::GetInstance().render->AddModel(empty);
-			
-			//add empty model to lists
-			Application::GetInstance().openGL.get()->modelObjects.push_back(empty);
-			Application::GetInstance().guiManager.get()->sceneObjects.push_back(empty->GetRootGameObject());
+			auto empty = std::make_shared<GameObject>();
+			Application::GetInstance().sceneManager->GetActiveScene()->AddGameObject(empty);
 			
 		}
 		if (ImGui::MenuItem("Cube")) {
-			Model* defaultCube = Application::GetInstance().openGL->CreateCube();
-			Application::GetInstance().render->AddModel(defaultCube);
+			auto defaultCube = Application::GetInstance().sceneManager->CreateCube();
+			/*Application::GetInstance().render->AddModel(defaultCube);*/
 		}
 		ImGui::EndMenu();
 	}
 
 	ImGui::Separator();
 
-	//game objects
-	//get root level objects
-	for (auto& obj : manager->sceneObjects)
+	auto scene = Application::GetInstance().sceneManager->GetActiveScene();
+	if (!scene) {
+		ImGui::Text("No active scene");
+		ImGui::End();
+		return;
+	}
+
+	const auto& sceneObjects = scene->GetAllGameObjects();
+
+	// Draw hierarchy
+	for (auto& obj : sceneObjects)
 	{
-		//check for game objects with no parent
-		if (obj && obj->IsActive() && !obj->GetParent()) DrawNode(obj, manager->selectedObject);
+		if (obj && obj->IsActive() && !obj->GetParent()) 
+			DrawNode(obj, manager->selectedObject);
 	}
 
 	ImGui::End();
@@ -418,7 +423,7 @@ void GUIElement::InspectorSetUp(bool* show)
 		//get mesh component
 		auto meshComponent = std::dynamic_pointer_cast<RenderMeshComponent>(selected->GetComponent(ComponentType::MESH_RENDERER));
 		//get texture for next step
-		vector<std::shared_ptr<ResourceTexture>> textureComponent;
+		std::vector<std::shared_ptr<ResourceTexture>> textureComponent;
 
 		bool showFaceNormals = manager->drawFaceNormals;
 		bool showVertNormals = manager->drawVertNormals;
@@ -432,8 +437,8 @@ void GUIElement::InspectorSetUp(bool* show)
 			if (ImGui::CollapsingHeader("Mesh")) {
 				//get values
 				/*std::shared_ptr<ResourceMesh> mesh = meshComponent.get()->GetMesh();*/
-				vector<Vertex> vert = mesh.get()->vertices;
-				vector<unsigned int> ind = mesh.get()->indices;
+				std::vector<Vertex> vert = mesh.get()->vertices;
+				std::vector<unsigned int> ind = mesh.get()->indices;
 
 				//display values
 				ImGui::Text("Vertices: %d", vert.size());
@@ -443,48 +448,41 @@ void GUIElement::InspectorSetUp(bool* show)
 				ImGui::Checkbox("Show Vertex Normals", &mesh.get()->drawFaceNormals);
 				ImGui::Checkbox("Show Face Normals", &mesh.get()->drawVertNormals);
 			}
-
 			//texture
 			if (ImGui::CollapsingHeader("Texture")) {
-				// Show current texture info
 				auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
 					selected->GetComponent(ComponentType::MATERIAL)
 				);
 
-				if (materialComp && materialComp->GetDiffuseMap()) {
+				if (materialComp) {
+					// Show current texture info
 					auto currentTex = materialComp->GetDiffuseMap();
-					ImGui::Text("Current Texture ID: %u", currentTex.get()->GetUUID());
-					ImGui::BulletText("Path: %s", currentTex.get()->path.c_str());
-					ImGui::BulletText("Width: %d", currentTex.get()->texW);
-					ImGui::BulletText("Height: %d", currentTex.get()->texH);
-				}
+					if (currentTex) {
+						ImGui::Text("Current Texture:");
+						ImGui::BulletText("UUID: %llu", currentTex->GetUUID());
+						ImGui::BulletText("Path: %s", currentTex->path.c_str());
+						ImGui::BulletText("Size: %dx%d", currentTex->texW, currentTex->texH);
+					}
+					else {
+						ImGui::Text("No texture assigned");
+					}
 
-				// Checker texture toggle
-				auto parentModel = manager->FindGameObjectModel(selected);
-				if (parentModel && materialComp) {
-					if (ImGui::Checkbox("Show Checker Texture", &parentModel->useDefaultTexture)) {
-						if (parentModel->useDefaultTexture) {
-							// SWITCHING TO CHECKER
-							// Save current texture
-							parentModel->savedTexture = materialComp->GetDiffuseMap();
+					// Checker texture toggle for THIS GameObject only
+					bool isShowingChecker = manager->IsShowingCheckerTexture(selected);
 
-							// Load checker
-							string fullPath = Application::GetInstance().importer.get()->defaultTexDir;
-							string fileName = fullPath.substr(fullPath.find_last_of('/') + 1);
-							auto checkerTex = std::make_shared<ResourceTexture>();
-							checkerTex = Application::GetInstance().importer.get()->textureImporter->Import(fullPath);
-
-							materialComp->SetDiffuseMap(checkerTex);
+					if (ImGui::Checkbox("Show Checker Texture", &isShowingChecker)) {
+						if (isShowingChecker) {
+							// SWITCH TO CHECKER
+							manager->ShowCheckerTexture(selected);
 						}
 						else {
-							// SWITCHING BACK TO ORIGINAL
-							if (parentModel->savedTexture) {
-								materialComp->SetDiffuseMap(parentModel->savedTexture);
-							}
+							// SWITCH BACK TO ORIGINAL
+							manager->RestoreOGTexture(selected);
 						}
 					}
 				}
 			}
+
 		}
 	}
 	else {

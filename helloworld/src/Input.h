@@ -5,7 +5,7 @@
 
 
 class ResourceTexture;
-class Model;
+class ResourceManager;
 
 #define MAX_KEYS 300
 #define NUM_MOUSE_BUTTONS 5
@@ -69,7 +69,7 @@ public:
 	// Get mouse / axis position
 	SDL_FPoint GetMousePosition();
 	SDL_FPoint GetMouseMotion();
-	Model* importedModel;
+	
 	
 
 
@@ -91,6 +91,9 @@ private:
 
 	const char* droppedFileDir;
 	/*std::vector<std::shared_ptr<GameObject>> selectedObjects;*/
+
+	void ImportModelFile(const std::string& modelPath);
+	void ApplyTextureToSelectedObject(const std::string& texturePath);
 	
 
 };

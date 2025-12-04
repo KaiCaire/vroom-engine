@@ -20,6 +20,7 @@ bool Importer::Start() {
     stream = aiGetPredefinedLogStream(aiDefaultLogStream_DEBUGGER, nullptr);
     aiAttachLogStream(&stream);
 
+    
     modelImporter = new ModelImporter();
     meshImporter = new MeshImporter();
     textureImporter = new TextureImporter();

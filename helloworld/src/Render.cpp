@@ -204,10 +204,12 @@ void Render::DrawActiveScene(Shader& shader) {
 void Render::DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader) {
 	
 	auto rendererComp = go->GetComponent(ComponentType::MESH_RENDERER);
-	if (!rendererComp) return;
+	if (!rendererComp) 
+		return;
 
 	auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
-	if (!renderer) return;
+	if (!renderer) 
+		return;
 
 	// Get mesh from ResourceManager using UUID
 	auto resourceManager = Application::GetInstance().resourceManager.get();

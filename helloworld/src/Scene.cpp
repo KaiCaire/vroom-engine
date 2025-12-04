@@ -361,31 +361,31 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
         if (m.contains("diffuseMapUUID")) {
             VroomUUID id = m["diffuseMapUUID"];
             auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-            material->SetDiffuseMap(std::make_shared<ResourceTexture>(tex));
+            material->SetDiffuseMap(std::static_pointer_cast<ResourceTexture>(tex));
         }
 
         if (m.contains("normalMapUUID")) {
             VroomUUID id = m["normalMapUUID"];
             auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-            material->SetNormalMap(std::make_shared<ResourceTexture>(tex));
+            material->SetNormalMap(std::static_pointer_cast<ResourceTexture>(tex));
         }
 
         if (m.contains("metallicMapUUID")) {
             VroomUUID id = m["metallicMapUUID"];
             auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-            material->SetMetallicMap(std::make_shared<ResourceTexture>(tex));
+            material->SetMetallicMap(std::static_pointer_cast<ResourceTexture>(tex));
         }
 
         if (m.contains("roughnessMapUUID")) {
             VroomUUID id = m["roughnessMapUUID"];
             auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-            material->SetRoughnessMap(std::make_shared<ResourceTexture>(tex));
+            material->SetRoughnessMap(std::static_pointer_cast<ResourceTexture>(tex));
         }
 
         if (m.contains("AOMapUUID")) {
             VroomUUID id = m["AOMapUUID"];
             auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-            material->SetAOMap(std::make_shared<ResourceTexture>(tex));
+            material->SetAOMap(std::static_pointer_cast<ResourceTexture>(tex));
         }
     }
 
@@ -400,4 +400,23 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
     }
 
     return go;
+}
+
+std::shared_ptr<GameObject> Scene::FindGameObjectByUUID(VroomUUID uuid) {
+    
+    for (auto object : allGameObjects) {
+        if (object->GetUUID() == uuid) {
+            return object;
+        }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<GameObject> Scene::FindGameObjectByName(const std::string name) {
+    for (auto object : allGameObjects) {
+        if (object->GetName() == name) {
+            return object;
+        }
+    }
+    return nullptr;
 }

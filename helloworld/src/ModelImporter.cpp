@@ -8,6 +8,7 @@
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
 #include "MaterialComponent.h"
+#include "SceneManager.h"
 
 
 #include <algorithm>
@@ -27,61 +28,45 @@ using namespace std;
 
 
 std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
-    Assimp::Importer import;
 
+    Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        cout << "ERROR::ASSIMP::" << import.GetErrorString() << endl;
-        return;
+        LOG("ERROR::ASSIMP::%s", import.GetErrorString());
+        return nullptr;
     }
 
-    
     FileSystem* fs = Application::GetInstance().fileSystem.get();
-    // Parse path info
     fullPath = fs->NormalizePath(path);
     fileName = fs->GetFileNameFromPath(path);
 
-    // Check for existing meta
-    std::string metaPath = std::string(path) + ".meta";
-    std::vector<VroomUUID> existingMeshUIDs;
-    bool alreadyImported = false;
+    // Try to load model meta for caching
+    nlohmann::json* modelMeta = LoadModelMeta(path);
 
-    if (fs->Exists(metaPath.c_str())) {
-        if (fs->IsMetaValid(metaPath.c_str())) {
-            // Already imported and valid
-
-            alreadyImported = true;
-            LOG("Scene already imported: %s", fullPath);
-
-        }
-    }
-
+    if (modelMeta) LOG("Using cached model data");
+    else LOG("Importing model from scratch");
+     
+     
 
     stbi_set_flip_vertically_on_load(fileExtension == "obj");
 
-    modelRootGO = make_shared<GameObject>(fileName);
-    Application::GetInstance().guiManager.get()->sceneObjects.push_back(modelRootGO);
-    modelRootGO.get()->SetOwnerModel(this);
-
+    modelRootGO = make_shared<GameObject>(std::string(fileName));
+    Application::GetInstance().sceneManager.get()->GetActiveScene()->AddGameObject(modelRootGO);
+    /*Application::GetInstance().guiManager.get()->sceneObjects.push_back(modelRootGO);*/
     modelRootGO->AddComponent(ComponentType::TRANSFORM);
-    
+
+    // Process scene - pass the meta pointer
     for (int i = 0; i < scene->mRootNode->mNumChildren; i++) {
-        processNodeWithGameObjects(scene->mRootNode->mChildren[i], scene, modelRootGO);
+        processNodeWithGameObjects(scene->mRootNode->mChildren[i], scene, modelRootGO, modelMeta);
     }
 
-    LOG("Finished Loading Model");
+    // Save/update model meta
+    SaveModelMeta(path);
+
     LOG("=== MODEL LOADING SUMMARY ===");
     LOG("Total GameObjects created: %d", (int)gameObjects.size());
     LOG("Total Meshes processed: %d", (int)meshes.size());
-    LOG("Root GameObject: '%s'", modelRootGO ? modelRootGO->GetName().c_str() : "NULL");
-
-    //if (rootGameObject) {
-    //    LOG("=== HIERARCHY ===");
-    //    LogGameObjectHierarchy(rootGameObject, 0);
-    //}
-
-    
 
     return modelRootGO;
 }
@@ -142,7 +127,7 @@ ModelImporter::ModelImporter(std::shared_ptr<ResourceMesh> sharedMesh) {
 
 ModelImporter::ModelImporter() {
     //create root
-    modelRootGO = std::make_shared<GameObject>("EmptyObject");
+    modelRootGO = std::make_shared<GameObject>(std::string("EmptyObject"));
     gameObjects.push_back(modelRootGO);
     modelRootGO->AddComponent(ComponentType::TRANSFORM);
 
@@ -199,7 +184,8 @@ void ModelImporter::Draw(Shader& shader) {
     }
 }
 
-void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene* scene, shared_ptr<GameObject> parent) {
+void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene* scene, std::shared_ptr<GameObject> parent, nlohmann::json* modelMeta)
+{
 
     aiMatrix4x4 accumulatedTransform;
     const aiNode* currentNode = node;
@@ -212,7 +198,7 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
         currentNode = currentNode->mChildren[0];
     }
 
-    auto gameObject = make_shared<GameObject>(currentNode->mName.C_Str());
+    auto gameObject = make_shared<GameObject>(std::string(currentNode->mName.C_Str()));
     gameObjects.push_back(gameObject);
 
     LOG("Created GameObject: '%s' (Parent: '%s')",
@@ -264,13 +250,13 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
             aiMesh* aimesh = scene->mMeshes[meshIndex];
 
             
-            auto meshGO = make_shared<GameObject>(nodeName);
+            auto meshGO = make_shared<GameObject>(std::string(nodeName)); //casting just in case
             gameObjects.push_back(meshGO);
 
             meshGO->AddComponent(ComponentType::TRANSFORM);
             meshGO->SetParent(gameObject);
 
-            createComponentsForMesh(meshGO, aimesh, scene);
+            createComponentsForMesh(meshGO, aimesh, scene, modelMeta);
         }
        
 
@@ -280,7 +266,7 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
         aiMesh* aiMesh = scene->mMeshes[meshIndex];
 
 
-        createComponentsForMesh(gameObject, aiMesh, scene);
+        createComponentsForMesh(gameObject, aiMesh, scene, modelMeta);
     }
     //else { //no meshes-> create empty GO
     //    auto emptyGO = make_shared<GameObject>(nodeName);
@@ -294,26 +280,39 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
     LOG("  - Processing %d children for '%s'", currentNode->mNumChildren, gameObject->GetName().c_str());
 
     for (unsigned int i = 0; i < currentNode->mNumChildren; i++)
-        processNodeWithGameObjects(currentNode->mChildren[i], scene, gameObject);
+        processNodeWithGameObjects(currentNode->mChildren[i], scene, gameObject, modelMeta);
 }
 
 
-void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObject, aiMesh* aiMesh, const aiScene* scene)
+void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObject, aiMesh* aiMesh, const aiScene* scene, nlohmann::json* modelMeta)
 {
     LOG("=== createComponentsForMesh START ===");
-    LOG("GameObject: '%s'", gameObject->GetName().c_str());
-    LOG("aiMesh vertices: %d, faces: %d", aiMesh->mNumVertices, aiMesh->mNumFaces);
 
-    // MeshImporter returns a Mesh directly
-    auto mesh = Application::GetInstance().importer->meshImporter->Import(aiMesh, scene, fullPath);
+    std::shared_ptr<ResourceMesh> mesh;
+    VroomUUID meshUUID = 0;
+
+    // Check if we have cached UUID from model meta
+    if (modelMeta && modelMeta->contains("meshes")) {
+        for (auto& meshEntry : (*modelMeta)["meshes"]) {
+            if (meshEntry["name"] == aiMesh->mName.C_Str()) {
+                meshUUID = meshEntry["uuid"];
+                LOG("Found cached mesh UUID: %llu", meshUUID);
+                break;
+            }
+        }
+    }
+
+    // Let MeshImporter handle loading/importing
+    // Pass the cached UUID if we have one
+    mesh = Application::GetInstance().importer->meshImporter->Import(aiMesh, scene, fullPath, meshUUID);
 
     if (!mesh) {
-        LOG("ERROR: MeshImporter::Import returned nullptr!");
+        LOG("ERROR: Failed to import mesh");
         return;
     }
 
-    LOG("Mesh created: vertices=%d, indices=%d, textures=%d",
-        mesh->vertices.size(), mesh->indices.size(), mesh->textures.size());
+    // Store mesh info for model meta
+    meshMetaInfo.push_back({aiMesh->mName.C_Str(), mesh->GetUUID(), mesh->vertices.size(), mesh->indices.size() });
 
     // Store the mesh in the model
     meshes.push_back(mesh);
@@ -416,4 +415,74 @@ void ModelImporter::AssignDefaultTexture(std::vector<std::shared_ptr<ResourceTex
     }
 }
 
+void ModelImporter::SaveModelMeta(const char* modelPath) {
+    FileSystem* fs = Application::GetInstance().fileSystem.get();
 
+    nlohmann::json meta;
+
+    // Check if meta already exists to preserve the model UUID
+    std::string metaPath = std::string(modelPath) + ".meta";
+    VroomUUID modelUUID = 0;
+
+    if (fs->Exists(metaPath.c_str())) {
+        nlohmann::json existingMeta = fs->LoadJSON(metaPath.c_str());
+        if (existingMeta.contains("uuid")) {
+            modelUUID = existingMeta["uuid"];
+        }
+    }
+
+    if (modelUUID == 0) {
+        modelUUID = UUIDGen::GenerateUUID();
+    }
+
+    meta["uuid"] = modelUUID;
+    meta["modTime"] = fs->GetFileModTime(modelPath);
+    meta["type"] = "model";
+
+    // Add all mesh info
+    nlohmann::json meshesArray = nlohmann::json::array();
+    for (const auto& meshInfo : meshMetaInfo) {
+        nlohmann::json meshEntry;
+        meshEntry["name"] = meshInfo.name;
+        meshEntry["uuid"] = meshInfo.uuid;
+        meshEntry["vertexCount"] = meshInfo.vertexCount;
+        meshEntry["indexCount"] = meshInfo.indexCount;
+        meshesArray.push_back(meshEntry);
+    }
+    meta["meshes"] = meshesArray;
+
+    fs->SaveJSON(metaPath.c_str(), meta);
+    LOG("Model meta saved: %s (%d meshes)", metaPath.c_str(), (int)meshMetaInfo.size());
+
+    // Clear for next import
+    meshMetaInfo.clear();
+}
+
+
+nlohmann::json* ModelImporter::LoadModelMeta(const char* modelPath) {
+    FileSystem* fs = Application::GetInstance().fileSystem.get();
+    std::string metaPath = std::string(modelPath) + ".meta";
+
+    if (!fs->Exists(metaPath.c_str())) {
+        LOG("No meta file found for model: %s", modelPath);
+        return nullptr;
+    }
+
+    if (!fs->IsMetaValid(metaPath.c_str())) {
+        LOG("Meta file invalid for model: %s", modelPath);
+        return nullptr;
+    }
+
+    // Check if model needs reimport
+    if (fs->NeedsReimport(metaPath.c_str(), modelPath)) {
+        LOG("Model has been modified, needs reimport: %s", modelPath);
+        return nullptr;
+    }
+
+    // Load and return the meta
+    static nlohmann::json meta;  // Static so pointer remains valid
+    meta = fs->LoadJSON(metaPath.c_str());
+
+    LOG("Loaded model meta: %s", metaPath.c_str());
+    return &meta;
+}

@@ -5,35 +5,67 @@
 #include "MeshImporter.h"
 #include "TextureImporter.h"
 #include "ResourceMesh.h"
+#include "ResourceManager.h"
 
 
-std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene* scene,
-    const std::string& modelPath) {
+
+std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene* scene, const std::string& modelPath, VroomUUID cachedUUID) {
     if (!aiMesh) {
         LOG("ERROR: MeshImporter received null aiMesh");
         return nullptr;
     }
 
-    LOG("MeshImporter: Processing mesh '%s' (%d vertices, %d faces)",
-        aiMesh->mName.C_Str(), aiMesh->mNumVertices, aiMesh->mNumFaces);
+    LOG("MeshImporter: Processing mesh '%s'", aiMesh->mName.C_Str());
+    FileSystem* fs = Application::GetInstance().fileSystem.get();
+
+    
+    VroomUUID meshUUID = cachedUUID;
+
+    // If we have a cached UUID, try to load from Library
+    if (meshUUID != 0) {
+        std::string libraryPath = "Library/Meshes/" + std::to_string(meshUUID) + ".vroommesh";
+
+        if (fs->Exists(libraryPath.c_str())) {
+            LOG("Loading mesh from cache: %s", libraryPath.c_str());
+
+            auto mesh = std::make_shared<ResourceMesh>();
+            mesh->SetUUID(meshUUID);
+            mesh->SetName(aiMesh->mName.C_Str());
+            mesh->SetLibraryFilePath(libraryPath);
+            mesh->LoadBin();
+            mesh->LoadToGPU();
+          
+
+            LOG("Mesh loaded from cache successfully");
+            return mesh;
+        }
+        else {
+            LOG("Cache file missing, will reimport");
+        }
+    }
+
+    // No cached UUID or cache miss - import fresh
+    meshUUID = (meshUUID == 0) ? UUIDGen::GenerateUUID() : meshUUID;
+    LOG("Importing mesh (UUID: %llu)", meshUUID);
 
     // Process mesh data
     auto vertices = ProcessVertices(aiMesh);
     auto indices = ProcessIndices(aiMesh);
     auto textures = ProcessTextures(aiMesh, scene, modelPath);
 
-    // Create the Mesh object (Mesh is now a Resource)
-    std::shared_ptr<ResourceMesh> mesh = std::make_shared<ResourceMesh>(vertices, indices, textures);
-
-    // Set resource metadata
+    // Create mesh resource
+    auto mesh = std::make_shared<ResourceMesh>(vertices, indices, textures);
+    mesh->SetUUID(meshUUID);
     mesh->SetName(aiMesh->mName.C_Str());
-    mesh->SetAssetFilePath(modelPath);
 
-    // TODO: Generate or retrieve UUID from meta file
-    // mesh->SetUID(generatedUID);
+    // Save to Library
+    std::string libraryPath = "Library/Meshes/" + std::to_string(meshUUID) + ".vroommesh";
+    mesh->SetLibraryFilePath(libraryPath);
+    mesh->SaveBin();
 
-    LOG("MeshImporter: Successfully created Mesh with %d vertices, %d indices",
-        vertices.size(), indices.size());
+    Application::GetInstance().resourceManager->RegisterResource(mesh);
+
+    LOG("MeshImporter: Successfully imported '%s' (UUID: %llu)", mesh->GetName().c_str(), meshUUID);
 
     return mesh;
 }
@@ -93,22 +125,48 @@ std::vector<unsigned int> MeshImporter::ProcessIndices(aiMesh* aiMesh) {
 
 std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMesh* aiMesh, const aiScene* scene, const std::string& modelPath) {
     std::vector<std::shared_ptr<ResourceTexture>> textures;
+    FileSystem* fs = Application::GetInstance().fileSystem.get();
 
     std::vector<std::shared_ptr<ResourceTexture>> textures_loaded = Application::GetInstance().importer.get()->textures_loaded;
 
     if (aiMesh->mMaterialIndex >= 0) {
         aiMaterial* material = scene->mMaterials[aiMesh->mMaterialIndex];
 
-        // Helper lambda to load textures by type
         auto loadTextures = [&](aiTextureType type, const std::string& typeName) {
             for (unsigned int i = 0; i < material->GetTextureCount(type); i++) {
                 aiString str;
                 material->GetTexture(type, i, &str);
 
-                // Extract directory from full model path
-                std::string directory = modelPath.substr(0, modelPath.find_last_of('/') + 1);
-                std::string texturePath = directory + std::string(str.C_Str());
 
+                std::string modelDir = fs->GetDirFromPath(modelPath.c_str());
+                std::string texturePath = modelDir + "/" + std::string(str.C_Str());
+                texturePath = fs->NormalizePath(texturePath.c_str());
+
+                
+                if (!fs->Exists(texturePath.c_str())) {
+                    LOG("Texture not found at: %s", texturePath.c_str());
+
+                    
+                    // Try same directory as the model
+                    std::string fileName = fs->GetFileFromPath(str.C_Str());
+                    std::string altPath1 = modelDir + "/" + fileName;
+
+                    // Try textures folder subdirectory
+                    std::string altPath2 = modelDir + "/textures/" + fileName;
+
+                    if (fs->Exists(altPath1.c_str())) {
+                        texturePath = altPath1;
+                        LOG("Found texture in model directory: %s", texturePath.c_str());
+                    }
+                    else if (fs->Exists(altPath2.c_str())) {
+                        texturePath = altPath2;
+                        LOG("Found texture in textures subdirectory: %s", texturePath.c_str());
+                    }
+                    else {
+                        LOG("WARNING: Texture not found in any location. Using default.");
+                        continue; // use default checkers texture
+                    }
+                }
                 // Check if texture is already loaded
                 
                 bool found = false;
@@ -121,7 +179,7 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
                 }
 
                 if (!found) {
-                    std::shared_ptr<ResourceTexture> tex = Application::GetInstance().importer.get()->textureImporter->Import(modelPath);
+                    std::shared_ptr<ResourceTexture> tex = Application::GetInstance().importer.get()->textureImporter->Import(texturePath);
                     
                     if (tex == nullptr) {
                         LOG("WARNING: Texture import failed for path '%s'. Skipping texture.", texturePath.c_str());
@@ -148,7 +206,8 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
     // Assign default texture if none found
     if (textures.empty()) {
         std::string defaultTexPath = Application::GetInstance().importer->defaultTexDir;
-        std::string fileName = defaultTexPath.substr(defaultTexPath.find_last_of('/') + 1);
+
+        
 
         // Check cache first
         auto& textures_loaded = Application::GetInstance().importer->textures_loaded;
@@ -163,8 +222,8 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
 
         if (!found) {
 
-            std::string fullDefaultTexPath = defaultTexPath + fileName;
-            std::shared_ptr<ResourceTexture> defaultTex = Application::GetInstance().importer.get()->textureImporter->Import(fullDefaultTexPath);
+            /*std::string fullDefaultTexPath = defaultTexPath + fileName;*/
+            std::shared_ptr<ResourceTexture> defaultTex = Application::GetInstance().importer.get()->textureImporter->Import(defaultTexPath);
             /*defaultTex.TextureFromFile(defaultTexPath, fileName.c_str());*/
 
             if (defaultTex == nullptr) {

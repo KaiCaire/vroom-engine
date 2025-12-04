@@ -1,7 +1,7 @@
 #include "Application.h"
 #include <iostream>
 #include "Log.h"
-
+#include "SceneManager.h"
 #include "Window.h"
 #include "Input.h"
 #include "Render.h"
@@ -9,6 +9,7 @@
 #include "FileSystem.h"
 #include "ResourceTexture.h"
 #include "Importer.h"
+#include "ResourceManager.h"
 
 #include "GUIManager.h"
 
@@ -29,6 +30,7 @@ Application::Application() {
     render = std::make_shared<Render>();
     openGL = std::make_shared<OpenGL>();
     fileSystem = std::make_shared<FileSystem>();
+    resourceManager = std::make_shared<ResourceManager>();
     sceneManager = std::make_shared<SceneManager>();
     camera = std::make_shared<Camera>();
     importer = std::make_shared<Importer>();
@@ -40,8 +42,8 @@ Application::Application() {
     AddModule(std::static_pointer_cast<Module>(input));
 
     AddModule(std::static_pointer_cast<Module>(camera));
-    AddModule(std::static_pointer_cast<Module>(importer));
     AddModule(std::static_pointer_cast<Module>(resourceManager));
+    AddModule(std::static_pointer_cast<Module>(importer));
     AddModule(std::static_pointer_cast<Module>(sceneManager));
 
     // Render last 

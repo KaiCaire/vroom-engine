@@ -46,14 +46,23 @@ public:
 	//Called before quit
 	bool CleanUp();
 
-	//add game objects to hierarchy
-	void AddGameObject(Model* obj);
+	// Check if a GameObject is showing checker texture
+	bool IsShowingCheckerTexture(std::shared_ptr<GameObject> go) {
+		return originalTextures.find(go) != originalTextures.end();
+	}
 
-	//handle object deletion
-	//find model handling game object
-	Model* FindGameObjectModel(const std::shared_ptr<GameObject>& obj);
+	// Show checker texture for a specific GameObject
+	void ShowCheckerTexture(std::shared_ptr<GameObject> go);
+
+	// Restore original texture for a specific GameObject
+	void RestoreOGTexture(std::shared_ptr<GameObject> go);
+
+
+
 	//queue object for deletion
 	void AddToDeleteQueue(const std::shared_ptr<GameObject>& obj);
+
+	/*void RefreshGUIHierarchy();*/
 
 private:
 	ImGuiIO* io = nullptr;
@@ -71,10 +80,9 @@ public:
 	bool showHierarchy = true;
 	bool showInspector = true;
 
-
-	std::vector<std::shared_ptr<GameObject>> sceneObjects;
 	std::shared_ptr<GameObject> selectedObject;
 
+	std::map<std::shared_ptr<GameObject>, std::shared_ptr<ResourceTexture>> originalTextures;
 
 	bool drawFaceNormals = false;
 	bool drawVertNormals = false;

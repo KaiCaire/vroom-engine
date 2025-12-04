@@ -55,7 +55,7 @@ void SceneManager::LoadDefaultScene() {
 void SceneManager::SetActiveScene(const std::string& name)
 {
     for (const auto& scene : scenes) {
-        if (scene->name == name) {
+        if (scene->GetName() == name) {
             currentScene = scene;
             currentScene->Start();
             return;

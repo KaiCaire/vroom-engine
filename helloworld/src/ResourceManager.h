@@ -3,6 +3,7 @@
 #include "Module.h"
 #include "UUID.h"
 #include "Resource.h"
+#include "ResourceMesh.h"
 #include <unordered_map>
 #include <memory>
 #include <string>
@@ -51,6 +52,7 @@ public:
     void CleanupUnusedResources();
 
     ResourceMesh* CreateCubeMesh();
+
     ResourceMesh* GetPrimitiveMesh(PrimitiveType type);
     
 

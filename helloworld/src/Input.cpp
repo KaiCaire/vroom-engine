@@ -7,6 +7,7 @@
 #include "GameObject.h"
 #include "Component.h"
 #include "RenderMeshComponent.h"
+#include "MaterialComponent.h"
 #include <string>
 #include <filesystem>
 #include <fstream>
@@ -15,6 +16,7 @@
 #include "Render.h"
 #include "Importer.h"
 #include "TextureImporter.h"
+#include "ResourceManager.h"
 #include "ResourceTexture.h"
 
 #include "SDL3/SDL.h"
@@ -193,93 +195,107 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 	std::replace(sourcePath.begin(), sourcePath.end(), '\\', '/');
 	LOG("Dropped File Directory = %s", sourcePath.c_str());
 
-	// Find file extension
-	string fileExtension = sourcePath.substr(sourcePath.find_last_of(".") + 1);
+	FileSystem* fs = Application::GetInstance().fileSystem.get();
+	std::string fileExtension = fs->GetExtensionFromPath(sourcePath.c_str());
 
-	// Handle model files
-	if (fileExtension == "fbx" || fileExtension == "FBX" || fileExtension == "obj") {
-		importedModel = new Model();  // Create empty model first
-		importedModel->ImportScene(sourcePath.c_str());  // Then import the scene
-
-		Application::GetInstance().render.get()->AddModel(importedModel);
-		Application::GetInstance().openGL.get()->modelObjects.push_back(importedModel);
+	// Handle model files (FBX, OBJ)
+	if (fileExtension == "fbx" || fileExtension == "obj") {
+		ImportModelFile(sourcePath);
 	}
-	// Handle image files
-	else if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "tga" || fileExtension == "dds") {
-		std::shared_ptr<GameObject> selectedObj = Application::GetInstance().guiManager.get()->selectedObject;
-		if (!selectedObj) {
-			LOG("No GameObject Selected. Select a GameObject in the hierarchy and try again");
-			return;
-		}
-
-		auto meshComp = std::dynamic_pointer_cast<RenderMeshComponent>(
-			selectedObj->GetComponent(ComponentType::MESH_RENDERER)
-		);
-		if (!meshComp) {
-			LOG("You selected an empty GameObject. Select a GameObject from the hierarchy with a mesh and try again");
-			return;
-		}
-
-		// Get MaterialComponent
-		auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
-			selectedObj->GetComponent(ComponentType::MATERIAL)
-		);
-		if (!materialComp) {
-			LOG("No MaterialComponent found, creating one");
-			selectedObj->AddComponent(ComponentType::MATERIAL);
-			materialComp = std::dynamic_pointer_cast<MaterialComponent>(
-				selectedObj->GetComponent(ComponentType::MATERIAL)
-			);
-		}
-		if (!materialComp) {
-			LOG("ERROR: Failed to get/create MaterialComponent");
-			return;
-		}
-
-		// Load the dropped texture
-		string fileName = sourcePath.substr(sourcePath.find_last_of('/') + 1);
-		auto droppedTex = Application::GetInstance().importer.get()->textureImporter->Import(sourcePath);
-		/*bool success = droppedTex->TextureFromFile(sourcePath, fileName.c_str());*/
-
-
-		if (droppedTex == nullptr) {
-			LOG("ERROR: Failed to load texture: %s", sourcePath.c_str());
-			return;
-		}
-
-		droppedTex.get()->mapType = "texture_diffuse";
-		droppedTex.get()->path = sourcePath;
-
-		// Set it on the MaterialComponent
-		materialComp->SetDiffuseMap(droppedTex);
-
-		// Also add to mesh textures
-		auto meshPtr = meshComp->GetMesh();
-		if (meshPtr) {
-			// Clear old textures and add new one
-			meshPtr->textures.clear();
-			meshPtr->textures.push_back(droppedTex);
-		}
-
-		// Update the parent model's savedTexture
-		auto parentModel = Application::GetInstance().guiManager.get()->FindGameObjectModel(selectedObj);
-		if (parentModel) {
-			parentModel->savedTexture = droppedTex;  // Save the new texture
-			parentModel->SetUseDefaultTexture(false);   // Turn off checker texture
-
-			// Update originalTextures map if it exists
-			if (meshPtr && parentModel->originalTextures.find(meshPtr) != parentModel->originalTextures.end()) {
-				parentModel->originalTextures[meshPtr].clear();
-				//parentModel->originalTextures[meshPtr].push_back(*droppedTex);
-				parentModel->originalTextures[meshPtr].push_back(droppedTex);
-			}
-		}
-
-		LOG("Texture '%s' (ID: %d) applied to '%s'", fileName.c_str(), droppedTex.get()->id, selectedObj->GetName().c_str());
-
-		// Add to global texture cache
-		Application::GetInstance().importer.get()->textures_loaded.push_back(droppedTex);
+	// Handle texture files (PNG, JPG, TGA, DDS)
+	else if (fileExtension == "png" || fileExtension == "jpg" ||
+		fileExtension == "tga" || fileExtension == "dds") {
+		ApplyTextureToSelectedObject(sourcePath);
 	}
+	else {
+		LOG("WARNING: Unsupported file type: %s", fileExtension.c_str());
+	}
+}
+
+void Input::ImportModelFile(const std::string& modelPath) {
+	auto modelImporter = Application::GetInstance().importer->modelImporter;
+
+	// ImportScene returns the root GameObject and adds it to sceneObjects
+	auto rootGameObject = modelImporter->ImportScene(modelPath.c_str());
+
+	if (!rootGameObject) {
+		LOG("ERROR: Failed to import model from: %s", modelPath.c_str());
+		return;
+	}
+
+	LOG("Successfully imported model: %s", rootGameObject->GetName().c_str());
+}
+
+void Input::ApplyTextureToSelectedObject(const std::string& texturePath) {
+	GUIManager* guiManager = Application::GetInstance().guiManager.get();
+	auto selectedObj = guiManager->selectedObject;
+
+	if (!selectedObj) {
+		LOG("No GameObject selected. Select a GameObject in the hierarchy and try again");
+		return;
+	}
+
+	// Verify the object has a mesh renderer
+	auto meshComp = std::dynamic_pointer_cast<RenderMeshComponent>(
+		selectedObj->GetComponent(ComponentType::MESH_RENDERER)
+	);
+
+	if (!meshComp) {
+		LOG("Selected GameObject '%s' has no mesh. Select a GameObject with a mesh and try again",
+			selectedObj->GetName().c_str());
+		return;
+	}
+
+	// Get or create MaterialComponent
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
+		selectedObj->GetComponent(ComponentType::MATERIAL)
+	);
+
+	if (!materialComp) {
+		LOG("No MaterialComponent found on '%s', creating one", selectedObj->GetName().c_str());
+		auto newMatComp = selectedObj->AddComponent(ComponentType::MATERIAL);
+		materialComp = std::dynamic_pointer_cast<MaterialComponent>(newMatComp);
+
+		if (!materialComp) {
+			LOG("ERROR: Failed to create MaterialComponent");
+			return;
+		}
+	}
+
+	// Load texture through ResourceManager (which handles caching)
+	ResourceManager* resourceManager = Application::GetInstance().resourceManager.get();
+	auto newTexture = std::dynamic_pointer_cast<ResourceTexture>(
+		resourceManager->RequestResource(texturePath)
+	);
+
+	if (!newTexture) {
+		LOG("ERROR: Failed to load texture: %s", texturePath.c_str());
+		return;
+	}
+
+	if (newTexture) {
+		newTexture->mapType = "texture_diffuse";
+		newTexture->path = texturePath;
+	}
+
+	// Apply texture to MaterialComponent
+	materialComp->SetDiffuseMap(newTexture);
+
+	// Update mesh textures (replaces existing textures on THIS mesh only)
+	auto meshPtr = meshComp->GetMesh();
+	if (meshPtr) {
+		meshPtr->textures.clear();
+		meshPtr->textures.push_back(newTexture);
+	}
+
+	// Make sure checker texture is disabled when applying a new texture
+	guiManager->RestoreOGTexture(selectedObj);
+
+	FileSystem* fs = Application::GetInstance().fileSystem.get();
+	std::string fileName = fs->GetFileFromPath(texturePath.c_str());
+
+	LOG("Texture '%s' (UUID: %llu) applied to '%s'",
+		fileName.c_str(), newTexture->GetUUID(), selectedObj->GetName().c_str());
 }
 
 bool Input::GetWindowEvent(EventWindow ev)
