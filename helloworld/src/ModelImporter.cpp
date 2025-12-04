@@ -140,6 +140,18 @@ void ModelImporter::Draw(Shader& shader) {
         if (!gameObject || gameObject->IsMarkedForDestroy() || !gameObject->IsActive())
             continue;
 
+        //get transform component
+        auto transformComp = gameObject->GetComponent(ComponentType::TRANSFORM);
+        if (!transformComp)
+            continue;
+
+        auto transform = std::dynamic_pointer_cast<TransformComponent>(transformComp);
+        if (!transform)
+            continue;
+
+        glm::mat4 modelMatrix = transform->GetGlobalTransform();
+        shader.setMat4("model", modelMatrix);
+
         //check for mesh renderer
         auto rendererComp = gameObject->GetComponent(ComponentType::MESH_RENDERER);
         if (!rendererComp)
@@ -230,6 +242,10 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
     glm::vec3 pos(position.x, position.y, position.z);
     glm::quat rot(rotation.w, rotation.x, rotation.y, rotation.z);
     glm::vec3 scale(scaling.x, scaling.y, scaling.z);
+
+    transform->SetPosition(pos);
+    transform->SetRotation(rot);
+    transform->SetScale(scale);
 
 
     if (parent) {
