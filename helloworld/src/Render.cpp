@@ -80,6 +80,9 @@ bool Render::Start()
 	{
 		LOG("SDL_GetRenderViewport failed: %s", SDL_GetError());
 	}
+
+	glEnable(GL_DEPTH_TEST); 
+	glDepthFunc(GL_LESS);
 	return true;
 }
 
@@ -87,6 +90,7 @@ bool Render::Start()
 bool Render::PreUpdate()
 {
 	SDL_RenderClear(renderer);
+
 	return true;
 }
 
@@ -124,6 +128,14 @@ void Render::DrawGrid() {
 
 	Shader* gridShader = Application::GetInstance().openGL.get()->texCoordsShader;
 	gridShader->Use();
+
+	auto camera = Application::GetInstance().camera.get();
+	gridShader->setMat4("view", camera->viewMat);
+	gridShader->setMat4("projection", camera->projectionMat);
+
+	glm::mat4 identityMat = glm::mat4(1.0f);
+	gridShader->setMat4("model", identityMat);
+
 	// Enable line color mode
 	glUniform1i(glGetUniformLocation(gridShader->ID, "useLineColor"), true);
 	glUniform4f(glGetUniformLocation(gridShader->ID, "lineColor"), 1.0f, 1.0f, 1.0f, 0.5f);
@@ -153,7 +165,7 @@ void Render::DrawGrid() {
 		lineZ++;
 	}
 
-	glClearColor;
+	//glClearColor;
 
 	// Restore texture mode
 	glUniform1i(glGetUniformLocation(gridShader->ID, "useLineColor"), false);
@@ -177,6 +189,8 @@ void Render::RenderFrame(Shader& shader) {
 
 	// Draw grid
 	DrawGrid();
+
+	shader.Use();
 
 	// Draw scene
 	DrawActiveScene(shader);

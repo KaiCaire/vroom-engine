@@ -187,7 +187,7 @@ void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource)
     VroomUUID uuid = resource->GetUUID();
 
     resources[uuid] = resource;
-    resource->AddReference();
+    //resource->AddReference();
 
     LOG("Registered resource (UUID: %llu, Name: %s)", uuid, resource->GetName().c_str());
 }
@@ -245,15 +245,22 @@ bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource
 
 ResourceMesh* ResourceManager::GetPrimitiveMesh(PrimitiveType type) {
 
-    ResourceMesh* mesh = new ResourceMesh();
+    ResourceMesh* mesh = nullptr;
+
     switch (type) {
     case PrimitiveType::CUBE:
         mesh = CreateCubeMesh();
         break;
     case PrimitiveType::NONE:
         LOG("Invalid Primitive Type");
+        return nullptr;
         break;
+    default:
+        LOG("Unknown Primitive Type requested.");
+        return nullptr;
     }
+
+    if (!mesh) return nullptr;
 
     std::shared_ptr<ResourceMesh> sharedMesh(mesh); 
     Application::GetInstance().resourceManager->RegisterResource(sharedMesh);

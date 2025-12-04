@@ -34,6 +34,8 @@ char* FileSystem::ReadBinData(const char* filePath, uint* size) {
 		file.seekg(0, std::ios::end); //set read cursor to end of file so we can determine the size
 		size_t len = file.tellg();
 
+		if (size != nullptr) *size = (uint)len;
+
 		//now that we know the size, we can read from buffer
 		buffer = new char[len + 1];
 		file.read(buffer, len);
@@ -217,15 +219,19 @@ bool FileSystem::CreateDir(const char* path) {
 void FileSystem::CreateMeta(const char* filePath, const VroomUUID uuid, uint size) {
 	nlohmann::json jsonFile;
 	std::string metaExt = ".meta";
-	const char* metaDir = (filePath + metaExt).c_str();
 
-	if (!Exists(metaDir)) CreateDir(metaDir);
+	std::string metaFilePath = filePath; 
+	metaFilePath += metaExt;             
+	const char* metaPath = metaFilePath.c_str(); 
+
+	//if (!Exists(metaPath)) CreateDir(metaPath);
 
 	jsonFile["uuid"] = uuid;
 	jsonFile["modTime"] = GetFileModTime(filePath);
+	jsonFile["fileSize"] = size;
 
 
-	SaveJSON(metaDir, jsonFile);
+	SaveJSON(metaPath, jsonFile);
 
 }
 
