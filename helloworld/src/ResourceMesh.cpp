@@ -20,7 +20,7 @@ ResourceMesh::ResourceMesh(std::vector<Vertex> vertices, std::vector<unsigned in
 
     CalculateNormals();
 
-    uuid = UUIDGen::GenerateUUID();
+    //uuid = UUIDGen::GenerateUUID();
 
 }
 

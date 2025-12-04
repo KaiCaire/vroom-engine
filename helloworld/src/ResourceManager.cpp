@@ -43,7 +43,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
     auto it = resources.find(uuid);
     if (it != resources.end()) {
         LOG("Resource %llu already loaded (refCount: %d)", uuid, it->second->GetReferenceCount());
-        it->second->AddReference();
+        //it->second->AddReference();
         return it->second;
     }
 
@@ -92,7 +92,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
     auto it = resources.find(uuid);
     if (it != resources.end()) {
         LOG("Resource '%s' already loaded (UUID: %llu)", normalizedPath.c_str(), uuid);
-        it->second->AddReference();
+        //it->second->AddReference();
         return it->second;
     }
 
@@ -240,7 +240,22 @@ bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource
     }
 
     resource->LoadBin();
-    return resource->IsLoadedToRAM();
+
+    if (!resource->IsLoadedToRAM()) {
+        LOG("ERROR: Failed to load binary data for resource %llu", resource->GetUUID());
+        return false;
+    }
+
+    if (resource->GetType() == ResourceType::MESH) {
+        std::shared_ptr<ResourceMesh> mesh = std::dynamic_pointer_cast<ResourceMesh>(resource);
+        if (mesh) {
+            mesh->LoadToGPU();
+            // Return GPU status (true if successful)
+            return mesh->isLoadedToGPU;
+        }
+    }
+
+    return true;
 }
 
 ResourceMesh* ResourceManager::GetPrimitiveMesh(PrimitiveType type) {
