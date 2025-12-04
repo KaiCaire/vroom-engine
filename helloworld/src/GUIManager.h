@@ -48,8 +48,7 @@ public:
 
 	// Check if a GameObject is showing checker texture
 	bool IsShowingCheckerTexture(std::shared_ptr<GameObject> go) {
-		if (!go) return false;
-		return originalTextures.count(go) > 0;
+		return originalTextures.find(go) != originalTextures.end();
 	}
 
 	// Show checker texture for a specific GameObject

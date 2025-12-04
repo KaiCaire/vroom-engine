@@ -376,9 +376,6 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
     // --- Add Material Component ---
     auto materialComp = gameObject->AddComponent(ComponentType::MATERIAL);
     auto matComponent = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
-
-    /*auto rendererComp = gameObject->GetComponent(ComponentType::MESH_RENDERER);
-    auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);*/
     auto currentMesh = renderer ? renderer->GetMesh() : nullptr;
 
     std::shared_ptr<ResourceTexture> loadedTexture = nullptr;
@@ -395,7 +392,6 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 
             std::string relativePath = str.C_Str();
 
-            // Path Resolution Heuristic (CRITICAL for your messy FBX paths)
             std::string modelDirectory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());
             if (modelDirectory.back() != '/' && modelDirectory.back() != '\\') {
                 modelDirectory += "/";
@@ -403,18 +399,18 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 
             std::string filenameOnly = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(relativePath.c_str());
 
-            // Clean filename and remove existing extension
+            //clean file name
             size_t lastDot = filenameOnly.find_last_of('.');
             if (lastDot != std::string::npos) {
                 filenameOnly = filenameOnly.substr(0, lastDot);
             }
 
-            // Try PNG
+            //png test
             std::string rawAbsolutePath = modelDirectory + filenameOnly + ".png";
             std::string absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
             loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".png", "texture_diffuse");
 
-            // If PNG failed, try TGA
+            //tga test
             if (!loadedTexture) {
                 rawAbsolutePath = modelDirectory + filenameOnly + ".tga";
                 absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
@@ -426,22 +422,19 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
             }
         }
 
-        // --- 3. Final Assignment ---
+        //assign
         if (textureFoundInModel) {
-            // A. SET MESH TEXTURES (For Drawing)
+            //set mesh textures
             currentMesh->textures.push_back(loadedTexture);
 
-            // B. SET MATERIAL COMPONENT (For Inspector/GUI)
+            //set material component
             matComponent->SetDiffuseMap(loadedTexture);
         }
-        // If texture loading failed OR if there was no material index
+        //texture loading failed 
         else {
-            // FALLBACK: Assign the checkerboard to both components
-
-            // AssignDefaultTexture handles currentMesh->textures.push_back()
+            //assign the checkers
             AssignDefaultTexture(currentMesh->textures);
 
-            // Get the default texture resource for the MaterialComponent
             std::string defaultPath = Application::GetInstance().importer.get()->defaultTexDir;
             std::string defaultName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(defaultPath.c_str());
             auto defaultTex = GetOrLoadTexture(defaultPath, defaultName, "texture_diffuse");
@@ -463,8 +456,6 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
     }
     else if (matComponent && mesh) {
         AssignDefaultTexture(mesh->textures);
-
-        // FIX: Set MaterialComp to the default texture for inspection
         std::string defaultPath = Application::GetInstance().importer.get()->defaultTexDir;
         std::string defaultName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(defaultPath.c_str());
         auto defaultTex = GetOrLoadTexture(defaultPath, defaultName, "texture_diffuse");
