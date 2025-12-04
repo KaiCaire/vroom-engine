@@ -17,6 +17,7 @@
 #include "TextureImporter.h"
 #include "Scene.h"
 #include "MaterialComponent.h"
+#include "RenderMeshComponent.h"
 
 GUIManager::GUIManager() : Module(), AdditionalElements(ElementType::Additional, this), Menu(ElementType::MenuBar, this), selectedObject(nullptr)
 {
@@ -169,8 +170,13 @@ void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
 		go->GetComponent(ComponentType::MATERIAL)
 	);
 
-	if (!materialComp) {
-		LOG("GameObject '%s' has no MaterialComponent", go->GetName().c_str());
+	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(
+		go->GetComponent(ComponentType::MESH_RENDERER)
+	); 
+	auto mesh = renderComp ? renderComp->GetMesh() : nullptr;
+
+	if (!materialComp || !renderComp) {
+		LOG("GameObject '%s' has no Material or RenderMesh Component", go->GetName().c_str());
 		return;
 	}
 
@@ -190,6 +196,13 @@ void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
 
 	if (checkerTex) {
 		materialComp->SetDiffuseMap(checkerTex);  // Store UUID, not pointer
+
+		if (mesh->textures.empty()) {
+			mesh->textures.push_back(checkerTex); 
+		}
+		else {
+			mesh->textures[0] = checkerTex; 
+		}
 		LOG("Applied checker texture to '%s'", go->GetName().c_str());
 	}
 	else {
@@ -204,7 +217,12 @@ void GUIManager::RestoreOGTexture(std::shared_ptr<GameObject> go) {
 		go->GetComponent(ComponentType::MATERIAL)
 	);
 
-	if (!materialComp) return;
+	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(
+		go->GetComponent(ComponentType::MESH_RENDERER)
+	);
+	auto mesh = renderComp ? renderComp->GetMesh() : nullptr;
+
+	if (!materialComp || !mesh) return;
 
 	// Find saved texture
 	auto it = originalTextures.find(go);
@@ -212,6 +230,9 @@ void GUIManager::RestoreOGTexture(std::shared_ptr<GameObject> go) {
 		auto originalTex = it->second;
 		if (originalTex) {
 			materialComp->SetDiffuseMap(originalTex);  // Restore by UUID
+			if (!mesh->textures.empty()) {
+				mesh->textures[0] = originalTex;
+			}
 			LOG("Restored original texture for '%s' (UUID: %llu)",
 				go->GetName().c_str(), originalTex->GetUUID());
 		}

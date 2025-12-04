@@ -165,42 +165,42 @@ void ModelImporter::Draw(Shader& shader) {
         if (!mesh) continue;
 
 
-        //FIX!
-        //trigger checkerboard texture
-        if (useDefaultTexture) {
-            //store original texture if not yet stored
-            if (originalTextures.find(mesh) == originalTextures.end()) {
-                originalTextures[mesh] = mesh->textures;
-            }
+        
+        ////trigger checkerboard texture
+        //if (useDefaultTexture) {
+        //    //store original texture if not yet stored
+        //    if (originalTextures.find(mesh) == originalTextures.end()) {
+        //        originalTextures[mesh] = mesh->textures;
+        //    }
 
-            mesh->textures.clear();
+        //    mesh->textures.clear();
 
-            std::string checkersTexDir = Application::GetInstance().importer->defaultTexDir;
-            std::string checkersTexName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(checkersTexDir.c_str());
-            std::shared_ptr<ResourceTexture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
+        //    std::string checkersTexDir = Application::GetInstance().importer->defaultTexDir;
+        //    std::string checkersTexName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(checkersTexDir.c_str());
+        //    std::shared_ptr<ResourceTexture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
 
 
-            if (checkersTex) {
-                //mesh->textures.clear();
-                mesh->textures.push_back(checkersTex);
-            }
+        //    if (checkersTex) {
+        //        //mesh->textures.clear();
+        //        mesh->textures.push_back(checkersTex);
+        //    }
 
-            /*std::string checkersTexDir = Application::GetInstance().importer->defaultTexDir;
-            std::string checkersTexName = checkersTexDir.substr(checkersTexDir.find_last_of('/') + 1);
-            std::shared_ptr<ResourceTexture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
+        //    /*std::string checkersTexDir = Application::GetInstance().importer->defaultTexDir;
+        //    std::string checkersTexName = checkersTexDir.substr(checkersTexDir.find_last_of('/') + 1);
+        //    std::shared_ptr<ResourceTexture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
 
-            mesh->textures.push_back(checkersTex);*/
-        }
-        else {
-            //restore original texture
-            auto ogTex = originalTextures.find(mesh);
-            if (ogTex != originalTextures.end()) {
-                mesh->textures = ogTex->second;
-                originalTextures.erase(ogTex);
-                LOG("Restored original textures for mesh: %s", gameObject->GetName().c_str());
-            }
+        //    mesh->textures.push_back(checkersTex);*/
+        //}
+        //else {
+        //    //restore original texture
+        //    auto ogTex = originalTextures.find(mesh);
+        //    if (ogTex != originalTextures.end()) {
+        //        mesh->textures = ogTex->second;
+        //        originalTextures.erase(ogTex);
+        //        LOG("Restored original textures for mesh: %s", gameObject->GetName().c_str());
+        //    }
 
-        }
+        //}
 
         //draw the mesh
         renderer->GetMesh()->Draw(shader);
