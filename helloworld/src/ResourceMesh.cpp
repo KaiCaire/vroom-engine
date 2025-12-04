@@ -103,7 +103,7 @@ void ResourceMesh::Draw(Shader& shader) {
             number = std::to_string(aoNr++);
 
         shader.setInt((name + number).c_str(), i);
-        glBindTexture(GL_TEXTURE_2D, textures[i].get()->GetUUID());
+        glBindTexture(GL_TEXTURE_2D, textures[i].get()->gpu_id);
     }
 
     if (drawFaceNormals) {
