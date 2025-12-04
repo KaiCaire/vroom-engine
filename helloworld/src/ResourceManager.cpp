@@ -29,6 +29,9 @@ bool ResourceManager::Start() {
     fs->CreateDir("Library/Textures");
     fs->CreateDir("Library/Materials");
 
+    //scan assets
+    ScanAssetsFolder();
+
     return true;
 }
 
@@ -350,4 +353,55 @@ ResourceMesh* ResourceManager::CreateCubeMesh() {
     ResourceMesh* cubeMesh = new ResourceMesh(_vertices, _indices, _textures);
     return cubeMesh;
 
+}
+
+void ResourceManager::ScanAssetsFolder() {
+    LOG("Scanning Assets for unmanaged resources.");
+
+    //start recursively search
+    std::vector<std::string> assetFiles = fs->IterateAssetsRecursive("Assets");
+
+    //iterate through files 
+    for (const auto& assetPath : assetFiles) {
+        std::string metaPath = assetPath + ".meta";
+        std::string extension = fs->GetExtensionFromPath(assetPath.c_str());
+
+        //skip meta files themselves
+        if (extension == "meta") continue;
+
+        //determine resource type
+        ResourceType type = DetermineResourceType(assetPath);
+
+        //skip unknown types
+        if (type == ResourceType::UNKNOWN || type == ResourceType::SCENE) continue;
+
+        //check if meta file exists
+        if (fs->Exists(metaPath.c_str()) && fs->IsMetaValid(metaPath.c_str())) {
+            //check if resource needs re-importing
+            if (fs->NeedsReimport(metaPath.c_str(), assetPath.c_str())) {
+                LOG("MODIFIED ASSET: %s. Re-importing...", assetPath.c_str());
+                ImportFile(assetPath, type);
+            }
+            //otherwise continue
+            continue;
+        }
+
+        LOG("NEW ASSET FOUND: %s. Auto-importing...", assetPath.c_str());
+        ImportFile(assetPath, type);
+    }
+    LOG("Asset scanning complete.");
+}
+
+ResourceType ResourceManager::DetermineResourceType(const std::string& assetsPath) {
+    std::string extension = fs->GetExtensionFromPath(assetsPath.c_str());
+
+    if (extension == "png" || extension == "jpg" || extension == "tga" || extension == "dds") {
+        return ResourceType::TEXTURE;
+    }
+
+    if (extension == "fbx" || extension == "obj") {
+        return ResourceType::MESH;
+    }
+
+    return ResourceType::UNKNOWN;
 }

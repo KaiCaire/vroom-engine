@@ -54,6 +54,13 @@ public:
     ResourceMesh* CreateCubeMesh();
 
     ResourceMesh* GetPrimitiveMesh(PrimitiveType type);
+
+    //asset viewer
+    void ScanAssetsFolder();
+    ResourceType DetermineResourceType(const std::string& assetsPath);
+    const std::unordered_map<VroomUUID, std::shared_ptr<Resource>>& GetAllResources() const {
+        return resources;
+    }
     
 
 private:

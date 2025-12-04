@@ -285,3 +285,29 @@ bool FileSystem::ExistsInSubDirectories(const char* directory, const char* file)
 	return false;
 }
 
+std::vector<std::string> FileSystem::IterateAssetsRecursive(const char* directory) {
+	std::vector<std::string> filePaths;
+	std::filesystem::path root(directory);
+
+	if (!std::filesystem::exists(root) || !std::filesystem::is_directory(root)) {
+		LOG("Directory does not exist: %s", directory);
+		return filePaths;
+	}
+
+	try {
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(root)) {
+			if (entry.is_regular_file()) {
+				//normalize path before storing
+				filePaths.push_back(NormalizePath(entry.path().string().c_str()));
+			}
+		}
+	}
+	catch (const std::exception& e) {
+		//handle errors
+		LOG("Error during recursive directory iteration: %s", e.what());
+	}
+
+	return filePaths;
+	
+}
+

@@ -82,6 +82,8 @@ public:
     virtual void SaveMeta() const = 0; //.meta to Assets
     virtual void LoadMeta() = 0; //.meta from Assets
 
+    static std::string GetTypeString(ResourceType type);
+
 protected:
     VroomUUID uuid;
     std::string name;

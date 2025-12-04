@@ -64,6 +64,9 @@ void GUIElement::ElementSetUp()
 	case ElementType::Inspector:
 		if (Application::GetInstance().guiManager.get()->showInspector) InspectorSetUp(&Application::GetInstance().guiManager.get()->showInspector);
 		break;
+	case ElementType::AssetsViewer:
+		if (Application::GetInstance().guiManager.get()->showAssetsViewer) AssetsViewerSetUp(&Application::GetInstance().guiManager.get()->showAssetsViewer);
+		break;
 	default:
 		LOG("No GUIType detected.");
 		break;
@@ -84,6 +87,10 @@ void GUIElement::MenuBarSetUp()
 
 		if (ImGui::BeginMenu("View")) {
 			//handle view
+			if (ImGui::MenuItem("Assets Viewer", nullptr, Application::GetInstance().guiManager.get()->showAssetsViewer)) {
+				bool set = !Application::GetInstance().guiManager.get()->showAssetsViewer;
+				Application::GetInstance().guiManager.get()->showAssetsViewer = set;
+			}
 			if (ImGui::MenuItem("Console", nullptr, Application::GetInstance().guiManager.get()->showConsole)) {
 				bool set = !Application::GetInstance().guiManager.get()->showConsole;
 				Application::GetInstance().guiManager.get()->showConsole = set;
@@ -487,6 +494,60 @@ void GUIElement::InspectorSetUp(bool* show)
 	}
 	else {
 		ImGui::Text("No GameObject selected.");
+	}
+
+	ImGui::End();
+}
+
+void GUIElement::AssetsViewerSetUp(bool* show) {
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+
+	ImGui::SetNextWindowDockID(0, ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(700, 400), ImGuiCond_FirstUseEver);
+
+	if (!ImGui::Begin("Assets Viewer", show, window_flags))
+	{
+		ImGui::End();
+		return;
+	}
+
+	//get resources
+	auto& resourceManager = Application::GetInstance().resourceManager;
+	const auto& resources = resourceManager->GetAllResources();
+
+	ImGui::Text("Total Managed Resources: %zu", resources.size());
+	ImGui::Separator();
+
+	//column set up
+	if (ImGui::BeginTable("ResourcesTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit)) {
+		ImGui::TableSetupColumn("Type");
+		ImGui::TableSetupColumn("Name");
+		ImGui::TableSetupColumn("UUID");
+		ImGui::TableSetupColumn("Refs");
+		ImGui::TableHeadersRow();
+
+		for (const auto& pair : resources) {
+			const auto& resource = pair.second;
+			ImGui::TableNextRow();
+
+			//type
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("%s", Resource::GetTypeString(resource->GetType()).c_str());
+
+			//name
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%s", resource->GetName().c_str());
+
+			//UUID
+			ImGui::TableSetColumnIndex(2);
+			ImGui::Text("%llu", resource->GetUUID());
+
+			//reference count
+			ImGui::TableSetColumnIndex(3);
+			ImGui::Text("%d", resource->GetReferenceCount());
+		}
+
+		ImGui::EndTable();
 	}
 
 	ImGui::End();

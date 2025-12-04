@@ -37,6 +37,9 @@ public:
 	bool IsMetaValid(const char* metaPath); //check if meta needs to b reimported (modtime, corrupted, missing...)
 	bool NeedsReimport(const char* metaPath, const char* sourceFilePath);
 
+	//assets viewer functions
+	std::vector<std::string> IterateAssetsRecursive(const char* directory);
+
 
 	
 	std::string GetFileNameFromPath(const char* path);
