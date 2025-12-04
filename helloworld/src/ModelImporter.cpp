@@ -176,17 +176,28 @@ void ModelImporter::Draw(Shader& shader) {
             mesh->textures.clear();
 
             std::string checkersTexDir = Application::GetInstance().importer->defaultTexDir;
+            std::string checkersTexName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(checkersTexDir.c_str());
+            std::shared_ptr<ResourceTexture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
+
+
+            if (checkersTex) {
+                //mesh->textures.clear();
+                mesh->textures.push_back(checkersTex);
+            }
+
+            /*std::string checkersTexDir = Application::GetInstance().importer->defaultTexDir;
             std::string checkersTexName = checkersTexDir.substr(checkersTexDir.find_last_of('/') + 1);
             std::shared_ptr<ResourceTexture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
 
-            mesh->textures.push_back(checkersTex);
+            mesh->textures.push_back(checkersTex);*/
         }
         else {
             //restore original texture
             auto ogTex = originalTextures.find(mesh);
             if (ogTex != originalTextures.end()) {
                 mesh->textures = ogTex->second;
-                //originalTextures.erase(ogTex);
+                originalTextures.erase(ogTex);
+                LOG("Restored original textures for mesh: %s", gameObject->GetName().c_str());
             }
 
         }
@@ -366,8 +377,79 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
     auto materialComp = gameObject->AddComponent(ComponentType::MATERIAL);
     auto matComponent = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
 
-    if (matComponent && aiMesh->mMaterialIndex >= 0) {
+    /*auto rendererComp = gameObject->GetComponent(ComponentType::MESH_RENDERER);
+    auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);*/
+    auto currentMesh = renderer ? renderer->GetMesh() : nullptr;
+
+    std::shared_ptr<ResourceTexture> loadedTexture = nullptr;
+    bool textureFoundInModel = false;
+
+    if (matComponent && mesh && aiMesh->mMaterialIndex >= 0) {
         aiMaterial* aiMat = scene->mMaterials[aiMesh->mMaterialIndex];
+
+        aiTextureType type = aiTextureType_DIFFUSE;
+
+        if (aiMat->GetTextureCount(type) > 0) {
+            aiString str;
+            aiMat->GetTexture(type, 0, &str);
+
+            std::string relativePath = str.C_Str();
+
+            // Path Resolution Heuristic (CRITICAL for your messy FBX paths)
+            std::string modelDirectory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());
+            if (modelDirectory.back() != '/' && modelDirectory.back() != '\\') {
+                modelDirectory += "/";
+            }
+
+            std::string filenameOnly = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(relativePath.c_str());
+
+            // Clean filename and remove existing extension
+            size_t lastDot = filenameOnly.find_last_of('.');
+            if (lastDot != std::string::npos) {
+                filenameOnly = filenameOnly.substr(0, lastDot);
+            }
+
+            // Try PNG
+            std::string rawAbsolutePath = modelDirectory + filenameOnly + ".png";
+            std::string absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
+            loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".png", "texture_diffuse");
+
+            // If PNG failed, try TGA
+            if (!loadedTexture) {
+                rawAbsolutePath = modelDirectory + filenameOnly + ".tga";
+                absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
+                loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".tga", "texture_diffuse");
+            }
+
+            if (loadedTexture) {
+                textureFoundInModel = true;
+            }
+        }
+
+        // --- 3. Final Assignment ---
+        if (textureFoundInModel) {
+            // A. SET MESH TEXTURES (For Drawing)
+            currentMesh->textures.push_back(loadedTexture);
+
+            // B. SET MATERIAL COMPONENT (For Inspector/GUI)
+            matComponent->SetDiffuseMap(loadedTexture);
+        }
+        // If texture loading failed OR if there was no material index
+        else {
+            // FALLBACK: Assign the checkerboard to both components
+
+            // AssignDefaultTexture handles currentMesh->textures.push_back()
+            AssignDefaultTexture(currentMesh->textures);
+
+            // Get the default texture resource for the MaterialComponent
+            std::string defaultPath = Application::GetInstance().importer.get()->defaultTexDir;
+            std::string defaultName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(defaultPath.c_str());
+            auto defaultTex = GetOrLoadTexture(defaultPath, defaultName, "texture_diffuse");
+
+            if (defaultTex) {
+                matComponent->SetDiffuseMap(defaultTex);
+            }
+        }
 
         aiColor4D color;
         if (AI_SUCCESS == aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_DIFFUSE, &color)) {
@@ -377,6 +459,17 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         float shininess;
         if (AI_SUCCESS == aiGetMaterialFloat(aiMat, AI_MATKEY_SHININESS, &shininess)) {
             matComponent->SetShininess(shininess);
+        }
+    }
+    else if (matComponent && mesh) {
+        AssignDefaultTexture(mesh->textures);
+
+        // FIX: Set MaterialComp to the default texture for inspection
+        std::string defaultPath = Application::GetInstance().importer.get()->defaultTexDir;
+        std::string defaultName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(defaultPath.c_str());
+        auto defaultTex = GetOrLoadTexture(defaultPath, defaultName, "texture_diffuse");
+        if (defaultTex) {
+            matComponent->SetDiffuseMap(defaultTex);
         }
     }
 
