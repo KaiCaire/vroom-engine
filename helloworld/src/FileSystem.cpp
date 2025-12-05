@@ -20,29 +20,37 @@ bool FileSystem::CleanUp() {
 }
 
 char* FileSystem::ReadBinData(const char* filePath, uint* size) {
-
 	std::ifstream file(filePath, std::ios::binary);
 
-	if (!file) {
+	if (!file) {  
 		LOG("Failed to open %s", filePath);
+		return nullptr; 
+	}
+
+	// Get file size
+	file.seekg(0, std::ios::end);
+	size_t len = file.tellg();
+	//move back to beginning to start reading
+	file.seekg(0, std::ios::beg);  
+
+	
+	if (size != nullptr) { 
+		*size = (uint)len;
+	}
+
+	// Read data
+	char* buffer = new char[len];
+	file.read(buffer, len);
+
+	// Check if read succeeded
+	if (!file) {
+		LOG("Failed to read from %s", filePath);
+		delete[] buffer;
 		file.close();
 		return nullptr;
 	}
 
-	char* buffer = nullptr;
-	if (file.is_open()) {
-		file.seekg(0, std::ios::end); //set read cursor to end of file so we can determine the size
-		size_t len = file.tellg();
-
-		if (size != nullptr) *size = (uint)len;
-
-		//now that we know the size, we can read from buffer
-		buffer = new char[len + 1];
-		file.read(buffer, len);
-		buffer[len] = '\0'; //add a closing character at the end
-		file.close();
-	}
-
+	file.close();
 	return buffer;
 }
 

@@ -48,7 +48,7 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
     else LOG("Importing model from scratch");
      
      
-
+    fileExtension = fs->GetExtensionFromPath(fullPath.c_str());
     stbi_set_flip_vertically_on_load(fileExtension == "obj");
 
     modelRootGO = make_shared<GameObject>(std::string(fileName));
@@ -112,7 +112,7 @@ ModelImporter::ModelImporter(std::shared_ptr<ResourceMesh> sharedMesh) {
 
     //load and assign default material texture
     string checkersTexDir = Application::GetInstance().importer.get()->defaultTexDir;
-    string checkersTexName = checkersTexDir.substr(checkersTexDir.find_last_of('/') + 1);
+    string checkersTexName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(checkersTexDir.c_str());
     
 
     std::shared_ptr<ResourceTexture> defaultColorTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
@@ -339,7 +339,7 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
     }
 
     //register resource
-    Application::GetInstance().resourceManager->RegisterResource(mesh);
+    /*Application::GetInstance().resourceManager->RegisterResource(mesh);*/
 
     // Store mesh info for model meta
     meshMetaInfo.push_back({aiMesh->mName.C_Str(), mesh->GetUUID(), mesh->vertices.size(), mesh->indices.size() });
@@ -392,30 +392,39 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 
             std::string relativePath = str.C_Str();
 
+           
+
             std::string modelDirectory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());
-            if (modelDirectory.back() != '/' && modelDirectory.back() != '\\') {
-                modelDirectory += "/";
-            }
+            
 
             std::string filenameOnly = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(relativePath.c_str());
 
             //clean file name
-            size_t lastDot = filenameOnly.find_last_of('.');
-            if (lastDot != std::string::npos) {
-                filenameOnly = filenameOnly.substr(0, lastDot);
-            }
+            //size_t lastDot = filenameOnly.find_last_of('.');
+            //if (lastDot != std::string::npos) {
+            //    filenameOnly = filenameOnly.substr(0, lastDot);
+            //}
 
             //png test
-            std::string rawAbsolutePath = modelDirectory + filenameOnly + ".png";
+            std::string rawAbsolutePath = modelDirectory + "/" + filenameOnly + ".png";
             std::string absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
             loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".png", "texture_diffuse");
 
             //tga test
             if (!loadedTexture) {
-                rawAbsolutePath = modelDirectory + filenameOnly + ".tga";
+                rawAbsolutePath = modelDirectory + "/" + filenameOnly + ".tga";
                 absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
                 loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".tga", "texture_diffuse");
             }
+
+
+            //jpg test
+            if (!loadedTexture) {
+                rawAbsolutePath = modelDirectory + "/" + filenameOnly + ".jpg";
+                absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
+                loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".jpg", "texture_diffuse");
+            }
+
 
             if (loadedTexture) {
                 textureFoundInModel = true;
@@ -502,16 +511,18 @@ std::shared_ptr<ResourceTexture> ModelImporter::GetOrLoadTexture(const std::stri
 
 void ModelImporter::AssignDefaultTexture(std::vector<std::shared_ptr<ResourceTexture>>& textures) {
     string fullPath = Application::GetInstance().importer.get()->defaultTexDir;
-    string fileName = fullPath.substr(fullPath.find_last_of('/') + 1);
-    string directory = fullPath.substr(0, fullPath.find_last_of('/') + 1);
+    /*string fileName = fullPath.substr(fullPath.find_last_of('/') + 1);
+    string directory = fullPath.substr(0, fullPath.find_last_of('/') + 1);*/
+    string fileName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(fullPath.c_str());
+    string directory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());
 
     LOG("AssignDefaultTexture: fullPath=%s, fileName=%s", fullPath.c_str(), fileName.c_str());
 
     std::shared_ptr<ResourceTexture> defaultTex = GetOrLoadTexture(fullPath, fileName, "texture_diffuse");
 
-    if (defaultTex.get()->GetUUID() != 0) {
+    if (defaultTex && defaultTex->GetUUID() != 0) {
         textures.push_back(defaultTex);
-        LOG("  -> Default texture assigned (ID: %d)", defaultTex.get()->GetUUID());
+        LOG("  -> Default texture assigned (UUID: %llu), (GPU_ID: %u)", defaultTex.get()->GetUUID(), defaultTex->gpu_id);
     }
     else {
         LOG("  -> ERROR: Failed to assign default texture!");

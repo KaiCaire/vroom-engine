@@ -57,13 +57,13 @@ public:
         isEmpty = true;
     }
 
-    void SetOwnerModel(ModelImporter* model) { 
-        ownerModel = model; 
-    }
+    //void SetOwnerModel(ModelImporter* model) { 
+    //    ownerModel = model; 
+    //}
 
-    ModelImporter* GetOwnerModel() { 
-        return ownerModel; 
-    }
+    //ModelImporter* GetOwnerModel() { 
+    //    return ownerModel; 
+    //}
 
     
 
@@ -75,8 +75,8 @@ private:
     bool markedForDestroy = false;
     bool isEmpty = false;
 
-    //store model owner for root objects
-    ModelImporter* ownerModel = nullptr;
+    ////store model owner for root objects
+    //ModelImporter* ownerModel = nullptr;
 
     std::weak_ptr<GameObject> parent;                          // Weak pointer to parent
     std::vector<std::shared_ptr<GameObject>> children;         // Shared pointers to children

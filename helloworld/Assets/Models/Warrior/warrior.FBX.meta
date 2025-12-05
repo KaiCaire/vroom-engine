@@ -1,0 +1,13 @@
+{
+    "meshes": [
+        {
+            "indexCount": 3768,
+            "name": "RPG-Character-Mesh",
+            "uuid": 13915496471503019264,
+            "vertexCount": 3768
+        }
+    ],
+    "modTime": 1761896205,
+    "type": "model",
+    "uuid": 15684554400017666046
+}

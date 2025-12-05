@@ -8,6 +8,7 @@
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
 #include "Log.h"
+#include "ModelImporter.h"
 
 
 
@@ -107,10 +108,11 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
         type = ResourceType::TEXTURE;
     }
     else if (extension == "fbx" || extension == "obj") {
-        type = ResourceType::MESH;
+        type = ResourceType::SCENE;
     }
 
     // Import the file (importer will call RegisterResource)
+    
     uuid = ImportFile(normalizedPath, type);
 
     // Return the now-loaded resource
@@ -135,7 +137,7 @@ VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceTyp
     }
     case ResourceType::SCENE:
         /*auto mesh = Application::GetInstance().importer.get()->meshImporter->Import(assetsPath.c_str());*/
-        
+        Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str());
         LOG("ERROR: Cannot import mesh directly - use ModelImporter::ImportScene");
         break;
 

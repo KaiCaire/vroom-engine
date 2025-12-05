@@ -225,24 +225,27 @@ void Render::DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader) {
 	if (!renderer) 
 		return;
 
-	// Get mesh from ResourceManager using UUID
-	auto resourceManager = Application::GetInstance().resourceManager.get();
-	VroomUUID meshUUID = renderer->GetMeshUUID();
+	//// Get mesh from ResourceManager using UUID
+	//auto resourceManager = Application::GetInstance().resourceManager.get();
+	//VroomUUID meshUUID = renderer->GetMeshUUID();
 
-	if (meshUUID == 0) {
-		return;  // No mesh assigned
-	}
+	//if (meshUUID == 0) {
+	//	return;  // No mesh assigned
+	//}
 
-	auto resource = resourceManager->FindResource(meshUUID);
-	if (!resource) {
-		LOG("WARNING: Mesh UUID %llu not found in ResourceManager", meshUUID);
-		return;
-	}
+	//auto resource = resourceManager->FindResource(meshUUID);
+	//if (!resource) {
+	//	LOG("WARNING: Mesh UUID %llu not found in ResourceManager", meshUUID);
+	//	return;
+	//}
 
-	auto mesh = std::dynamic_pointer_cast<ResourceMesh>(resource);
-	if (!mesh || !mesh->isLoadedToGPU) {
-		return;
-	}
+	//auto mesh = std::dynamic_pointer_cast<ResourceMesh>(resource);
+	//if (!mesh || !mesh->isLoadedToGPU) {
+	//	return;
+	//}
+	auto meshComp = go->GetComponent(ComponentType::MESH_RENDERER);
+	auto mesh = std::dynamic_pointer_cast<RenderMeshComponent>(meshComp);
+		
 
 	// Get transform and set model matrix
 	auto transformComp = go->GetComponent(ComponentType::TRANSFORM);
@@ -255,7 +258,7 @@ void Render::DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader) {
 	}
 
 	// Draw the mesh
-	mesh->Draw(shader);
+	mesh->Render(&shader);
 }
 
 

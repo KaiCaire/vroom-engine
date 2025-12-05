@@ -42,12 +42,13 @@ void SceneManager::LoadDefaultScene() {
     SetActiveScene(sceneName);
 
     // Import the model through ResourceManager
-    std::string modelPath = "../Assets/Models/Street/Street environment_V01.FBX";
+    std::string modelPath = "../Assets/Models/Kodama/Kodama_LOW.fbx";
     auto ourScene = currentScene->ImportModel(modelPath);
 
     if (ourScene) {
         LOG("Default scene loaded successfully");
     }
+    
 }
 
 

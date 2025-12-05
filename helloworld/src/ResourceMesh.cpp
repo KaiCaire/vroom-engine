@@ -1,17 +1,22 @@
 ﻿#include "ResourceMesh.h"
 #include "OpenGL.h"
 #include "ResourceTexture.h"
+#include "Importer.h"
+#include "TextureImporter.h"
 
 #include "Log.h"
 
 ResourceMesh::ResourceMesh() : Resource(ResourceType::MESH), VAO(0), VBO(0), EBO(0) {
     isLoadedToRAM = false;
     isLoadedToGPU = false;
+
 }
 
 ResourceMesh::ResourceMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<ResourceTexture>> textures)
     : Resource(ResourceType::MESH), vertices(vertices), indices(indices), textures(textures), VAO(0), VBO(0), EBO(0)
 {
+
+    isLoadedToRAM = true;
     LoadToGPU();
 
     drawVertNormals = false;
@@ -337,30 +342,49 @@ void ResourceMesh::LoadBin() {
     std::memcpy(indices.data(), ptr, indexCount * sizeof(unsigned int));
     ptr += indexCount * sizeof(unsigned int);
 
-    // Read texture info
-    textures.clear();  
-    textures.reserve(textureCount);  
+    if (textures.size() != 0) {
+        textures.clear();
+    }
+    textures.reserve(textureCount);
 
     for (uint i = 0; i < textureCount; i++) {
         uint pathLength;
         std::memcpy(&pathLength, ptr, sizeof(uint));
         ptr += sizeof(uint);
 
-        textures[i].get()->path.assign(ptr, pathLength);
+        std::string path(ptr, pathLength);
         ptr += pathLength;
 
         uint typeLength;
         std::memcpy(&typeLength, ptr, sizeof(uint));
         ptr += sizeof(uint);
 
-        textures[i].get()->mapType.assign(ptr, typeLength);
+        std::string mapType(ptr, typeLength);
         ptr += typeLength;
+
+       
+        auto tex = Application::GetInstance().importer.get()->textureImporter->Import(path);
+
+        if (!tex) {
+            LOG("WARNING: Failed to load texture '%s' from cached mesh", path.c_str());
+            // Create placeholder
+            tex = std::make_shared<ResourceTexture>();
+            tex->path = path;
+            tex->mapType = mapType;
+        }
+        else {
+            tex->mapType = mapType;  // Ensure mapType is set
+        }
+
+        textures.push_back(tex);
+        LOG("Loaded texture: %s (type: %s, gpu_id: %u)", path.c_str(), mapType.c_str(), tex->gpu_id);
     }
 
     delete[] buffer;
     isLoadedToRAM = true;
-    LOG("Mesh binary loaded: %s (%d vertices, %d indices)", binPath.c_str(), vertexCount, indexCount);
+    LOG("Mesh binary loaded: %s (%d vertices, %d indices, %d textures)", binPath.c_str(), vertexCount, indexCount, textureCount);
 }
+
 
 void ResourceMesh::FreeMemory() {
     vertices.clear();

@@ -192,20 +192,22 @@ bool Input::CleanUp()
 }
 
 void Input::ProcessDroppedFile(std::string sourcePath) {
-	std::replace(sourcePath.begin(), sourcePath.end(), '\\', '/');
-	LOG("Dropped File Directory = %s", sourcePath.c_str());
+	/*std::replace(sourcePath.begin(), sourcePath.end(), '\\', '/');*/
 
 	FileSystem* fs = Application::GetInstance().fileSystem.get();
-	std::string fileExtension = fs->GetExtensionFromPath(sourcePath.c_str());
+	std::string path = fs->NormalizePath(sourcePath.c_str());
+	
+	LOG("Dropped File Directory = %s", path.c_str());
+	
+	std::string fileExtension = fs->GetExtensionFromPath(path.c_str());
 
 	// Handle model files (FBX, OBJ)
 	if (fileExtension == "fbx" || fileExtension == "obj") {
-		ImportModelFile(sourcePath);
+		ImportModelFile(path);
 	}
 	// Handle texture files (PNG, JPG, TGA, DDS)
-	else if (fileExtension == "png" || fileExtension == "jpg" ||
-		fileExtension == "tga" || fileExtension == "dds") {
-		ApplyTextureToSelectedObject(sourcePath);
+	else if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "tga" || fileExtension == "dds") {
+		ApplyTextureToSelectedObject(path);
 	}
 	else {
 		LOG("WARNING: Unsupported file type: %s", fileExtension.c_str());
