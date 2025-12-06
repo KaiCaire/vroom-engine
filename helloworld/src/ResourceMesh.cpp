@@ -107,7 +107,16 @@ void ResourceMesh::Draw(Shader& shader) {
         else if (name == "texture_ao")
             number = std::to_string(aoNr++);
 
-        shader.setInt((name + number).c_str(), i);
+        std::string uniformName = name + number;
+        shader.setInt(uniformName.c_str(), i);
+
+       
+        LOG("Binding texture: uniform=%s, unit=%d, gpu_id=%u, UUID=%llu",
+            uniformName.c_str(),
+            i,
+            textures[i].get()->gpu_id,
+            textures[i].get()->GetUUID());
+
         glBindTexture(GL_TEXTURE_2D, textures[i].get()->gpu_id);
     }
 

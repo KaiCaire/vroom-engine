@@ -48,6 +48,7 @@ public:
     //std::string GetFilePath() const { return filePath; }
     ResourceType GetType() const { return type; }
     bool IsLoadedToRAM() const { return isLoadedToRAM; }
+
     int GetReferenceCount() const { return referenceCount; }
 
     // Setters
@@ -69,6 +70,7 @@ public:
     }
 
     bool isLoadedToRAM = false; // Is data loaded in RAM?
+    bool isLoadedToGPU = false;
 
 
     //virtual bool LoadToMemory() = 0;

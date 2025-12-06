@@ -137,6 +137,23 @@ void ResourceTexture::FreeMemory() {
 
 void ResourceTexture::LoadToGPU() {
 
+    if (!data) {
+        LOG("ERROR: Cannot load texture to GPU - data is NULL!");
+        return;
+    }
+
+    if (texW == 0 || texH == 0) {
+        LOG("ERROR: Cannot load texture to GPU - dimensions are 0!");
+        return;
+    }
+
+    LOG("Loading texture to GPU: %dx%d, %d channels, data: %p", texW, texH, nChannels, (void*)data);
+
+    if (gpu_id == 0) {
+        glGenTextures(1, &gpu_id);
+        glBindTexture(GL_TEXTURE_2D, gpu_id);
+    }
+
     GLenum format;
     switch (nChannels) {
     case 1:

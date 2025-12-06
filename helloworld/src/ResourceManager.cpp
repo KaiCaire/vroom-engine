@@ -82,24 +82,6 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
    
     std::string normalizedPath = fs->NormalizePath(assetsPath.c_str());
 
-    // Check if .meta exists
-    std::string metaPath = normalizedPath + ".meta";
-    if (!fs->Exists(metaPath.c_str())) {
-        LOG("ERROR: No .meta file for %s", normalizedPath.c_str());
-        return nullptr;
-    }
-
-    // Load UUID from .meta
-    VroomUUID uuid = fs->GetUUIDFromMeta(metaPath.c_str());
-
-    // Check if already loaded
-    auto it = resources.find(uuid);
-    if (it != resources.end()) {
-        LOG("Resource '%s' already loaded (UUID: %llu)", normalizedPath.c_str(), uuid);
-        it->second->AddReference();
-        return it->second;
-    }
-
     // Determine resource type from file extension
     std::string extension = fs->GetExtensionFromPath(assetsPath.c_str());
     ResourceType type = ResourceType::UNKNOWN;
@@ -111,12 +93,57 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
         type = ResourceType::SCENE;
     }
 
-    // Import the file (importer will call RegisterResource)
-    
-    uuid = ImportFile(normalizedPath, type);
+    VroomUUID resUUID = 0;
 
+    // Check if .meta exists
+    std::string metaPath = normalizedPath + ".meta";
+    if (fs->Exists(metaPath.c_str())) {
+        LOG(".meta file found for %s, importing from library.", normalizedPath.c_str());
+        /*return nullptr;*/
+
+         // Load UUID from .meta
+        resUUID = fs->GetUUIDFromMeta(metaPath.c_str());
+        // Check if already loaded
+        auto it = resources.find(resUUID);
+        if (it != resources.end()) {
+            LOG("Resource '%s' (UUID: %llu) already loaded in memory, increasing reference count.", normalizedPath.c_str(), resUUID);
+            it->second->AddReference();
+
+            if (LoadResourceToGPU(it->second))
+                return it->second;
+        }
+        else {
+            std::string libraryPath = "Library/Textures/" + std::to_string(resUUID) + ".vroomtex";
+
+            if (!fs->Exists(libraryPath.c_str())) {
+                LOG("Library file missing, reimporting from source");
+                
+            }
+            else {
+                auto res = CreateResource(type, resUUID);
+                res->SetLibraryFilePath(libraryPath);
+
+                if (LoadResourceFromLibrary(res)) {
+                    RegisterResource(res);
+                    LoadResourceToGPU(res);
+                    return res;
+                }
+                else {
+                    LOG("Failed to load from Library, reimporting");
+                }
+            }
+
+        }
+
+    }
+    else {
+        LOG("No .meta file found for %s, importing fresh", normalizedPath.c_str());
+
+    }
+
+    resUUID = ImportFile(normalizedPath, type);
     // Return the now-loaded resource
-    return FindResource(uuid);
+    return FindResource(resUUID);
 }
 
 VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type) {
@@ -138,7 +165,7 @@ VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceTyp
     case ResourceType::SCENE:
         /*auto mesh = Application::GetInstance().importer.get()->meshImporter->Import(assetsPath.c_str());*/
         Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str());
-        LOG("ERROR: Cannot import mesh directly - use ModelImporter::ImportScene");
+        
         break;
 
     default:
@@ -150,10 +177,12 @@ VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceTyp
 }
 
 std::shared_ptr<Resource> ResourceManager::CreateResource(ResourceType type, VroomUUID uuid) {
+    
     if (uuid == 0) {
-        uuid = UUIDGen::GenerateUUID();
+        LOG("ERROR: Attempted to create resource with UUID 0!");
+        return nullptr;  
     }
-
+    
     std::shared_ptr<Resource> resource = nullptr;
 
     switch (type) {
@@ -184,12 +213,13 @@ void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource)
         return;
     }
 
-    // Generate UUID if resource does not have one yet
-    if (resource->GetUUID() == 0) {
-        resource->SetUUID(UUIDGen::GenerateUUID());
-    }
-
+   
     VroomUUID uuid = resource->GetUUID();
+
+    if (uuid == 0) {
+        LOG("UUID not found, cannot register resource with UUID = 0");
+        return;
+    }
 
     resources[uuid] = resource;
     resource->AddReference();
@@ -251,6 +281,12 @@ bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource
         return false;
     }
 
+    
+
+    return true;
+}
+
+bool ResourceManager::LoadResourceToGPU(std::shared_ptr<Resource> resource) {
     if (resource->GetType() == ResourceType::MESH) {
         std::shared_ptr<ResourceMesh> mesh = std::dynamic_pointer_cast<ResourceMesh>(resource);
         if (mesh) {
@@ -259,6 +295,49 @@ bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource
             return mesh->isLoadedToGPU;
         }
     }
+    else if (resource->GetType() == ResourceType::TEXTURE) {
+        std::shared_ptr<ResourceTexture> texture = std::dynamic_pointer_cast<ResourceTexture>(resource);
+        if (texture) {
+            texture->LoadToGPU();
+            // Return GPU status (true if successful)
+            return texture->isLoadedToGPU;
+        }
+    }
+
+    return false;
+}
+
+bool ResourceManager::SaveResourceToLibrary(std::shared_ptr<Resource> resource) {
+
+
+    if (!fs->Exists(resource->GetLibraryFilePath())) {
+        LOG("ERROR: Library file not found: %s", resource->GetLibraryFilePath());
+        return false;
+    }
+
+    resource->SaveBin();
+
+    //if (!resource->IsLoadedToRAM()) {
+    //    LOG("ERROR: Failed to load binary data for resource %llu", resource->GetUUID());
+    //    return false;
+    //}
+
+    //if (resource->GetType() == ResourceType::MESH) {
+    //    std::shared_ptr<ResourceMesh> mesh = std::dynamic_pointer_cast<ResourceMesh>(resource);
+    //    if (mesh) {
+    //        mesh->LoadToGPU();
+    //        // Return GPU status (true if successful)
+    //        return mesh->isLoadedToGPU;
+    //    }
+    //}
+    //else if (resource->GetType() == ResourceType::TEXTURE) {
+    //    std::shared_ptr<ResourceTexture> texture = std::dynamic_pointer_cast<ResourceTexture>(resource);
+    //    if (texture) {
+    //        texture->LoadToGPU();
+    //        // Return GPU status (true if successful)
+    //        return texture->isLoadedToGPU;
+    //    }
+    //}
 
     return true;
 }

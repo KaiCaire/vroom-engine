@@ -21,28 +21,28 @@ std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene
     
     VroomUUID meshUUID = cachedUUID;
 
-    // If we have a cached UUID, try to load from Library
-    if (meshUUID != 0) {
-        std::string libraryPath = "Library/Meshes/" + std::to_string(meshUUID) + ".vroommesh";
+    //// If we have a cached UUID, try to load from Library
+    //if (meshUUID != 0) {
+    //    std::string libraryPath = "Library/Meshes/" + std::to_string(meshUUID) + ".vroommesh";
 
-        if (fs->Exists(libraryPath.c_str())) {
-            LOG("Loading mesh from cache: %s", libraryPath.c_str());
+    //    if (fs->Exists(libraryPath.c_str())) {
+    //        LOG("Loading mesh from cache: %s", libraryPath.c_str());
 
-            auto mesh = std::make_shared<ResourceMesh>();
-            mesh->SetUUID(meshUUID);
-            mesh->SetName(aiMesh->mName.C_Str());
-            mesh->SetLibraryFilePath(libraryPath);
-            mesh->LoadBin();
-            mesh->LoadToGPU();
-          
+    //        auto mesh = std::make_shared<ResourceMesh>();
+    //        mesh->SetUUID(meshUUID);
+    //        mesh->SetName(aiMesh->mName.C_Str());
+    //        mesh->SetLibraryFilePath(libraryPath);
+    //        mesh->LoadBin();
+    //        mesh->LoadToGPU();
+    //      
 
-            LOG("Mesh loaded from cache successfully");
-            return mesh;
-        }
-        else {
-            LOG("Cache file missing, will reimport");
-        }
-    }
+    //        LOG("Mesh loaded from cache successfully");
+    //        return mesh;
+    //    }
+    //    else {
+    //        LOG("Cache file missing, will reimport");
+    //    }
+    //}
 
     // No cached UUID or cache miss - import fresh
     meshUUID = (meshUUID == 0) ? UUIDGen::GenerateUUID() : meshUUID;

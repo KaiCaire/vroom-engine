@@ -68,7 +68,10 @@ private:
     std::unordered_map<VroomUUID, std::shared_ptr<Resource>> resources;
 
     // Helper to load resource from Library
+    bool SaveResourceToLibrary(std::shared_ptr<Resource> resource);
     bool LoadResourceFromLibrary(std::shared_ptr<Resource> resource);
+    bool LoadResourceToGPU(std::shared_ptr<Resource> resource);
+    
 
     FileSystem* fs;
 };

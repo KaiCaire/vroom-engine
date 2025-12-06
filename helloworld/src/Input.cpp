@@ -249,9 +249,7 @@ void Input::ApplyTextureToSelectedObject(const std::string& texturePath) {
 	}
 
 	// Get or create MaterialComponent
-	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
-		selectedObj->GetComponent(ComponentType::MATERIAL)
-	);
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(selectedObj->GetComponent(ComponentType::MATERIAL));
 
 	if (!materialComp) {
 		LOG("No MaterialComponent found on '%s', creating one", selectedObj->GetName().c_str());
@@ -266,8 +264,7 @@ void Input::ApplyTextureToSelectedObject(const std::string& texturePath) {
 
 	// Load texture through ResourceManager (which handles caching)
 	ResourceManager* resourceManager = Application::GetInstance().resourceManager.get();
-	auto newTexture = std::dynamic_pointer_cast<ResourceTexture>(
-		resourceManager->RequestResource(texturePath)
+	auto newTexture = std::dynamic_pointer_cast<ResourceTexture>(resourceManager->RequestResource(texturePath)
 	);
 
 	if (!newTexture) {

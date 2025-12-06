@@ -193,7 +193,8 @@ void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
 
 	// Load checker texture
 	std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
-	auto checkerTex = Application::GetInstance().importer.get()->textureImporter->Import(checkerPath);
+	auto checkerTex = std::dynamic_pointer_cast<ResourceTexture>(Application::GetInstance().resourceManager.get()->RequestResource(checkerPath.c_str()));
+	/*auto checkerTex = Application::GetInstance().importer.get()->textureImporter->Import(checkerPath);*/
 
 	if (checkerTex) {
 		materialComp->SetDiffuseMap(checkerTex);  // Store UUID, not pointer
@@ -214,13 +215,9 @@ void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
 void GUIManager::RestoreOGTexture(std::shared_ptr<GameObject> go) {
 	if (!go) return;
 
-	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
-		go->GetComponent(ComponentType::MATERIAL)
-	);
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
 
-	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(
-		go->GetComponent(ComponentType::MESH_RENDERER)
-	);
+	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER));
 	auto mesh = renderComp ? renderComp->GetMesh() : nullptr;
 
 	if (!materialComp || !mesh) return;
@@ -229,13 +226,23 @@ void GUIManager::RestoreOGTexture(std::shared_ptr<GameObject> go) {
 	auto it = originalTextures.find(go);
 	if (it != originalTextures.end()) {
 		auto originalTex = it->second;
+		
 		if (originalTex) {
-			materialComp->SetDiffuseMap(originalTex);  // Restore by UUID
-			if (!mesh->textures.empty()) {
-				mesh->textures[0] = originalTex;
+
+			if (!originalTex->isLoadedToGPU) {
+				LOG("WARNING: Original texture not loaded to GPU, loading now...");
+				originalTex->LoadToGPU();
 			}
-			LOG("Restored original texture for '%s' (UUID: %llu)",
-				go->GetName().c_str(), originalTex->GetUUID());
+			
+
+			if (originalTex->isLoadedToGPU) {
+				materialComp->SetDiffuseMap(originalTex);  // Restore by UUID
+				if (!mesh->textures.empty()) {
+					mesh->textures[0] = originalTex;
+				}
+				LOG("Restored original texture for '%s' (UUID: %llu)", go->GetName().c_str(), originalTex->GetUUID());
+			}
+			
 		}
 
 		// Remove from map
