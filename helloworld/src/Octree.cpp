@@ -4,6 +4,7 @@
 #include "RenderMeshComponent.h" 
 #include "ResourceMesh.h"        
 #include "Log.h"
+#include "Camera.h"
 
 #include <glm/glm.hpp>
 #include <vector>
@@ -54,6 +55,25 @@ AABB GetGameObjectAABB(const std::shared_ptr<GameObject>& obj) {
     }
 
     return AABB{ worldMin, worldMax };
+}
+
+//check if AABB is outside frustum plane
+bool AABBIsVisible(const AABB& aabb, const Frustum& frustum) {
+    for (int i = 0; i < 6; ++i) {
+        const Plane& plane = frustum.planes[i];
+
+        //find the p-vertex
+        glm::vec3 p = aabb.min;
+        if (plane.normal.x >= 0) p.x = aabb.max.x;
+        if (plane.normal.y >= 0) p.y = aabb.max.y;
+        if (plane.normal.z >= 0) p.z = aabb.max.z;
+
+        //if p-vertex is outside the plane the entire AABB is outside.
+        if (plane.DistanceToPoint(p) < 0.0f) {
+            return false; 
+        }
+    }
+    return true;
 }
 
 //bounding box functions
@@ -183,18 +203,24 @@ bool OctreeNode::Insert(const std::shared_ptr<GameObject>& obj) {
     return true;
 }
 
-void OctreeNode::Query(const AABB& frustum, std::vector<std::shared_ptr<GameObject>>& result) {
-    if (!bounds.Intersects(frustum)) {
-        return; //does not intersect the frustum/query box
+void OctreeNode::Query(const Frustum& frustum, std::vector<std::shared_ptr<GameObject>>& result) {
+    //check if visible
+    if (!AABBIsVisible(bounds, frustum)) {
+        return;
     }
 
-    //add objects stored in this node
-    result.insert(result.end(), objects.begin(), objects.end());
+    //check objects in this node
+    for (const auto& obj : objects) {
+        //if object is visible -> add it
+        if (AABBIsVisible(GetGameObjectAABB(obj), frustum)) {
+            result.push_back(obj);
+        }
+    }
 
     //recurse into children
     if (isDivided) {
-        for (const auto& child : children) {
-            child->Query(frustum, result);
+        for (const auto& c : children) {
+            c->Query(frustum, result);
         }
     }
 }
@@ -235,7 +261,8 @@ void Octree::Rebuild(const std::vector<std::shared_ptr<GameObject>>& allObjects)
     LOG("Octree rebuilt, successfully inserted %d objects.", count);
 }
 
-void Octree::Query(const AABB& frustum, std::vector<std::shared_ptr<GameObject>>& result) {
+void Octree::Query(const Frustum& frustum, std::vector<std::shared_ptr<GameObject>>& result) {
+    result.clear();
     if (root) {
         root->Query(frustum, result);
     }

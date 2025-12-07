@@ -19,7 +19,7 @@ Scene::Scene(const std::string& name) : Module(), sceneName(name) {
     worldBounds.min = glm::vec3(-100.0f, -100.0f, -100.0f);
     worldBounds.max = glm::vec3(100.0f, 100.0f, 100.0f);
 
-    //initialize octree
+    //initialize octree (10 objects per node)
     octree = std::make_unique<Octree>(worldBounds, 10, 5);
 
     LOG("Scene '%s' created", sceneName.c_str());

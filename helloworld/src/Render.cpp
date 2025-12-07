@@ -231,6 +231,9 @@ void Render::DrawRay(const glm::vec3& origin, const glm::vec3& direction, const 
 	if (!debugShader) return;
 
 	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_LINE_SMOOTH);
 	debugShader->Use();
 
 	//set matrices
@@ -246,8 +249,11 @@ void Render::DrawRay(const glm::vec3& origin, const glm::vec3& direction, const 
 
 	glLineWidth(3.0f); //make ray thicker
 
-	//draw ray 100 units long
-	glm::vec3 endPoint = origin + direction * 100.0f;
+	//start ray 0.1 units away so its more visible
+	glm::vec3 startPoint = origin + direction * 0.1f;
+
+	//draw ray 5000 units long
+	glm::vec3 endPoint = origin + direction * 5000.0f;
 
 	glBegin(GL_LINES);
 	glVertex3f(origin.x, origin.y, origin.z);
@@ -304,14 +310,36 @@ void Render::DrawActiveScene(Shader& shader) {
 	auto sceneManager = Application::GetInstance().sceneManager.get();
 	auto scene = sceneManager->GetActiveScene();
 	auto guiManager = Application::GetInstance().guiManager.get();
+	auto camera = Application::GetInstance().camera.get();
 
 	if (!scene) {
 		LOG("WARNING: No active scene to render");
 		return;
 	}
 
+	std::vector<std::shared_ptr<GameObject>> visibleObjects;
+	//get total object count in order to log rendered objects (to test frustum culling)
+	int totalObjects = (int)scene->GetAllGameObjects().size();
+
+	if (scene->GetOctree()) {
+		// Query the Octree using the camera's pre-calculated frustum
+		scene->GetOctree()->Query(camera->frustum, visibleObjects);
+	}
+	else {
+		// Fallback: If no Octree, render all objects
+		visibleObjects = scene->GetAllGameObjects();
+		LOG("WARNING: Octree not active. Rendering all %d GameObjects.", (int)visibleObjects.size());
+	}
+
+	int drawnObjects = (int)visibleObjects.size();
+
+	//log culling to check (commented to not flood the console)
+	/*if (totalObjects > 1) {
+		LOG("Culling Stats: Drawn/Total = %d / %d. Culled: %d", drawnObjects, totalObjects, totalObjects - drawnObjects);
+	}*/
+
 	// Iterate through all GameObjects in the scene
-	for (auto& gameObject : scene->GetAllGameObjects()) {
+	for (auto& gameObject : visibleObjects) {
 		if (!gameObject || !gameObject->IsActive() || gameObject->IsMarkedForDestroy()) {
 			continue;
 		}

@@ -3,6 +3,29 @@
 #include "glm/glm.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
+struct Plane {
+    glm::vec3 normal = glm::vec3(0.0f);
+    float distance = 0.0f; //distance from origin along the normal
+
+    //calculates distance from a point to the plane
+    float DistanceToPoint(const glm::vec3& p) const {
+        return glm::dot(normal, p) + distance;
+    }
+};
+
+enum FrustumPlane {
+    PLANE_NEAR,
+    PLANE_FAR,
+    PLANE_LEFT,
+    PLANE_RIGHT,
+    PLANE_TOP,
+    PLANE_BOTTOM
+};
+
+struct Frustum {
+    Plane planes[6];
+};
+
 class Camera : public Module 
 {
 public:
@@ -48,6 +71,10 @@ public:
     void ProcessScrollZoom(float delta, bool isMouseScroll);
     void FocusObject(bool firstTime);
     glm::vec3 GetWorldPosition() const { return cameraPos; }
+
+    //frustum culling
+    Frustum frustum;
+    void ExtractFrustumPlanes();
 
 private:
     void RecalculateMatrices(int windowW, int windowH);

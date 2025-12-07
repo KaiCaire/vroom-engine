@@ -6,6 +6,7 @@
 
 //forward decleration
 class GameObject;
+struct Frustum;
 
 //bounding box struct
 struct AABB {
@@ -32,8 +33,8 @@ public:
     const AABB& GetBounds() const { return bounds; }
     int GetObjectCount() const { return (int)objects.size(); }
 
-    //for frustum cooling 
-    void Query(const AABB& frustum, std::vector<std::shared_ptr<GameObject>>& result);
+    //checks if node is visible for frustum cooling 
+    void Query(const Frustum& frustum, std::vector<std::shared_ptr<GameObject>>& result);
 
 private:
     AABB bounds;
@@ -57,13 +58,16 @@ public:
     void Insert(const std::shared_ptr<GameObject>& obj);
     void Rebuild(const std::vector<std::shared_ptr<GameObject>>& allObjects);
     void Clear();
-
-    // Method for future use (e.g., frustum culling)
-    void Query(const AABB& frustum, std::vector<std::shared_ptr<GameObject>>& result);
+    void Query(const Frustum& frustum, std::vector<std::shared_ptr<GameObject>>& result);
 
 private:
     std::unique_ptr<OctreeNode> root;
     AABB worldBounds;
+    //how many times nodes can subdivide
     int maxLevels;
+    //objects that can be in one node
     int capacity;
 };
+
+//check if a box is visible
+bool AABBIsVisible(const AABB& aabb, const Frustum& frustum);

@@ -9,6 +9,15 @@
 #include "SceneManager.h"
 #include <glm/gtx/string_cast.hpp>
 
+//helper function
+void NormalizePlane(Plane& plane) {
+	float length = glm::length(plane.normal);
+	//safety check to prevent division by zero
+	if (length > 1e-6f) {
+		plane.normal /= length;
+		plane.distance /= length;
+	}
+}
 
 Camera::Camera() : Module()
 {
@@ -122,6 +131,7 @@ bool Camera::Update(float dt)
 	int windowW, windowH;
 	Application::GetInstance().window->GetSize(windowW, windowH);
 	RecalculateMatrices(windowW, windowH);
+	ExtractFrustumPlanes();
 
 	return true;
 }
@@ -276,4 +286,52 @@ void Camera::RecalculateMatrices(int windowW, int windowH)
 	float aspectRatio = (float)Application::GetInstance().window.get()->width / (float)Application::GetInstance().window.get()->height;
 	projectionMat = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
 	viewMat = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+}
+
+void Camera::ExtractFrustumPlanes() {
+	glm::mat4 clip = projectionMat * viewMat; //combined natrix
+
+	//planes are extracted using the columns of the clip matrix
+
+	//right plane
+	frustum.planes[PLANE_RIGHT].normal.x = clip[0][3] - clip[0][0];
+	frustum.planes[PLANE_RIGHT].normal.y = clip[1][3] - clip[1][0];
+	frustum.planes[PLANE_RIGHT].normal.z = clip[2][3] - clip[2][0];
+	frustum.planes[PLANE_RIGHT].distance = clip[3][3] - clip[3][0];
+	NormalizePlane(frustum.planes[PLANE_RIGHT]);
+
+	//left plane
+	frustum.planes[PLANE_LEFT].normal.x = clip[0][3] + clip[0][0];
+	frustum.planes[PLANE_LEFT].normal.y = clip[1][3] + clip[1][0];
+	frustum.planes[PLANE_LEFT].normal.z = clip[2][3] + clip[2][0];
+	frustum.planes[PLANE_LEFT].distance = clip[3][3] + clip[3][0];
+	NormalizePlane(frustum.planes[PLANE_LEFT]);
+
+	//bottom plane
+	frustum.planes[PLANE_BOTTOM].normal.x = clip[0][3] + clip[0][1];
+	frustum.planes[PLANE_BOTTOM].normal.y = clip[1][3] + clip[1][1];
+	frustum.planes[PLANE_BOTTOM].normal.z = clip[2][3] + clip[2][1];
+	frustum.planes[PLANE_BOTTOM].distance = clip[3][3] + clip[3][1];
+	NormalizePlane(frustum.planes[PLANE_BOTTOM]);
+
+	//top plane
+	frustum.planes[PLANE_TOP].normal.x = clip[0][3] - clip[0][1];
+	frustum.planes[PLANE_TOP].normal.y = clip[1][3] - clip[1][1];
+	frustum.planes[PLANE_TOP].normal.z = clip[2][3] - clip[2][1];
+	frustum.planes[PLANE_TOP].distance = clip[3][3] - clip[3][1];
+	NormalizePlane(frustum.planes[PLANE_TOP]);
+
+	//far plane
+	frustum.planes[PLANE_FAR].normal.x = clip[0][3] - clip[0][2];
+	frustum.planes[PLANE_FAR].normal.y = clip[1][3] - clip[1][2];
+	frustum.planes[PLANE_FAR].normal.z = clip[2][3] - clip[2][2];
+	frustum.planes[PLANE_FAR].distance = clip[3][3] - clip[3][2];
+	NormalizePlane(frustum.planes[PLANE_FAR]);
+
+	//near plane
+	frustum.planes[PLANE_NEAR].normal.x = clip[0][3] + clip[0][2];
+	frustum.planes[PLANE_NEAR].normal.y = clip[1][3] + clip[1][2];
+	frustum.planes[PLANE_NEAR].normal.z = clip[2][3] + clip[2][2];
+	frustum.planes[PLANE_NEAR].distance = clip[3][3] + clip[3][2];
+	NormalizePlane(frustum.planes[PLANE_NEAR]);
 }
