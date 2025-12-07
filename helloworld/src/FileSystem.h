@@ -22,6 +22,8 @@ public:
 	bool Exists(const char* path);
 	bool CreateDir(const char* path);
 
+	void CopyFile(const char* src, const char* dest);
+
 
 	//binary file handling (for resources)
 	char* ReadBinData(const char* filePath, uint* size = nullptr); //load entire file into buffer that is passed as argument (address)

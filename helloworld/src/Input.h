@@ -2,6 +2,7 @@
 
 #include "Module.h"
 #include "SDL3/SDL.h"
+#include "FileSystem"
 
 
 class ResourceTexture;
@@ -92,8 +93,13 @@ private:
 	const char* droppedFileDir;
 	/*std::vector<std::shared_ptr<GameObject>> selectedObjects;*/
 
-	void ImportModelFile(const std::string& modelPath);
+	
 	void ApplyTextureToSelectedObject(const std::string& texturePath);
+
+	FileSystem* fs;
+
+	std::string CopyFileToAssets(const std::string sourcePath, const char* destPath, const std::string file);
+	
 	
 
 };

@@ -91,6 +91,20 @@ void FileSystem::SaveJSON(const char* path, const nlohmann::json& json_to_save) 
 
 }
 
+void FileSystem::CopyFile(const char* src, const char* dest)
+{
+	try
+	{
+		/*std::filesystem::create_directories(std::filesystem::path(dest).parent_path());*/
+
+		std::filesystem::copy_file(src, dest);
+	}
+	catch (const std::filesystem::filesystem_error& e)
+	{
+		LOG("Copy failed: %s (%s -> %s)", e.what(), src, dest);
+	}
+}
+
 std::string FileSystem::GetDirFromPath(const char* path) {
 
 	std::string filePath = NormalizePath(path);

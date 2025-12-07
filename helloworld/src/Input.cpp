@@ -21,6 +21,7 @@
 #include "SceneManager.h"
 
 
+
 #include "SDL3/SDL.h"
 #include <vector>
 
@@ -37,6 +38,8 @@ Input::Input() : Module()
 	numkeys = new int[MAX_KEYS];
 	memset(keyboard, KEY_IDLE, sizeof(KeyState) * MAX_KEYS);
 	memset(mouseButtons, KEY_IDLE, sizeof(KeyState) * NUM_MOUSE_BUTTONS);
+
+	
 
 }
 
@@ -69,6 +72,7 @@ bool Input::Awake()
 bool Input::Start()
 {
 	SDL_StopTextInput(Application::GetInstance().window.get()->window);
+	fs = Application::GetInstance().fileSystem.get();
 	return true;
 }
 
@@ -159,7 +163,7 @@ bool Input::PreUpdate()
 		case SDL_EVENT_DROP_FILE:
 			/*windowID = Application::GetInstance().window.get()->GetWindowID();*/
 			droppedFileDir = event.drop.data;
-
+			
 			ProcessDroppedFile(droppedFileDir);
 					
 			//not needed in SDL3, the new allocated memory created  gets freed automatically
@@ -194,42 +198,51 @@ bool Input::CleanUp()
 }
 
 void Input::ProcessDroppedFile(std::string sourcePath) {
-	/*std::replace(sourcePath.begin(), sourcePath.end(), '\\', '/');*/
-
-	FileSystem* fs = Application::GetInstance().fileSystem.get();
+	
 	std::string path = fs->NormalizePath(sourcePath.c_str());
 	
 	LOG("Dropped File Directory = %s", path.c_str());
 	
 	std::string fileExtension = fs->GetExtensionFromPath(path.c_str());
+	std::string file = fs->GetFileFromPath(path.c_str());
+	std::string destPath, finalDestPath;
+
+	
 
 	// Handle model files (FBX, OBJ)
 	if (fileExtension == "fbx" || fileExtension == "obj") {
-		/*ImportModelFile(path);*/
-		Application::GetInstance().sceneManager.get()->GetActiveScene()->ImportModel(path);
+		
+		destPath = std::string(Paths::MODEL_ASSETS_DIR) + "/" + file;
+		finalDestPath = CopyFileToAssets(path, destPath.c_str(), file);
+
+		Application::GetInstance().sceneManager.get()->GetActiveScene()->ImportModel(finalDestPath);
 	}
 	// Handle texture files (PNG, JPG, TGA, DDS)
 	else if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "tga" || fileExtension == "dds") {
-		ApplyTextureToSelectedObject(path);
+		destPath = std::string(Paths::TEXTURE_ASSETS_DIR) + '/' + file;
+		finalDestPath = CopyFileToAssets(path, destPath.c_str(), file);
+		ApplyTextureToSelectedObject(finalDestPath);
 	}
 	else {
 		LOG("WARNING: Unsupported file type: %s", fileExtension.c_str());
 	}
+
+	
 }
 
-void Input::ImportModelFile(const std::string& modelPath) {
-	auto modelImporter = Application::GetInstance().importer->modelImporter;
-
-	// ImportScene returns the root GameObject and adds it to sceneObjects
-	auto rootGameObject = modelImporter->ImportScene(modelPath.c_str());
-
-	if (!rootGameObject) {
-		LOG("ERROR: Failed to import model from: %s", modelPath.c_str());
-		return;
+std::string Input::CopyFileToAssets(const std::string sourcePath, const char* destPath, const std::string file)
+{
+	if (!fs->ExistsInSubDirectories(destPath, file.c_str())) {
+		fs->CopyFile(sourcePath.c_str(), destPath);
+		return destPath;
 	}
-
-	LOG("Successfully imported model: %s", rootGameObject->GetName().c_str());
+	else {
+		return sourcePath;
+	}
+	
 }
+
+
 
 void Input::ApplyTextureToSelectedObject(const std::string& texturePath) {
 	GUIManager* guiManager = Application::GetInstance().guiManager.get();
