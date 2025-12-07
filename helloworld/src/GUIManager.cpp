@@ -164,6 +164,15 @@ bool GUIManager::Update(float dt)
 		}
 		resourceDeleteQueue.clear();
 	}
+
+	//process file deletion
+	if (!fileDeleteQueue.empty()) {
+		for (const std::string& filePath : fileDeleteQueue) {
+			//delete the file/folder directly
+			Application::GetInstance().fileSystem->DeleteFile(filePath.c_str());
+		}
+		fileDeleteQueue.clear();
+	}
 	
 	Application::GetInstance().sceneManager.get()->GetActiveScene()->CleanUpDestroyedObjects();
 

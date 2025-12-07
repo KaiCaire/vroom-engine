@@ -511,9 +511,6 @@ void GUIElement::AssetsViewerSetUp(bool* show) {
 		return;
 	}
 
-	//get resources
-	auto& resourceManager = Application::GetInstance().resourceManager;
-	const auto& resources = resourceManager->GetAllResources();
 	GUIManager* manager = Application::GetInstance().guiManager.get();
 
 	//search bar
@@ -521,100 +518,92 @@ void GUIElement::AssetsViewerSetUp(bool* show) {
 	ImGui::SameLine();
 	ImGui::InputText("##search", manager->assetSearchBuffer, IM_ARRAYSIZE(manager->assetSearchBuffer));
 
-	//case sensitive 
-	std::string search_text = manager->assetSearchBuffer;
-	std::transform(search_text.begin(), search_text.end(), search_text.begin(), ::tolower);
-
-	//filters
-	ImGui::SameLine();
-	const char* resourceTypes[] = { "All", "Mesh", "Scene", "Texture", "Material", "Shader", "Audio" };
-	ImGui::Combo("Filter by Type", &manager->selectedFilterType, resourceTypes, IM_ARRAYSIZE(resourceTypes));
-
 	ImGui::Separator();
-	ImGui::Text("Total Managed Resources: %zu", resources.size());
-	ImGui::Separator();
+	ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 15.0f);
 
-	//counter for visible assets
-	int filteredCount = 0;
+	if (ImGui::TreeNodeEx("Assets", ImGuiTreeNodeFlags_DefaultOpen)) {
+		//recursion
+		DrawAssetTreeNode("../Assets");
+		ImGui::TreePop();
+	}
+	ImGui::PopStyleVar();
 
-	//column set up
-	if (ImGui::BeginTable("ResourcesTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit)) {
-		ImGui::TableSetupColumn("Type");
-		ImGui::TableSetupColumn("Name");
-		ImGui::TableSetupColumn("UUID");
-		ImGui::TableSetupColumn("Refs");
-		ImGui::TableHeadersRow();
-
-		for (const auto& pair : resources) {
-			const auto& resource = pair.second;
-
-			//filters applied?
-			if (manager->selectedFilterType != 0) {
-				std::string resourceTypeStr = Resource::GetTypeString(resource->GetType());
-				if (resourceTypeStr != resourceTypes[manager->selectedFilterType]) {
-					continue; //skip if not part of filter
-				}
-			}
-
-			//search applied?
-			if (!search_text.empty()) {
-				std::string resourceNameLower = resource->GetName();
-				std::transform(resourceNameLower.begin(), resourceNameLower.end(), resourceNameLower.begin(), ::tolower);
-
-				if (resourceNameLower.find(search_text) == std::string::npos) {
-					continue; //skip if name doesnt match search
-				}
-			}
-
-			//if search and/or filters apply -> increment counter + draw column
-			filteredCount++;
-
-			ImGui::TableNextRow();
-			ImGui::PushID((void*)pair.first);
-
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Selectable("##row_selectable", false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap);
-
-			//right click
-			if (ImGui::BeginPopupContextItem()) {
-				if (ImGui::MenuItem("Delete Asset")) {
-					Application::GetInstance().guiManager->resourceDeleteQueue.push_back(pair.first);
-				}
-				ImGui::EndPopup();
-			}
-			ImGui::TableSetColumnIndex(0);
-
-			//type
-			ImGui::Text("%s", Resource::GetTypeString(resource->GetType()).c_str());
-
-			//name
-			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%s", resource->GetName().c_str());
-
-			//UUID
-			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%llu", resource->GetUUID());
-
-			//reference count
-			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%d", resource->GetReferenceCount());
-
-			ImGui::PopID();
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			//Handled in process events
 		}
-
-		ImGui::EndTable();
-	}
-
-	//if counter = 0 -> no search/filter results found
-	if (resources.size() > 0 && filteredCount == 0) {
-		ImGui::NewLine();
-		ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "No results found.");
-	}
-	//if resources = 0 -> there are no assets
-	else if (resources.size() == 0) {
-		ImGui::NewLine();
-		ImGui::Text("No assets are currently managed.");
+		ImGui::EndDragDropTarget();
 	}
 
 	ImGui::End();
+}
+
+void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
+	//get search state
+	GUIManager* manager = Application::GetInstance().guiManager.get();
+	std::string search_text = manager->assetSearchBuffer;
+	std::transform(search_text.begin(), search_text.end(), search_text.begin(), ::tolower);
+
+	//get directory contents
+	auto entries = Application::GetInstance().fileSystem->GetDirectoryContents(directoryPath.c_str());
+
+	for (const auto& entry : entries) {
+		//check search
+		if (!search_text.empty()) {
+			std::string entryNameLower = entry.name;
+			std::transform(entryNameLower.begin(), entryNameLower.end(), entryNameLower.begin(), ::tolower);
+
+			//skip if the current item doesnt match and not a directory 
+			if (entryNameLower.find(search_text) == std::string::npos && !entry.isDirectory) {
+				continue;
+			}
+		}
+
+		ImGui::PushID(entry.fullPath.c_str());
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+		if (!entry.isDirectory) {
+			//file doesnt expand
+			flags |= ImGuiTreeNodeFlags_Leaf;
+		}
+
+		//draw node
+		bool opened = ImGui::TreeNodeEx(entry.name.c_str(), flags);
+
+		if (ImGui::BeginPopupContextItem()) {
+			if (ImGui::MenuItem("Delete")) {
+				std::string metaPath = entry.fullPath + ".meta";
+
+				if (entry.isDirectory || !Application::GetInstance().fileSystem->Exists(metaPath.c_str())) {
+					//delete file
+					Application::GetInstance().guiManager->fileDeleteQueue.push_back(entry.fullPath);
+				}
+				else {
+					//delete resource
+					VroomUUID uuid = Application::GetInstance().fileSystem->GetUUIDFromMeta(metaPath.c_str());
+					Application::GetInstance().guiManager->resourceDeleteQueue.push_back(uuid);
+				}
+			}
+			ImGui::EndPopup();
+		}
+
+		//dragging
+		if (!entry.isDirectory && ImGui::BeginDragDropSource()) {
+			ImGui::SetDragDropPayload("ASSET_PATH", entry.fullPath.c_str(), entry.fullPath.length() + 1);
+			ImGui::Text("%s", entry.name.c_str());
+			ImGui::EndDragDropSource();
+		}
+
+		//recursion loop
+		if (entry.isDirectory) {
+			if (opened) {
+				DrawAssetTreeNode(entry.fullPath);
+				ImGui::TreePop();
+			}
+		}
+		else {
+			if (opened) ImGui::TreePop(); 
+		}
+
+		ImGui::PopID();
+	}
 }

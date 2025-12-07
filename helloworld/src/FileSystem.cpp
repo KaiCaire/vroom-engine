@@ -353,3 +353,55 @@ bool FileSystem::CopyFile(const char* src, const char* dest) {
 	return true;
 }
 
+std::vector<FileEntry> FileSystem::GetDirectoryContents(const char* directory) {
+	std::vector<FileEntry> entries;
+	std::filesystem::path root(directory);
+
+	if (!std::filesystem::exists(root) || !std::filesystem::is_directory(root)) {
+		return entries;
+	}
+
+	try {
+		for (const auto& entry : std::filesystem::directory_iterator(root)) {
+			FileEntry fe;
+			fe.fullPath = NormalizePath(entry.path().string().c_str());
+			fe.name = entry.path().filename().string();
+			fe.isDirectory = entry.is_directory();
+
+			//skip hidden files
+			if (fe.name.front() == '.') continue;
+
+			//skip meta files 
+			if (fe.name.find(".meta") != std::string::npos) continue;
+
+			//skip other unwanted files
+			if (!fe.isDirectory) {
+				std::string nameLower = fe.name;
+				std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
+
+				if (nameLower.find(".js") != std::string::npos ||
+					nameLower.find(".html") != std::string::npos ||
+					nameLower.find(".cmake") != std::string::npos ||
+					nameLower.find(".pdb") != std::string::npos ||
+					nameLower.find(".vcxproj") != std::string::npos) {
+					continue;
+				}
+			}
+
+			entries.push_back(fe);
+		}
+	}
+	catch (const std::exception& e) {
+		LOG("Error during directory iteration: %s", e.what());
+	}
+
+	std::sort(entries.begin(), entries.end(), [](const FileEntry& a, const FileEntry& b) {
+		if (a.isDirectory != b.isDirectory) {
+			return a.isDirectory > b.isDirectory;
+		}
+		return a.name < b.name;
+		});
+
+	return entries;
+}
+

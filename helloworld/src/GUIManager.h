@@ -87,6 +87,7 @@ public:
 
 	//queued resources for deletion
 	std::vector<VroomUUID> resourceDeleteQueue;
+	std::vector<std::string> fileDeleteQueue;
 
 	//for search bar and filters
 	char assetSearchBuffer[256] = "";     

@@ -7,7 +7,11 @@
 #include <chrono>
 #include <filesystem>
 
-
+struct FileEntry {
+	std::string fullPath;
+	std::string name;
+	bool isDirectory;
+};
 
 class FileSystem : public Module {
 
@@ -38,6 +42,7 @@ public:
 	bool NeedsReimport(const char* metaPath, const char* sourceFilePath);
 
 	//assets viewer functions
+	std::vector<FileEntry> GetDirectoryContents(const char* directory);
 	std::vector<std::string> IterateAssetsRecursive(const char* directory);
 	bool DeleteFile(const char* path);
 	bool CopyFile(const char* src, const char* dest);
