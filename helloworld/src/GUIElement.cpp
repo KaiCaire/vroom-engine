@@ -8,6 +8,7 @@
 #include "OpenGL.h"
 #include "ModelImporter.h"
 #include "SceneManager.h"
+#include "Input.h"
 
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
@@ -678,34 +679,7 @@ void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
 }
 
 void GUIElement::InstantiateAsset(const std::string& assetPath) {
-	//check file type
-	std::string extension = Application::GetInstance().fileSystem->GetExtensionFromPath(assetPath.c_str());
-
-	//check if model
-	if (extension == "fbx" || extension == "obj" || extension == "dae" || extension == "max") {
-		LOG("Instantiating model from asset path: %s", assetPath.c_str());
-
-		//add model to active scene
-		//std::shared_ptr<GameObject> newRoot = Application::GetInstance().importer->modelImporter->ImportScene(assetPath.c_str());
-		std::shared_ptr<Resource> rootAsset = Application::GetInstance().resourceManager->RequestResource(assetPath);
-		if (!rootAsset) {
-			LOG("ERROR: Failed to register root asset for instantiation: %s", assetPath.c_str());
-			return;
-		}
-
-		std::shared_ptr<GameObject> newRoot = Application::GetInstance().importer->modelImporter->ImportScene(assetPath.c_str());
-
-		if (newRoot) {
-			LOG("Successfully instantiated model '%s' in scene.", newRoot->GetName().c_str());
-			manager->selectedObject = newRoot;
-		}
-		else {
-			LOG("ERROR: Failed to instantiate model from asset path: %s", assetPath.c_str());
-		}
-	}
-	else {
-		LOG("WARNING: Dropped asset type (%s) cannot be instantiated in the scene.", extension.c_str());
-	}
+	Application::GetInstance().input.get()->ProcessDroppedFile(assetPath);
 }
 
 void GUIElement::ApplyTextureToSelection(const std::string& assetPath) {
