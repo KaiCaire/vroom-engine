@@ -62,6 +62,9 @@ public:
 	//queue object for deletion
 	void AddToDeleteQueue(const std::shared_ptr<GameObject>& obj);
 
+	//add file to asset viewer
+	void HandleExternalFileDrop(const std::string& sourceOSPath);
+
 	/*void RefreshGUIHierarchy();*/
 
 private:
@@ -92,6 +95,9 @@ public:
 	//for search bar and filters
 	char assetSearchBuffer[256] = "";     
 	int selectedFilterType = 0;
+
+	//check if asset viewer is hovered
+	bool assetsViewerIsHovered = false;
 
 	bool drawFaceNormals = false;
 	bool drawVertNormals = false;

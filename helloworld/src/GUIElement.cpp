@@ -535,6 +535,8 @@ void GUIElement::AssetsViewerSetUp(bool* show) {
 	}
 
 	GUIManager* manager = Application::GetInstance().guiManager.get();
+	//check if mouse is hovering on the viewer window
+	manager->assetsViewerIsHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
 
 	//search bar
 	ImGui::Text("Search:");

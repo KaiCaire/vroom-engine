@@ -156,9 +156,15 @@ bool Input::PreUpdate()
 
 		case SDL_EVENT_DROP_FILE:
 			/*windowID = Application::GetInstance().window.get()->GetWindowID();*/
-			droppedFileDir = event.drop.data;
 
-			ProcessDroppedFile(droppedFileDir);
+			droppedFileDir = event.drop.data;
+			//check if asset viewer is hovered to only add to folder 
+			if (Application::GetInstance().guiManager.get()->assetsViewerIsHovered) {
+				Application::GetInstance().guiManager.get()->HandleExternalFileDrop(droppedFileDir);
+			}
+			else {
+				ProcessDroppedFile(droppedFileDir);
+			}
 					
 			//not needed in SDL3, the new allocated memory created  gets freed automatically
 			/*SDL_free(&droppedFileDir);*/

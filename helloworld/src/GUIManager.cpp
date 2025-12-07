@@ -343,6 +343,26 @@ void GUIManager::ProcessEvents(SDL_Event event) {
 	ImGui_ImplSDL3_ProcessEvent(&event);
 }
 
+void GUIManager::HandleExternalFileDrop(const std::string& sourceOSPath) {
+	std::string fileName = Application::GetInstance().fileSystem->GetFileFromPath(sourceOSPath.c_str());
+	std::string targetDir = "../Assets";
+
+	//build path
+	std::string targetPath = targetDir + "/" + fileName;
+
+	Application::GetInstance().fileSystem->CreateDir(targetDir.c_str());
+
+	//copy file
+	if (Application::GetInstance().fileSystem->CopyFile(sourceOSPath.c_str(), targetPath.c_str())) {
+		std::string assetRelativePath = "Assets/" + fileName; 
+		Application::GetInstance().resourceManager->RequestResource(assetRelativePath);
+		LOG("External file '%s' successfully copied to Assets/ and imported.", fileName.c_str());
+	}
+	else {
+		LOG("ERROR: Failed to copy file %s to Assets/ folder.", fileName.c_str());
+	}
+}
+
 bool GUIManager::PostUpdate()
 {
 	//Render
