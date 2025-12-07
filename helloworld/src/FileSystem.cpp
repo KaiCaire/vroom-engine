@@ -91,17 +91,19 @@ void FileSystem::SaveJSON(const char* path, const nlohmann::json& json_to_save) 
 
 }
 
-void FileSystem::CopyFile(const char* src, const char* dest)
+bool FileSystem::CopyFile(const char* src, const char* dest)
 {
 	try
 	{
 		/*std::filesystem::create_directories(std::filesystem::path(dest).parent_path());*/
 
 		std::filesystem::copy_file(src, dest);
+		return true;
 	}
 	catch (const std::filesystem::filesystem_error& e)
 	{
 		LOG("Copy failed: %s (%s -> %s)", e.what(), src, dest);
+		return false;
 	}
 }
 
@@ -349,23 +351,23 @@ bool FileSystem::DeleteFile(const char* path) {
 	return false;
 }
 
-bool FileSystem::CopyFile(const char* src, const char* dest) {
-	if (!Exists(src)) {
-		LOG("ERROR: Source file for copy does not exist: %s", src);
-		return false;
-	}
-
-	std::error_code ec;
-	//copy file
-	std::filesystem::copy_file(src, dest, std::filesystem::copy_options::overwrite_existing, ec);
-
-	if (ec) {
-		LOG("ERROR: Failed to copy file from %s to %s. Reason: %s", src, dest, ec.message().c_str());
-		return false;
-	}
-	LOG("Successfully copied file to %s", dest);
-	return true;
-}
+//bool FileSystem::CopyFile(const char* src, const char* dest) {
+//	if (!Exists(src)) {
+//		LOG("ERROR: Source file for copy does not exist: %s", src);
+//		return false;
+//	}
+//
+//	std::error_code ec;
+//	//copy file
+//	std::filesystem::copy_file(src, dest, std::filesystem::copy_options::overwrite_existing, ec);
+//
+//	if (ec) {
+//		LOG("ERROR: Failed to copy file from %s to %s. Reason: %s", src, dest, ec.message().c_str());
+//		return false;
+//	}
+//	LOG("Successfully copied file to %s", dest);
+//	return true;
+//}
 
 std::vector<FileEntry> FileSystem::GetDirectoryContents(const char* directory) {
 	std::vector<FileEntry> entries;
