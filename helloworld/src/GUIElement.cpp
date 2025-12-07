@@ -314,6 +314,17 @@ void GUIElement::HierarchySetUp(bool* show)
 		return;
 	}
 
+	//drag and drop target
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			std::string droppedPath((const char*)payload->Data);
+
+			//handle instantiation
+			InstantiateAsset(droppedPath);
+		}
+		ImGui::EndDragDropTarget();
+	}
+
 	//create objects (minim cube)
 	if (ImGui::BeginMenu("Create...")) {
 		if (ImGui::MenuItem("Empty")) {
@@ -399,6 +410,18 @@ void GUIElement::InspectorSetUp(bool* show)
 		return;
 	}
 
+	//drag and drop
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			//check if an object is selected
+			if (manager->selectedObject) {
+				std::string droppedPath((const char*)payload->Data);
+				ApplyTextureToSelection(droppedPath); 
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
+
 	//check if a game object is selected
 	auto selected = manager->selectedObject;
 
@@ -441,7 +464,7 @@ void GUIElement::InspectorSetUp(bool* show)
 			if(mesh) textureComponent = mesh.get()->textures;
 
 			//check if header is open
-			if (ImGui::CollapsingHeader("Mesh")) {
+			if (ImGui::CollapsingHeader("Mesh") && mesh) {
 				//get values
 				/*std::shared_ptr<ResourceMesh> mesh = meshComponent.get()->GetMesh();*/
 				std::vector<Vertex> vert = mesh.get()->vertices;
@@ -456,7 +479,7 @@ void GUIElement::InspectorSetUp(bool* show)
 				ImGui::Checkbox("Show Face Normals", &mesh.get()->drawVertNormals);
 			}
 			//texture
-			if (ImGui::CollapsingHeader("Texture")) {
+			if (ImGui::CollapsingHeader("Texture") && mesh) {
 				auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
 					selected->GetComponent(ComponentType::MATERIAL)
 				);
@@ -511,44 +534,223 @@ void GUIElement::AssetsViewerSetUp(bool* show) {
 		return;
 	}
 
-	//get resources
-	auto& resourceManager = Application::GetInstance().resourceManager;
-	const auto& resources = resourceManager->GetAllResources();
+	GUIManager* manager = Application::GetInstance().guiManager.get();
+	//check if mouse is hovering on the viewer window
+	manager->assetsViewerIsHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
 
-	ImGui::Text("Total Managed Resources: %zu", resources.size());
+	//search bar
+	ImGui::Text("Search:");
+	ImGui::SameLine();
+	ImGui::InputText("##search", manager->assetSearchBuffer, IM_ARRAYSIZE(manager->assetSearchBuffer));
+
 	ImGui::Separator();
+	ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 15.0f);
 
-	//column set up
-	if (ImGui::BeginTable("ResourcesTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit)) {
-		ImGui::TableSetupColumn("Type");
-		ImGui::TableSetupColumn("Name");
-		ImGui::TableSetupColumn("UUID");
-		ImGui::TableSetupColumn("Refs");
-		ImGui::TableHeadersRow();
+	if (ImGui::TreeNodeEx("Assets", ImGuiTreeNodeFlags_DefaultOpen)) {
+		//recursion
+		DrawAssetTreeNode("../Assets");
+		ImGui::TreePop();
+	}
+	ImGui::PopStyleVar();
 
-		for (const auto& pair : resources) {
-			const auto& resource = pair.second;
-			ImGui::TableNextRow();
-
-			//type
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%s", Resource::GetTypeString(resource->GetType()).c_str());
-
-			//name
-			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%s", resource->GetName().c_str());
-
-			//UUID
-			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%llu", resource->GetUUID());
-
-			//reference count
-			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%d", resource->GetReferenceCount());
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			//Handled in process events
 		}
-
-		ImGui::EndTable();
+		ImGui::EndDragDropTarget();
 	}
 
 	ImGui::End();
+}
+
+void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
+	//get search state
+	GUIManager* manager = Application::GetInstance().guiManager.get();
+	std::string search_text = manager->assetSearchBuffer;
+	std::transform(search_text.begin(), search_text.end(), search_text.begin(), ::tolower);
+
+	//get directory contents
+	auto entries = Application::GetInstance().fileSystem->GetDirectoryContents(directoryPath.c_str());
+
+	for (const auto& entry : entries) {
+		//check search
+		if (!search_text.empty()) {
+			std::string entryNameLower = entry.name;
+			std::transform(entryNameLower.begin(), entryNameLower.end(), entryNameLower.begin(), ::tolower);
+
+			//skip if the current item doesnt match and not a directory 
+			if (entryNameLower.find(search_text) == std::string::npos && !entry.isDirectory) {
+				continue;
+			}
+		}
+
+		bool is_file = !entry.isDirectory;
+		ImGui::PushID(entry.fullPath.c_str());
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+		if (!entry.isDirectory) {
+			//file doesnt expand
+			flags |= ImGuiTreeNodeFlags_Leaf;
+		}
+
+		std::string displayName = entry.name;
+		if (is_file) {
+			std::string metaPath = entry.fullPath + ".meta";
+			if (Application::GetInstance().fileSystem->Exists(metaPath.c_str())) {
+				VroomUUID uuid = Application::GetInstance().fileSystem->GetUUIDFromMeta(metaPath.c_str());
+
+				if (uuid != 0) {
+					std::shared_ptr<Resource> managedResource = Application::GetInstance().resourceManager->GetResourceByUUID(uuid);
+
+					if (managedResource) {
+						displayName = entry.name + " (Refs: " + std::to_string(managedResource->GetReferenceCount()) + ")";
+					}
+				}
+			}
+		}
+
+		//draw node
+		bool opened = ImGui::TreeNodeEx(displayName.c_str(), flags);
+
+		if (ImGui::BeginPopupContextItem()) {
+			if (ImGui::MenuItem("Delete")) {
+				std::string metaPath = entry.fullPath + ".meta";
+
+				if (entry.isDirectory || !Application::GetInstance().fileSystem->Exists(metaPath.c_str())) {
+					//delete file
+					Application::GetInstance().guiManager->fileDeleteQueue.push_back(entry.fullPath);
+				}
+				else {
+					//delete resource
+					VroomUUID uuid = Application::GetInstance().fileSystem->GetUUIDFromMeta(metaPath.c_str());
+					Application::GetInstance().guiManager->resourceDeleteQueue.push_back(uuid);
+				}
+			}
+			ImGui::EndPopup();
+		}
+
+		//drag and drop organization
+		if (entry.isDirectory && ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+
+				std::string draggedAssetPath((const char*)payload->Data);
+
+				std::string assetFileName = Application::GetInstance().fileSystem->GetFileFromPath(draggedAssetPath.c_str());
+				std::string newDirectoryPath = entry.fullPath;
+
+				//create new path
+				std::string newAssetPath = newDirectoryPath + "/" + assetFileName;
+
+				//find uuid
+				std::string draggedMetaPath = draggedAssetPath + ".meta";
+				if (Application::GetInstance().fileSystem->Exists(draggedMetaPath.c_str())) {
+					VroomUUID uuid = Application::GetInstance().fileSystem->GetUUIDFromMeta(draggedMetaPath.c_str());
+
+					//move the asset
+					Application::GetInstance().resourceManager->MoveAsset(uuid, newAssetPath);
+				}
+				else {
+					Application::GetInstance().fileSystem->MoveFileToNewPath(draggedAssetPath.c_str(), newAssetPath.c_str());
+				}
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		//dragging
+		if (!entry.isDirectory && ImGui::BeginDragDropSource()) {
+			ImGui::SetDragDropPayload("ASSET_PATH", entry.fullPath.c_str(), entry.fullPath.length() + 1);
+			ImGui::Text("%s", entry.name.c_str());
+			ImGui::EndDragDropSource();
+		}
+
+		//recursion loop
+		if (entry.isDirectory) {
+			if (opened) {
+				DrawAssetTreeNode(entry.fullPath);
+				ImGui::TreePop();
+			}
+		}
+		else {
+			if (opened) ImGui::TreePop(); 
+		}
+
+		ImGui::PopID();
+	}
+}
+
+void GUIElement::InstantiateAsset(const std::string& assetPath) {
+	//check file type
+	std::string extension = Application::GetInstance().fileSystem->GetExtensionFromPath(assetPath.c_str());
+
+	//check if model
+	if (extension == "fbx" || extension == "obj" || extension == "dae" || extension == "max") {
+		LOG("Instantiating model from asset path: %s", assetPath.c_str());
+
+		//add model to active scene
+		//std::shared_ptr<GameObject> newRoot = Application::GetInstance().importer->modelImporter->ImportScene(assetPath.c_str());
+		std::shared_ptr<Resource> rootAsset = Application::GetInstance().resourceManager->RequestResource(assetPath);
+		if (!rootAsset) {
+			LOG("ERROR: Failed to register root asset for instantiation: %s", assetPath.c_str());
+			return;
+		}
+
+		std::shared_ptr<GameObject> newRoot = Application::GetInstance().importer->modelImporter->ImportScene(assetPath.c_str());
+
+		if (newRoot) {
+			LOG("Successfully instantiated model '%s' in scene.", newRoot->GetName().c_str());
+			manager->selectedObject = newRoot;
+		}
+		else {
+			LOG("ERROR: Failed to instantiate model from asset path: %s", assetPath.c_str());
+		}
+	}
+	else {
+		LOG("WARNING: Dropped asset type (%s) cannot be instantiated in the scene.", extension.c_str());
+	}
+}
+
+void GUIElement::ApplyTextureToSelection(const std::string& assetPath) {
+	//make sure an object is selected
+	auto go = manager->selectedObject;
+	if (!go) {
+		LOG("WARNING: Cannot apply texture - no GameObject selected.");
+		return;
+	}
+
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
+	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER));
+
+	//make sure needed components are available
+	if (!materialComp || !renderComp || !renderComp->GetMesh()) {
+		LOG("WARNING: GameObject '%s' cannot accept texture (missing Material or Mesh component).", go->GetName().c_str());
+		return;
+	}
+
+	auto mesh = renderComp->GetMesh();
+
+	//request resource
+	std::shared_ptr<Resource> resource = Application::GetInstance().resourceManager->RequestResource(assetPath);
+	std::shared_ptr<ResourceTexture> newTex = std::dynamic_pointer_cast<ResourceTexture>(resource);
+
+	if (newTex) {
+		//apply to MaterialComponent for inspector
+		materialComp->SetDiffuseMap(newTex);
+
+		//apply to ResourceMesh for rendering
+		if (mesh->textures.empty()) {
+			mesh->textures.push_back(newTex);
+		}
+		else {
+			mesh->textures[0] = newTex;
+		}
+
+		auto it = manager->originalTextures.find(go);
+		if (it != manager->originalTextures.end()) {
+			manager->originalTextures.erase(it);
+		}
+
+		LOG("SUCCESS: Applied texture '%s' to GameObject '%s'.", newTex->GetName().c_str(), go->GetName().c_str());
+	}
+	else {
+		LOG("ERROR: Failed to load/cast texture from path: %s", assetPath.c_str());
+	}
 }

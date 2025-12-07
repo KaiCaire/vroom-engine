@@ -143,7 +143,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
 
     resUUID = ImportFile(normalizedPath, type);
     // Return the now-loaded resource
-    return FindResource(resUUID);
+    return GetResourceByUUID(resUUID);
 }
 
 VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type) {
@@ -234,20 +234,20 @@ void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource)
     LOG("Registered resource (UUID: %llu, Name: %s)", uuid, resource->GetName().c_str());
 }
 
-std::shared_ptr<Resource> ResourceManager::FindResource(VroomUUID uuid) {
+std::shared_ptr<Resource> ResourceManager::GetResourceByUUID(VroomUUID uuid) {
     auto it = resources.find(uuid);
     return (it != resources.end()) ? it->second : nullptr;
 }
 
 void ResourceManager::AddReference(VroomUUID uuid) {
-    auto resource = FindResource(uuid);
+    auto resource = GetResourceByUUID(uuid);
     if (resource) {
         resource->AddReference();
     }
 }
 
 void ResourceManager::RemoveReference(VroomUUID uuid) {
-    auto resource = FindResource(uuid);
+    auto resource = GetResourceByUUID(uuid);
     if (resource) {
         resource->RemoveReference();
     }
@@ -500,4 +500,69 @@ ResourceType ResourceManager::DetermineResourceType(const std::string& assetsPat
     }
 
     return ResourceType::UNKNOWN;
+}
+
+bool ResourceManager::DeleteResource(VroomUUID uuid) {
+    auto it = resources.find(uuid);
+    if (it == resources.end()) {
+        LOG("WARNING: Tried to delete unmanaged resource UUID %llu", uuid);
+        return true;
+    }
+
+    std::shared_ptr<Resource> resource = it->second;
+
+    //unload from gpu
+    resource->FreeMemory();
+    resources.erase(it);
+
+    //delete files
+    bool success = true;
+    if (!fs->DeleteFile(resource->GetLibraryFilePath())) {
+        success = false;
+    }
+    if (!fs->DeleteFile(resource->GetAssetFilePath())) {
+        success = false;
+    }
+    std::string metaPath = std::string(resource->GetAssetFilePath()) + ".meta";
+    if (!fs->DeleteFile(metaPath.c_str())) {
+        success = false;
+    }
+
+    if (success) LOG("Successfully deleted resource: %s", resource->GetName().c_str());
+    else LOG("ERROR: Failed to delete all files for resource: %s", resource->GetName().c_str());
+ 
+    return success;
+}
+
+bool ResourceManager::MoveAsset(VroomUUID uuid, const std::string& newAssetPath) {
+    //find asset
+    std::shared_ptr<Resource> resource = GetResourceByUUID(uuid);
+    if (!resource) {
+        LOG("ERROR: Cannot move asset - resource not found for UUID %llu", uuid);
+        return false;
+    }
+
+    //get current path
+    std::string oldAssetPath = resource->GetAssetFilePath();
+    std::string oldMetaPath = oldAssetPath + ".meta";
+
+    //create the new path
+    std::string newMetaPath = newAssetPath + ".meta";
+
+    //move asset file
+    if (!fs->MoveFileToNewPath(oldAssetPath.c_str(), newAssetPath.c_str())) {
+        return false;
+    }
+
+    //move meta file
+    if (!fs->MoveFileToNewPath(oldMetaPath.c_str(), newMetaPath.c_str())) {
+        fs->MoveFileToNewPath(newAssetPath.c_str(), oldAssetPath.c_str());
+        LOG("ERROR: Failed to move meta file for %s. Reverting asset move.", resource->GetName().c_str());
+        return false;
+    }
+
+    resource->SetAssetFilePath(newAssetPath);
+
+    LOG("Asset moved successfully: %s -> %s", oldAssetPath.c_str(), newAssetPath.c_str());
+    return true;
 }

@@ -333,3 +333,108 @@ std::vector<std::string> FileSystem::IterateAssetsRecursive(const char* director
 	
 }
 
+bool FileSystem::DeleteFile(const char* path) {
+	//check if file path exists
+	if (!Exists(path)) {
+		LOG("WARNING: Cannot delete file %s - does not exist.", path);
+		return true; 
+	}
+
+	std::error_code ec;
+	if (std::filesystem::remove(path, ec)) {
+		LOG("Deleted file: %s", path);
+		return true;
+	}
+	LOG("ERROR: Failed to delete file %s. Reason: %s", path, ec.message().c_str());
+	return false;
+}
+
+bool FileSystem::CopyFile(const char* src, const char* dest) {
+	if (!Exists(src)) {
+		LOG("ERROR: Source file for copy does not exist: %s", src);
+		return false;
+	}
+
+	std::error_code ec;
+	//copy file
+	std::filesystem::copy_file(src, dest, std::filesystem::copy_options::overwrite_existing, ec);
+
+	if (ec) {
+		LOG("ERROR: Failed to copy file from %s to %s. Reason: %s", src, dest, ec.message().c_str());
+		return false;
+	}
+	LOG("Successfully copied file to %s", dest);
+	return true;
+}
+
+std::vector<FileEntry> FileSystem::GetDirectoryContents(const char* directory) {
+	std::vector<FileEntry> entries;
+	std::filesystem::path root(directory);
+
+	if (!std::filesystem::exists(root) || !std::filesystem::is_directory(root)) {
+		return entries;
+	}
+
+	try {
+		for (const auto& entry : std::filesystem::directory_iterator(root)) {
+			FileEntry fe;
+			fe.fullPath = NormalizePath(entry.path().string().c_str());
+			fe.name = entry.path().filename().string();
+			fe.isDirectory = entry.is_directory();
+
+			//skip hidden files
+			if (fe.name.front() == '.') continue;
+
+			//skip meta files 
+			if (fe.name.find(".meta") != std::string::npos) continue;
+
+			//skip other unwanted files
+			if (!fe.isDirectory) {
+				std::string nameLower = fe.name;
+				std::transform(nameLower.begin(), nameLower.end(), nameLower.begin(), ::tolower);
+
+				if (nameLower.find(".js") != std::string::npos ||
+					nameLower.find(".html") != std::string::npos ||
+					nameLower.find(".cmake") != std::string::npos ||
+					nameLower.find(".pdb") != std::string::npos ||
+					nameLower.find(".vcxproj") != std::string::npos) {
+					continue;
+				}
+			}
+
+			entries.push_back(fe);
+		}
+	}
+	catch (const std::exception& e) {
+		LOG("Error during directory iteration: %s", e.what());
+	}
+
+	std::sort(entries.begin(), entries.end(), [](const FileEntry& a, const FileEntry& b) {
+		if (a.isDirectory != b.isDirectory) {
+			return a.isDirectory > b.isDirectory;
+		}
+		return a.name < b.name;
+		});
+
+	return entries;
+}
+
+bool FileSystem::MoveFileToNewPath(const char* oldPath, const char* newPath) {
+	//check if path exists
+	if (!Exists(oldPath)) {
+		LOG("ERROR: Cannot move file - source does not exist: %s", oldPath);
+		return false;
+	}
+
+	std::error_code ec;
+	//move file
+	std::filesystem::rename(oldPath, newPath, ec);
+
+	if (ec) {
+		LOG("ERROR: Failed to move/rename %s to %s. Reason: %s", oldPath, newPath, ec.message().c_str());
+		return false;
+	}
+
+	LOG("Successfully moved file from %s to %s", oldPath, newPath);
+	return true;
+}
