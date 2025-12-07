@@ -61,6 +61,7 @@ public:
     const std::unordered_map<VroomUUID, std::shared_ptr<Resource>>& GetAllResources() const {
         return resources;
     }
+    bool DeleteResource(VroomUUID uuid);
     
 
 private:

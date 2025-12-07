@@ -85,6 +85,9 @@ public:
 
 	std::map<std::shared_ptr<GameObject>, std::shared_ptr<ResourceTexture>> originalTextures;
 
+	//queued resources for deletion
+	std::vector<VroomUUID> resourceDeleteQueue;
+
 	bool drawFaceNormals = false;
 	bool drawVertNormals = false;
 };

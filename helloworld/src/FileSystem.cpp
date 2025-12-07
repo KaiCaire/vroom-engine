@@ -319,3 +319,19 @@ std::vector<std::string> FileSystem::IterateAssetsRecursive(const char* director
 	
 }
 
+bool FileSystem::DeleteFile(const char* path) {
+	//check if file path exists
+	if (!Exists(path)) {
+		LOG("WARNING: Cannot delete file %s - does not exist.", path);
+		return true; 
+	}
+
+	std::error_code ec;
+	if (std::filesystem::remove(path, ec)) {
+		LOG("Deleted file: %s", path);
+		return true;
+	}
+	LOG("ERROR: Failed to delete file %s. Reason: %s", path, ec.message().c_str());
+	return false;
+}
+

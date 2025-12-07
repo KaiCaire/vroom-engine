@@ -156,6 +156,14 @@ bool GUIManager::Update(float dt)
 	for (GUIElement e : WindowElements) {
 		e.ElementSetUp();
 	}
+
+	//process resource deletion
+	if (!resourceDeleteQueue.empty()) {
+		for (VroomUUID uuid : resourceDeleteQueue) {
+			Application::GetInstance().resourceManager->DeleteResource(uuid);
+		}
+		resourceDeleteQueue.clear();
+	}
 	
 	Application::GetInstance().sceneManager.get()->GetActiveScene()->CleanUpDestroyedObjects();
 

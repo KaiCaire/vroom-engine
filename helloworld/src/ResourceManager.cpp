@@ -486,3 +486,35 @@ ResourceType ResourceManager::DetermineResourceType(const std::string& assetsPat
 
     return ResourceType::UNKNOWN;
 }
+
+bool ResourceManager::DeleteResource(VroomUUID uuid) {
+    auto it = resources.find(uuid);
+    if (it == resources.end()) {
+        LOG("WARNING: Tried to delete unmanaged resource UUID %llu", uuid);
+        return true;
+    }
+
+    std::shared_ptr<Resource> resource = it->second;
+
+    //unload from gpu
+    resource->FreeMemory();
+    resources.erase(it);
+
+    //delete files
+    bool success = true;
+    if (!fs->DeleteFile(resource->GetLibraryFilePath())) {
+        success = false;
+    }
+    if (!fs->DeleteFile(resource->GetAssetFilePath())) {
+        success = false;
+    }
+    std::string metaPath = std::string(resource->GetAssetFilePath()) + ".meta";
+    if (!fs->DeleteFile(metaPath.c_str())) {
+        success = false;
+    }
+
+    if (success) LOG("Successfully deleted resource: %s", resource->GetName().c_str());
+    else LOG("ERROR: Failed to delete all files for resource: %s", resource->GetName().c_str());
+ 
+    return success;
+}

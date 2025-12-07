@@ -441,7 +441,7 @@ void GUIElement::InspectorSetUp(bool* show)
 			if(mesh) textureComponent = mesh.get()->textures;
 
 			//check if header is open
-			if (ImGui::CollapsingHeader("Mesh")) {
+			if (ImGui::CollapsingHeader("Mesh") && mesh) {
 				//get values
 				/*std::shared_ptr<ResourceMesh> mesh = meshComponent.get()->GetMesh();*/
 				std::vector<Vertex> vert = mesh.get()->vertices;
@@ -456,7 +456,7 @@ void GUIElement::InspectorSetUp(bool* show)
 				ImGui::Checkbox("Show Face Normals", &mesh.get()->drawVertNormals);
 			}
 			//texture
-			if (ImGui::CollapsingHeader("Texture")) {
+			if (ImGui::CollapsingHeader("Texture") && mesh) {
 				auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
 					selected->GetComponent(ComponentType::MATERIAL)
 				);
@@ -529,9 +529,21 @@ void GUIElement::AssetsViewerSetUp(bool* show) {
 		for (const auto& pair : resources) {
 			const auto& resource = pair.second;
 			ImGui::TableNextRow();
+			ImGui::PushID((void*)pair.first);
+
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Selectable("##row_selectable", false, ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap);
+
+			//right click
+			if (ImGui::BeginPopupContextItem()) {
+				if (ImGui::MenuItem("Delete Asset")) {
+					Application::GetInstance().guiManager->resourceDeleteQueue.push_back(pair.first);
+				}
+				ImGui::EndPopup();
+			}
+			ImGui::TableSetColumnIndex(0);
 
 			//type
-			ImGui::TableSetColumnIndex(0);
 			ImGui::Text("%s", Resource::GetTypeString(resource->GetType()).c_str());
 
 			//name
@@ -545,6 +557,8 @@ void GUIElement::AssetsViewerSetUp(bool* show) {
 			//reference count
 			ImGui::TableSetColumnIndex(3);
 			ImGui::Text("%d", resource->GetReferenceCount());
+
+			ImGui::PopID();
 		}
 
 		ImGui::EndTable();
