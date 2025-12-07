@@ -47,6 +47,7 @@ public:
     void ProcessPan(float xoffset, float yoffset);
     void ProcessScrollZoom(float delta, bool isMouseScroll);
     void FocusObject(bool firstTime);
+    glm::vec3 GetWorldPosition() const { return cameraPos; }
 
 private:
     void RecalculateMatrices(int windowW, int windowH);
