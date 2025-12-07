@@ -338,13 +338,13 @@ void GUIElement::HierarchySetUp(bool* show)
 		return;
 	}
 
-	const auto& sceneObjects = scene->GetAllGameObjects();
+	const auto& sceneRoot = scene->GetRoot();
 
 	// Draw hierarchy
-	for (auto& obj : sceneObjects)
+	for (auto& child : sceneRoot->GetChildren())
 	{
-		if (obj && obj->IsActive() && !obj->GetParent()) 
-			DrawNode(obj, manager->selectedObject);
+		if (child && child->IsActive()) 
+			DrawNode(child, manager->selectedObject);
 	}
 
 	ImGui::End();

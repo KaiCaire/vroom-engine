@@ -210,6 +210,7 @@ void Render::DrawActiveScene(Shader& shader) {
 		if (!gameObject || !gameObject->IsActive() || gameObject->IsMarkedForDestroy()) {
 			continue;
 		}
+		
 
 		DrawGameObject(gameObject, shader);
 	}
