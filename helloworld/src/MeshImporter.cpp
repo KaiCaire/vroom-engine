@@ -32,8 +32,7 @@ std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene
     //        mesh->SetUUID(meshUUID);
     //        mesh->SetName(aiMesh->mName.C_Str());
     //        mesh->SetLibraryFilePath(libraryPath);
-    //        mesh->LoadBin();
-    //        mesh->LoadToGPU();
+
     //      
 
     //        LOG("Mesh loaded from cache successfully");
@@ -64,6 +63,7 @@ std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene
     mesh->SaveBin();
 
     Application::GetInstance().resourceManager->RegisterResource(mesh);
+    
 
     LOG("MeshImporter: Successfully imported '%s' (UUID: %llu)", mesh->GetName().c_str(), meshUUID);
 

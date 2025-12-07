@@ -211,6 +211,12 @@ void Render::DrawActiveScene(Shader& shader) {
 			continue;
 		}
 		
+		if (gameObject.get()->GetName() == "BakerHouse" ||  gameObject.get()->GetName() == "Chimney" || gameObject.get()->GetName() == "Baker_house") {
+			LOG("Attempting to draw BakerHouse");
+		}
+		if (gameObject.get()->GetName() == "Kadama") {
+			LOG("Attempting to draw Kodama");
+		}
 
 		DrawGameObject(gameObject, shader);
 	}

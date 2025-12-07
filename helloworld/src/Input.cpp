@@ -18,6 +18,8 @@
 #include "TextureImporter.h"
 #include "ResourceManager.h"
 #include "ResourceTexture.h"
+#include "SceneManager.h"
+
 
 #include "SDL3/SDL.h"
 #include <vector>
@@ -203,7 +205,8 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 
 	// Handle model files (FBX, OBJ)
 	if (fileExtension == "fbx" || fileExtension == "obj") {
-		ImportModelFile(path);
+		/*ImportModelFile(path);*/
+		Application::GetInstance().sceneManager.get()->GetActiveScene()->ImportModel(path);
 	}
 	// Handle texture files (PNG, JPG, TGA, DDS)
 	else if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "tga" || fileExtension == "dds") {

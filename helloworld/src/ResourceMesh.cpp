@@ -51,6 +51,10 @@ ResourceMesh::~ResourceMesh() {
 
 
 void ResourceMesh::LoadToGPU() {
+
+    /*if (isLoadedToGPU) 
+        LOG("Mesh with UUID %llu already loaded to GPU, skipping", GetUUID()); return;*/
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -81,6 +85,7 @@ void ResourceMesh::LoadToGPU() {
 }
 
 void ResourceMesh::Draw(Shader& shader) {
+
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
     unsigned int normalNr = 1;
