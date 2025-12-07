@@ -88,6 +88,10 @@ public:
 	//queued resources for deletion
 	std::vector<VroomUUID> resourceDeleteQueue;
 
+	//for search bar and filters
+	char assetSearchBuffer[256] = "";     
+	int selectedFilterType = 0;
+
 	bool drawFaceNormals = false;
 	bool drawVertNormals = false;
 };

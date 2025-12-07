@@ -335,3 +335,21 @@ bool FileSystem::DeleteFile(const char* path) {
 	return false;
 }
 
+bool FileSystem::CopyFile(const char* src, const char* dest) {
+	if (!Exists(src)) {
+		LOG("ERROR: Source file for copy does not exist: %s", src);
+		return false;
+	}
+
+	std::error_code ec;
+	//copy file
+	std::filesystem::copy_file(src, dest, std::filesystem::copy_options::overwrite_existing, ec);
+
+	if (ec) {
+		LOG("ERROR: Failed to copy file from %s to %s. Reason: %s", src, dest, ec.message().c_str());
+		return false;
+	}
+	LOG("Successfully copied file to %s", dest);
+	return true;
+}
+

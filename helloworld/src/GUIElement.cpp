@@ -514,9 +514,28 @@ void GUIElement::AssetsViewerSetUp(bool* show) {
 	//get resources
 	auto& resourceManager = Application::GetInstance().resourceManager;
 	const auto& resources = resourceManager->GetAllResources();
+	GUIManager* manager = Application::GetInstance().guiManager.get();
 
+	//search bar
+	ImGui::Text("Search:");
+	ImGui::SameLine();
+	ImGui::InputText("##search", manager->assetSearchBuffer, IM_ARRAYSIZE(manager->assetSearchBuffer));
+
+	//case sensitive 
+	std::string search_text = manager->assetSearchBuffer;
+	std::transform(search_text.begin(), search_text.end(), search_text.begin(), ::tolower);
+
+	//filters
+	ImGui::SameLine();
+	const char* resourceTypes[] = { "All", "Mesh", "Scene", "Texture", "Material", "Shader", "Audio" };
+	ImGui::Combo("Filter by Type", &manager->selectedFilterType, resourceTypes, IM_ARRAYSIZE(resourceTypes));
+
+	ImGui::Separator();
 	ImGui::Text("Total Managed Resources: %zu", resources.size());
 	ImGui::Separator();
+
+	//counter for visible assets
+	int filteredCount = 0;
 
 	//column set up
 	if (ImGui::BeginTable("ResourcesTable", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit)) {
@@ -528,6 +547,28 @@ void GUIElement::AssetsViewerSetUp(bool* show) {
 
 		for (const auto& pair : resources) {
 			const auto& resource = pair.second;
+
+			//filters applied?
+			if (manager->selectedFilterType != 0) {
+				std::string resourceTypeStr = Resource::GetTypeString(resource->GetType());
+				if (resourceTypeStr != resourceTypes[manager->selectedFilterType]) {
+					continue; //skip if not part of filter
+				}
+			}
+
+			//search applied?
+			if (!search_text.empty()) {
+				std::string resourceNameLower = resource->GetName();
+				std::transform(resourceNameLower.begin(), resourceNameLower.end(), resourceNameLower.begin(), ::tolower);
+
+				if (resourceNameLower.find(search_text) == std::string::npos) {
+					continue; //skip if name doesnt match search
+				}
+			}
+
+			//if search and/or filters apply -> increment counter + draw column
+			filteredCount++;
+
 			ImGui::TableNextRow();
 			ImGui::PushID((void*)pair.first);
 
@@ -562,6 +603,17 @@ void GUIElement::AssetsViewerSetUp(bool* show) {
 		}
 
 		ImGui::EndTable();
+	}
+
+	//if counter = 0 -> no search/filter results found
+	if (resources.size() > 0 && filteredCount == 0) {
+		ImGui::NewLine();
+		ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "No results found.");
+	}
+	//if resources = 0 -> there are no assets
+	else if (resources.size() == 0) {
+		ImGui::NewLine();
+		ImGui::Text("No assets are currently managed.");
 	}
 
 	ImGui::End();
