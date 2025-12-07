@@ -25,7 +25,8 @@ ResourceMesh::ResourceMesh(std::vector<Vertex> vertices, std::vector<unsigned in
 
     CalculateNormals();
 
-    //uuid = UUIDGen::GenerateUUID();
+    //uuid = 
+    // GenerateUUID();
 
 }
 
@@ -50,6 +51,10 @@ ResourceMesh::~ResourceMesh() {
 
 
 void ResourceMesh::LoadToGPU() {
+
+    /*if (isLoadedToGPU) 
+        LOG("Mesh with UUID %llu already loaded to GPU, skipping", GetUUID()); return;*/
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -80,6 +85,7 @@ void ResourceMesh::LoadToGPU() {
 }
 
 void ResourceMesh::Draw(Shader& shader) {
+
     unsigned int diffuseNr = 1;
     unsigned int specularNr = 1;
     unsigned int normalNr = 1;
@@ -409,6 +415,22 @@ void ResourceMesh::FreeMemory() {
    
 }
 
+void ResourceMesh::UnloadFromGPU() {
+    if (!isLoadedToGPU) {
+        // LOG("Mesh already unloaded from GPU or never loaded: %s", name.c_str());
+        return;
+    }
+
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
+
+
+    VAO = VBO = EBO = 0;
+    isLoadedToGPU = false;
+
+}
+
 void ResourceMesh::SaveMeta() const {
   //  std::string assetPath = GetAssetFilePath();
   //  if (assetPath.empty()) {
@@ -470,18 +492,4 @@ void ResourceMesh::LoadMeta() {
 }
 
 
-void ResourceMesh::UnloadFromGPU() {
-    if (!isLoadedToGPU) {
-        // LOG("Mesh already unloaded from GPU or never loaded: %s", name.c_str());
-        return;
-    }
 
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    glDeleteVertexArrays(1, &VAO);
-
-
-    VAO = VBO = EBO = 0;
-    isLoadedToGPU = false;
-
-}

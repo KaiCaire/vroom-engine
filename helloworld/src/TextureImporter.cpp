@@ -37,34 +37,34 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     std::string metaPath = normalizedPath + ".meta";
     VroomUUID uuid = 0;
 
-    if (fs->Exists(metaPath.c_str()) && fs->IsMetaValid(metaPath.c_str())) {
-        // Load existing UUID
-        uuid = fs->GetUUIDFromMeta(metaPath.c_str());
-        texture->SetUUID(uuid);
-        texture->LoadMeta();  // Load other metadata
+    //if (fs->Exists(metaPath.c_str()) && fs->IsMetaValid(metaPath.c_str())) {
+    //    // Load existing UUID
+    //    uuid = fs->GetUUIDFromMeta(metaPath.c_str());
+    //    texture->SetUUID(uuid);
+    //    texture->LoadMeta();  // Load other metadata
 
-        LOG("Found existing texture meta (UUID: %llu)", uuid);
+    //    LOG("Found existing texture meta (UUID: %llu)", uuid);
 
-        // Check if reimport needed
-        if (!fs->NeedsReimport(metaPath.c_str(), normalizedPath.c_str())) {
-            // Try to load from Library cache
-            std::string libraryPath = "Library/Textures/tex_" + std::to_string(uuid) + ".vroomtex";
-            texture->SetLibraryFilePath(libraryPath);
+    //    // Check if reimport needed
+    //    if (!fs->NeedsReimport(metaPath.c_str(), normalizedPath.c_str())) {
+    //        // Try to load from Library cache
+    //        std::string libraryPath = "Library/Textures/tex_" + std::to_string(uuid) + ".vroomtex";
+    //        texture->SetLibraryFilePath(libraryPath);
 
-            if (fs->Exists(libraryPath.c_str())) {
-                LOG("Loading texture from cache: %s", libraryPath.c_str());
-                texture->LoadBin();      // Load from binary
-                texture->LoadToGPU();    // Upload to GPU
-                return texture;
-            }
-        }
-    }
-    else {
-        // Generate new UUID
-        uuid = UUIDGen::GenerateUUID();
-        texture->SetUUID(uuid);
-        LOG("Generated new UUID for texture: %llu", uuid);
-    }
+    //        if (fs->Exists(libraryPath.c_str())) {
+    //            LOG("Loading texture from cache: %s", libraryPath.c_str());
+    //            texture->LoadBin();      // Load from binary
+    //            texture->LoadToGPU();    // Upload to GPU
+    //            return texture;
+    //        }
+    //    }
+    //}
+    //else {
+    // Generate new UUID
+    uuid = UUIDGen::GenerateUUID();
+    texture->SetUUID(uuid);
+    LOG("Generated new UUID for texture: %llu", uuid);
+    
 
     // Import from source file (no cache or needs reimport)
     LOG("Importing texture from source file...");

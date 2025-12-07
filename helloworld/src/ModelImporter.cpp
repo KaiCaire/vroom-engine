@@ -316,22 +316,22 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
     LOG("=== createComponentsForMesh START ===");
 
     std::shared_ptr<ResourceMesh> mesh;
-    VroomUUID meshUUID = 0;
+    /*VroomUUID meshUUID = 0;*/
 
-    // Check if we have cached UUID from model meta
-    if (modelMeta && modelMeta->contains("meshes")) {
-        for (auto& meshEntry : (*modelMeta)["meshes"]) {
-            if (meshEntry["name"] == aiMesh->mName.C_Str()) {
-                meshUUID = meshEntry["uuid"];
-                LOG("Found cached mesh UUID: %llu", meshUUID);
-                break;
-            }
-        }
-    }
+    //// Check if we have cached UUID from model meta
+    //if (modelMeta && modelMeta->contains("meshes")) {
+    //    for (auto& meshEntry : (*modelMeta)["meshes"]) {
+    //        if (meshEntry["name"] == aiMesh->mName.C_Str()) {
+    //            meshUUID = meshEntry["uuid"];
+    //            LOG("Found cached mesh UUID: %llu", meshUUID);
+    //            break;
+    //        }
+    //    }
+    //}
 
     // Let MeshImporter handle loading/importing
     // Pass the cached UUID if we have one
-    mesh = Application::GetInstance().importer->meshImporter->Import(aiMesh, scene, fullPath, meshUUID);
+    mesh = Application::GetInstance().importer->meshImporter->Import(aiMesh, scene, fullPath/*, meshUUID*/);
 
     if (!mesh) {
         LOG("ERROR: Failed to import mesh");
@@ -350,12 +350,15 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 
     // --- Add RenderMeshComponent ---
     auto rendererComp = gameObject->AddComponent(ComponentType::MESH_RENDERER);
+    
+   
     if (!rendererComp) {
         LOG("ERROR: Failed to add MESH_RENDERER component!");
         return;
     }
 
     auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
+
     if (!renderer) {
         LOG("ERROR: Failed to cast to RenderMeshComponent!");
         return;
@@ -392,13 +395,15 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 
             std::string relativePath = str.C_Str();
 
-           
+            
 
             std::string modelDirectory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());
             
 
             std::string filenameOnly = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(relativePath.c_str());
 
+
+            
             //clean file name
             //size_t lastDot = filenameOnly.find_last_of('.');
             //if (lastDot != std::string::npos) {
@@ -406,24 +411,24 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
             //}
 
             //png test
-            std::string rawAbsolutePath = modelDirectory + "/" + filenameOnly + ".png";
+            std::string rawAbsolutePath = modelDirectory + "/" + relativePath;
             std::string absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
-            loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".png", "texture_diffuse");
+            loadedTexture = GetOrLoadTexture(absolutePath, relativePath, "texture_diffuse");
 
-            //tga test
-            if (!loadedTexture) {
-                rawAbsolutePath = modelDirectory + "/" + filenameOnly + ".tga";
-                absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
-                loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".tga", "texture_diffuse");
-            }
+            ////tga test
+            //if (!loadedTexture) {
+            //    rawAbsolutePath = modelDirectory + "/" + filenameOnly + ".tga";
+            //    absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
+            //    loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".tga", "texture_diffuse");
+            //}
 
 
-            //jpg test
-            if (!loadedTexture) {
-                rawAbsolutePath = modelDirectory + "/" + filenameOnly + ".jpg";
-                absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
-                loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".jpg", "texture_diffuse");
-            }
+            ////jpg test
+            //if (!loadedTexture) {
+            //    rawAbsolutePath = modelDirectory + "/" + filenameOnly + ".jpg";
+            //    absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
+            //    loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".jpg", "texture_diffuse");
+            //}
 
 
             if (loadedTexture) {
@@ -435,6 +440,8 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         if (textureFoundInModel) {
             //set mesh textures
             currentMesh->textures.push_back(loadedTexture);
+
+
 
             //set material component
             matComponent->SetDiffuseMap(loadedTexture);

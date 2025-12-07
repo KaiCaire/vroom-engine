@@ -184,14 +184,15 @@ bool GUIManager::Update(float dt)
 void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
 	if (!go) return;
 
-	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
-		go->GetComponent(ComponentType::MATERIAL)
-	);
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
+	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER)); 
 
-	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(
-		go->GetComponent(ComponentType::MESH_RENDERER)
-	); 
-	auto mesh = renderComp ? renderComp->GetMesh() : nullptr;
+	/*auto mesh = renderComp ? renderComp->GetMesh() : nullptr;*/
+
+	
+	auto mesh = renderComp->GetMesh();
+	
+
 
 	if (!materialComp || !renderComp) {
 		LOG("GameObject '%s' has no Material or RenderMesh Component", go->GetName().c_str());
@@ -211,7 +212,8 @@ void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
 	// Load checker texture
 	std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
 	auto checkerTex = std::dynamic_pointer_cast<ResourceTexture>(Application::GetInstance().resourceManager.get()->RequestResource(checkerPath.c_str()));
-	/*auto checkerTex = Application::GetInstance().importer.get()->textureImporter->Import(checkerPath);*/
+	/*auto checkerTex = Application::GetInstance().importer.get()->textureImporter->Import(checkerPath);*/ 
+	//imagine reimporting every time we wanna switch texture lol
 
 	if (checkerTex) {
 		materialComp->SetDiffuseMap(checkerTex);  // Store UUID, not pointer

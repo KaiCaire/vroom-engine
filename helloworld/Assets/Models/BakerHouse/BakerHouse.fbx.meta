@@ -1,0 +1,19 @@
+{
+    "meshes": [
+        {
+            "indexCount": 324,
+            "name": "Chimney",
+            "uuid": 15101987228620534309,
+            "vertexCount": 324
+        },
+        {
+            "indexCount": 2751,
+            "name": "Baker_house",
+            "uuid": 13044325425883624354,
+            "vertexCount": 2751
+        }
+    ],
+    "modTime": 1761896205,
+    "type": "model",
+    "uuid": 396889207762957570
+}

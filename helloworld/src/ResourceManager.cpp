@@ -1,4 +1,4 @@
-
+﻿
 #include "ResourceManager.h"
 #include "Application.h"
 #include "FileSystem.h"
@@ -221,6 +221,13 @@ void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource)
         return;
     }
 
+    // Check if already registered
+    auto it = resources.find(uuid);
+    if (it != resources.end()) {
+        LOG("Resource %llu already registered, skipping duplicate registration", uuid);
+        return;  
+    }
+
     resources[uuid] = resource;
     resource->AddReference();
 
@@ -275,6 +282,14 @@ bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource
     }
 
     resource->LoadBin();
+
+    if (resource->GetType() == ResourceType::TEXTURE) {
+        auto texture = std::dynamic_pointer_cast<ResourceTexture>(resource);
+        if (texture) {
+            texture->LoadToGPU();  // ← Should work, data was just loaded
+            return texture->isLoadedToGPU;
+        }
+    }
 
     if (!resource->IsLoadedToRAM()) {
         LOG("ERROR: Failed to load binary data for resource %llu", resource->GetUUID());
@@ -342,9 +357,9 @@ bool ResourceManager::SaveResourceToLibrary(std::shared_ptr<Resource> resource) 
     return true;
 }
 
-ResourceMesh* ResourceManager::GetPrimitiveMesh(PrimitiveType type) {
+std::shared_ptr<ResourceMesh> ResourceManager::GetPrimitiveMesh(PrimitiveType type) {
 
-    ResourceMesh* mesh = nullptr;
+    std::shared_ptr<ResourceMesh> mesh = nullptr;
 
     switch (type) {
     case PrimitiveType::CUBE:
@@ -357,17 +372,17 @@ ResourceMesh* ResourceManager::GetPrimitiveMesh(PrimitiveType type) {
     default:
         LOG("Unknown Primitive Type requested.");
         return nullptr;
+        break;
     }
 
-    if (!mesh) return nullptr;
 
-    std::shared_ptr<ResourceMesh> sharedMesh(mesh); 
-    Application::GetInstance().resourceManager->RegisterResource(sharedMesh);
 
+    if (mesh) mesh->SetUUID(UUIDGen::GenerateUUID());
+    
     return mesh;
 }
 
-ResourceMesh* ResourceManager::CreateCubeMesh() {
+std::shared_ptr<ResourceMesh> ResourceManager::CreateCubeMesh() {
     const glm::vec3 v000(-0.5f, -0.5f, -0.5f);
     const glm::vec3 v001(-0.5f, -0.5f, 0.5f);
     const glm::vec3 v010(-0.5f, 0.5f, -0.5f);
@@ -431,7 +446,7 @@ ResourceMesh* ResourceManager::CreateCubeMesh() {
         _indices.push_back(base + 3);
     }
 
-    ResourceMesh* cubeMesh = new ResourceMesh(_vertices, _indices, _textures);
+    auto cubeMesh = std::make_shared<ResourceMesh>(_vertices, _indices, _textures);
     return cubeMesh;
 
 }

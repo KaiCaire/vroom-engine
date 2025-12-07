@@ -5,10 +5,7 @@
 #include "Shader.h"
 
 
-RenderMeshComponent::RenderMeshComponent(std::shared_ptr<GameObject> owner)
-    : Component(owner, ComponentType::MESH_RENDERER),
-    mesh(nullptr) {
-}
+RenderMeshComponent::RenderMeshComponent(std::shared_ptr<GameObject> owner) : Component(owner, ComponentType::MESH_RENDERER), mesh(nullptr) {}
 
 RenderMeshComponent::~RenderMeshComponent() {
 
