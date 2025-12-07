@@ -616,12 +616,13 @@ void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
 			if (ImGui::MenuItem("Delete")) {
 				std::string metaPath = entry.fullPath + ".meta";
 
-				if (entry.isDirectory || !Application::GetInstance().fileSystem->Exists(metaPath.c_str())) {
-					//delete file
+				std::string extension = Application::GetInstance().fileSystem->GetExtensionFromPath(entry.fullPath.c_str());
+				bool isModelFile = (extension == "fbx" || extension == "obj" || extension == "dae" || extension == "max");
+
+				if (entry.isDirectory || !Application::GetInstance().fileSystem->Exists(metaPath.c_str()) || isModelFile) {
 					Application::GetInstance().guiManager->fileDeleteQueue.push_back(entry.fullPath);
 				}
 				else {
-					//delete resource
 					VroomUUID uuid = Application::GetInstance().fileSystem->GetUUIDFromMeta(metaPath.c_str());
 					Application::GetInstance().guiManager->resourceDeleteQueue.push_back(uuid);
 				}
