@@ -314,6 +314,17 @@ void GUIElement::HierarchySetUp(bool* show)
 		return;
 	}
 
+	//drag and drop target
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			std::string droppedPath((const char*)payload->Data);
+
+			//handle instantiation
+			InstantiateAsset(droppedPath);
+		}
+		ImGui::EndDragDropTarget();
+	}
+
 	//create objects (minim cube)
 	if (ImGui::BeginMenu("Create...")) {
 		if (ImGui::MenuItem("Empty")) {
@@ -397,6 +408,18 @@ void GUIElement::InspectorSetUp(bool* show)
 		//if not -> end here
 		ImGui::End();
 		return;
+	}
+
+	//drag and drop
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			//check if an object is selected
+			if (manager->selectedObject) {
+				std::string droppedPath((const char*)payload->Data);
+				ApplyTextureToSelection(droppedPath); 
+			}
+		}
+		ImGui::EndDragDropTarget();
 	}
 
 	//check if a game object is selected
@@ -605,5 +628,76 @@ void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
 		}
 
 		ImGui::PopID();
+	}
+}
+
+void GUIElement::InstantiateAsset(const std::string& assetPath) {
+	//check file type
+	std::string extension = Application::GetInstance().fileSystem->GetExtensionFromPath(assetPath.c_str());
+
+	//check if model
+	if (extension == "fbx" || extension == "obj" || extension == "dae" || extension == "max") {
+		LOG("Instantiating model from asset path: %s", assetPath.c_str());
+
+		//add model to active scene
+		std::shared_ptr<GameObject> newRoot = Application::GetInstance().importer->modelImporter->ImportScene(assetPath.c_str());
+
+		if (newRoot) {
+			LOG("Successfully instantiated model '%s' in scene.", newRoot->GetName().c_str());
+			manager->selectedObject = newRoot;
+		}
+		else {
+			LOG("ERROR: Failed to instantiate model from asset path: %s", assetPath.c_str());
+		}
+	}
+	else {
+		LOG("WARNING: Dropped asset type (%s) cannot be instantiated in the scene.", extension.c_str());
+	}
+}
+
+void GUIElement::ApplyTextureToSelection(const std::string& assetPath) {
+	//make sure an object is selected
+	auto go = manager->selectedObject;
+	if (!go) {
+		LOG("WARNING: Cannot apply texture - no GameObject selected.");
+		return;
+	}
+
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
+	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER));
+
+	//make sure needed components are available
+	if (!materialComp || !renderComp || !renderComp->GetMesh()) {
+		LOG("WARNING: GameObject '%s' cannot accept texture (missing Material or Mesh component).", go->GetName().c_str());
+		return;
+	}
+
+	auto mesh = renderComp->GetMesh();
+
+	//request resource
+	std::shared_ptr<Resource> resource = Application::GetInstance().resourceManager->RequestResource(assetPath);
+	std::shared_ptr<ResourceTexture> newTex = std::dynamic_pointer_cast<ResourceTexture>(resource);
+
+	if (newTex) {
+		//apply to MaterialComponent for inspector
+		materialComp->SetDiffuseMap(newTex);
+
+		//apply to ResourceMesh for rendering
+		if (mesh->textures.empty()) {
+			mesh->textures.push_back(newTex);
+		}
+		else {
+			mesh->textures[0] = newTex;
+		}
+
+		auto it = manager->originalTextures.find(go);
+		if (it != manager->originalTextures.end()) {
+			manager->originalTextures.erase(it);
+		}
+
+		LOG("SUCCESS: Applied texture '%s' to GameObject '%s'.", newTex->GetName().c_str(), go->GetName().c_str());
+	}
+	else {
+		LOG("ERROR: Failed to load/cast texture from path: %s", assetPath.c_str());
 	}
 }

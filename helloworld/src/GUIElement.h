@@ -33,6 +33,8 @@ public:
 	//other
 	void DrawNode(const std::shared_ptr<GameObject>& obj, std::shared_ptr<GameObject>& selected);
 	void DrawAssetTreeNode(const std::string& directoryPath);
+	void InstantiateAsset(const std::string& assetPath);
+	void ApplyTextureToSelection(const std::string& assetPath);
 	
 
 private:
