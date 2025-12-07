@@ -582,6 +582,7 @@ void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
 			}
 		}
 
+		bool is_file = !entry.isDirectory;
 		ImGui::PushID(entry.fullPath.c_str());
 		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
 		if (!entry.isDirectory) {
@@ -589,8 +590,24 @@ void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
 			flags |= ImGuiTreeNodeFlags_Leaf;
 		}
 
+		std::string displayName = entry.name;
+		if (is_file) {
+			std::string metaPath = entry.fullPath + ".meta";
+			if (Application::GetInstance().fileSystem->Exists(metaPath.c_str())) {
+				VroomUUID uuid = Application::GetInstance().fileSystem->GetUUIDFromMeta(metaPath.c_str());
+
+				if (uuid != 0) {
+					std::shared_ptr<Resource> managedResource = Application::GetInstance().resourceManager->GetResourceByUUID(uuid);
+
+					if (managedResource) {
+						displayName = entry.name + " (Refs: " + std::to_string(managedResource->GetReferenceCount()) + ")";
+					}
+				}
+			}
+		}
+
 		//draw node
-		bool opened = ImGui::TreeNodeEx(entry.name.c_str(), flags);
+		bool opened = ImGui::TreeNodeEx(displayName.c_str(), flags);
 
 		if (ImGui::BeginPopupContextItem()) {
 			if (ImGui::MenuItem("Delete")) {

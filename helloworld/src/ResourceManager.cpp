@@ -143,7 +143,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
 
     resUUID = ImportFile(normalizedPath, type);
     // Return the now-loaded resource
-    return FindResource(resUUID);
+    return GetResourceByUUID(resUUID);
 }
 
 VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type) {
@@ -227,20 +227,20 @@ void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource)
     LOG("Registered resource (UUID: %llu, Name: %s)", uuid, resource->GetName().c_str());
 }
 
-std::shared_ptr<Resource> ResourceManager::FindResource(VroomUUID uuid) {
+std::shared_ptr<Resource> ResourceManager::GetResourceByUUID(VroomUUID uuid) {
     auto it = resources.find(uuid);
     return (it != resources.end()) ? it->second : nullptr;
 }
 
 void ResourceManager::AddReference(VroomUUID uuid) {
-    auto resource = FindResource(uuid);
+    auto resource = GetResourceByUUID(uuid);
     if (resource) {
         resource->AddReference();
     }
 }
 
 void ResourceManager::RemoveReference(VroomUUID uuid) {
-    auto resource = FindResource(uuid);
+    auto resource = GetResourceByUUID(uuid);
     if (resource) {
         resource->RemoveReference();
     }

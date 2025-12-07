@@ -42,7 +42,7 @@ public:
     void RegisterResource(std::shared_ptr<Resource> resource);
 
     // Find resource by UUID
-    std::shared_ptr<Resource> FindResource(VroomUUID uuid);
+    std::shared_ptr<Resource> GetResourceByUUID(VroomUUID uuid);
 
     // Reference counting
     void AddReference(VroomUUID uuid);
