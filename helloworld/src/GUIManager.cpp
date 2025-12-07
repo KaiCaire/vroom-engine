@@ -347,12 +347,11 @@ void GUIManager::HandleExternalFileDrop(const std::string& sourceOSPath) {
 	std::string fileName = Application::GetInstance().fileSystem->GetFileFromPath(sourceOSPath.c_str());
 	std::string targetDir = "../Assets";
 
-	//build path
+	//build final path
 	std::string targetPath = targetDir + "/" + fileName;
 
 	Application::GetInstance().fileSystem->CreateDir(targetDir.c_str());
 
-	//copy file
 	if (Application::GetInstance().fileSystem->CopyFile(sourceOSPath.c_str(), targetPath.c_str())) {
 		std::string assetRelativePath = "Assets/" + fileName; 
 		Application::GetInstance().resourceManager->RequestResource(assetRelativePath);

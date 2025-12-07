@@ -518,3 +518,36 @@ bool ResourceManager::DeleteResource(VroomUUID uuid) {
  
     return success;
 }
+
+bool ResourceManager::MoveAsset(VroomUUID uuid, const std::string& newAssetPath) {
+    //find asset
+    std::shared_ptr<Resource> resource = GetResourceByUUID(uuid);
+    if (!resource) {
+        LOG("ERROR: Cannot move asset - resource not found for UUID %llu", uuid);
+        return false;
+    }
+
+    //get current path
+    std::string oldAssetPath = resource->GetAssetFilePath();
+    std::string oldMetaPath = oldAssetPath + ".meta";
+
+    //create the new path
+    std::string newMetaPath = newAssetPath + ".meta";
+
+    //move asset file
+    if (!fs->MoveFileToNewPath(oldAssetPath.c_str(), newAssetPath.c_str())) {
+        return false;
+    }
+
+    //move meta file
+    if (!fs->MoveFileToNewPath(oldMetaPath.c_str(), newMetaPath.c_str())) {
+        fs->MoveFileToNewPath(newAssetPath.c_str(), oldAssetPath.c_str());
+        LOG("ERROR: Failed to move meta file for %s. Reverting asset move.", resource->GetName().c_str());
+        return false;
+    }
+
+    resource->SetAssetFilePath(newAssetPath);
+
+    LOG("Asset moved successfully: %s -> %s", oldAssetPath.c_str(), newAssetPath.c_str());
+    return true;
+}

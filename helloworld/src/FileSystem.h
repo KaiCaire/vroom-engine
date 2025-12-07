@@ -46,6 +46,7 @@ public:
 	std::vector<std::string> IterateAssetsRecursive(const char* directory);
 	bool DeleteFile(const char* path);
 	bool CopyFile(const char* src, const char* dest);
+	bool MoveFileToNewPath(const char* oldPath, const char* newPath);
 
 
 	

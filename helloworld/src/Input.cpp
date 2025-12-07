@@ -163,6 +163,7 @@ bool Input::PreUpdate()
 				Application::GetInstance().guiManager.get()->HandleExternalFileDrop(droppedFileDir);
 			}
 			else {
+				//else add to the scene itself
 				ProcessDroppedFile(droppedFileDir);
 			}
 					

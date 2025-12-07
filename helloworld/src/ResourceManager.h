@@ -62,6 +62,7 @@ public:
         return resources;
     }
     bool DeleteResource(VroomUUID uuid);
+    bool MoveAsset(VroomUUID uuid, const std::string& newAssetPath);
     
 
 private:

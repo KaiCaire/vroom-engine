@@ -405,3 +405,22 @@ std::vector<FileEntry> FileSystem::GetDirectoryContents(const char* directory) {
 	return entries;
 }
 
+bool FileSystem::MoveFileToNewPath(const char* oldPath, const char* newPath) {
+	//check if path exists
+	if (!Exists(oldPath)) {
+		LOG("ERROR: Cannot move file - source does not exist: %s", oldPath);
+		return false;
+	}
+
+	std::error_code ec;
+	//move file
+	std::filesystem::rename(oldPath, newPath, ec);
+
+	if (ec) {
+		LOG("ERROR: Failed to move/rename %s to %s. Reason: %s", oldPath, newPath, ec.message().c_str());
+		return false;
+	}
+
+	LOG("Successfully moved file from %s to %s", oldPath, newPath);
+	return true;
+}

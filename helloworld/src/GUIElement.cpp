@@ -628,6 +628,33 @@ void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
 			ImGui::EndPopup();
 		}
 
+		//drag and drop organization
+		if (entry.isDirectory && ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+
+				std::string draggedAssetPath((const char*)payload->Data);
+
+				std::string assetFileName = Application::GetInstance().fileSystem->GetFileFromPath(draggedAssetPath.c_str());
+				std::string newDirectoryPath = entry.fullPath;
+
+				//create new path
+				std::string newAssetPath = newDirectoryPath + "/" + assetFileName;
+
+				//find uuid
+				std::string draggedMetaPath = draggedAssetPath + ".meta";
+				if (Application::GetInstance().fileSystem->Exists(draggedMetaPath.c_str())) {
+					VroomUUID uuid = Application::GetInstance().fileSystem->GetUUIDFromMeta(draggedMetaPath.c_str());
+
+					//move the asset
+					Application::GetInstance().resourceManager->MoveAsset(uuid, newAssetPath);
+				}
+				else {
+					Application::GetInstance().fileSystem->MoveFileToNewPath(draggedAssetPath.c_str(), newAssetPath.c_str());
+				}
+			}
+			ImGui::EndDragDropTarget();
+		}
+
 		//dragging
 		if (!entry.isDirectory && ImGui::BeginDragDropSource()) {
 			ImGui::SetDragDropPayload("ASSET_PATH", entry.fullPath.c_str(), entry.fullPath.length() + 1);
@@ -659,6 +686,13 @@ void GUIElement::InstantiateAsset(const std::string& assetPath) {
 		LOG("Instantiating model from asset path: %s", assetPath.c_str());
 
 		//add model to active scene
+		//std::shared_ptr<GameObject> newRoot = Application::GetInstance().importer->modelImporter->ImportScene(assetPath.c_str());
+		std::shared_ptr<Resource> rootAsset = Application::GetInstance().resourceManager->RequestResource(assetPath);
+		if (!rootAsset) {
+			LOG("ERROR: Failed to register root asset for instantiation: %s", assetPath.c_str());
+			return;
+		}
+
 		std::shared_ptr<GameObject> newRoot = Application::GetInstance().importer->modelImporter->ImportScene(assetPath.c_str());
 
 		if (newRoot) {
