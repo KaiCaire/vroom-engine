@@ -15,6 +15,13 @@ Scene::Scene(const std::string& name) : Module(), sceneName(name) {
     root->AddComponent(ComponentType::TRANSFORM);
     allGameObjects.push_back(root);
 
+    //initialize world bounds for octree
+    worldBounds.min = glm::vec3(-100.0f, -100.0f, -100.0f);
+    worldBounds.max = glm::vec3(100.0f, 100.0f, 100.0f);
+
+    //initialize octree
+    octree = std::make_unique<Octree>(worldBounds, 10, 5);
+
     LOG("Scene '%s' created", sceneName.c_str());
 }
 
@@ -45,6 +52,11 @@ void Scene::AddGameObject(std::shared_ptr<GameObject> go) {
     // If no parent, set to root
     if (!go->GetParent()) {
         go->SetParent(root);
+    }
+
+    //insert object to octree
+    if (octree) {
+        octree->Insert(go);
     }
 
     LOG("Added GameObject '%s' to scene", go->GetName().c_str());
@@ -120,6 +132,10 @@ std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath) {
 
     // Collect all children recursively and add them
     CollectAllGameObjects(sceneGO);
+
+    if (octree) {
+        octree->Rebuild(allGameObjects);
+    }
 
     LOG("Model imported successfully: %d GameObjects created", (int)allGameObjects.size());
     return sceneGO;
