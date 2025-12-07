@@ -109,7 +109,7 @@ std::shared_ptr<GameObject> SceneManager::CreateEmptyGameObject(const std::strin
 
     int gameObjectsSize = currentScene->GetAllGameObjects().size();
 
-    LOG("Empty GameObject '%s' created successfully (Total GameObjects: %d)", name.c_str(), gameObjectsSize);
+    LOG("Empty GameObject '%s' created successfully with UUID %llu (Total GameObjects: %d)", name.c_str(), newGameObject->GetUUID(),  gameObjectsSize);
 
     return newGameObject;
 }
@@ -163,8 +163,8 @@ std::shared_ptr<GameObject> SceneManager::CreateCube() {
     }
 
 
-    ResourceMesh* cubeMesh = resourceManager->GetPrimitiveMesh(PrimitiveType::CUBE);
-
+    std::shared_ptr<ResourceMesh> cubeMesh = resourceManager->GetPrimitiveMesh(PrimitiveType::CUBE);
+    
 
     if (!cubeMesh) {
         LOG("ERROR: Failed to retrieve or generate cube mesh resource from ResourceManager.");
@@ -175,23 +175,23 @@ std::shared_ptr<GameObject> SceneManager::CreateCube() {
 
     if (cubeGO) {
         // Render Component
-        auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(cubeGO->AddComponent(ComponentType::MESH_RENDERER)
-        );
+        auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(cubeGO->AddComponent(ComponentType::MESH_RENDERER));
 
-        // Material Component
-        cubeGO->AddComponent(ComponentType::MATERIAL);
+       
 
-        // 4. Link the mesh data resource by UUID
+        
         if (renderComp) {
+            renderComp->SetMesh(cubeMesh);
             VroomUUID meshUUID = cubeMesh->GetUUID();
-            renderComp->SetMeshUUID(meshUUID);
-
-            // Critical: Increase the reference count for the resource, 
-            // as this component now depends on the mesh data.
+            if (meshUUID == 0) UUIDGen::GenerateUUID();
+            /*renderComp->SetMeshUUID(meshUUID);*/
             resourceManager->AddReference(meshUUID);
 
             LOG("GameObject '%s' created and linked to cube mesh (UUID: %llu)", "Cube", meshUUID);
         }
+
+        // Material Component
+        cubeGO->AddComponent(ComponentType::MATERIAL);
     }
 
     return cubeGO;

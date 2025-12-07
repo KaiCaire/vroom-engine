@@ -51,9 +51,10 @@ public:
     // Cleanup unused resources (refCount == 0)
     void CleanupUnusedResources();
 
-    ResourceMesh* CreateCubeMesh();
+    std::shared_ptr<ResourceMesh> CreateCubeMesh();
 
-    ResourceMesh* GetPrimitiveMesh(PrimitiveType type);
+
+    std::shared_ptr<ResourceMesh> GetPrimitiveMesh(PrimitiveType type);
 
     //asset viewer
     void ScanAssetsFolder();

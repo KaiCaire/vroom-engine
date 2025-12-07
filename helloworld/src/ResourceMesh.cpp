@@ -25,7 +25,8 @@ ResourceMesh::ResourceMesh(std::vector<Vertex> vertices, std::vector<unsigned in
 
     CalculateNormals();
 
-    //uuid = UUIDGen::GenerateUUID();
+    //uuid = 
+    // GenerateUUID();
 
 }
 
@@ -409,6 +410,22 @@ void ResourceMesh::FreeMemory() {
    
 }
 
+void ResourceMesh::UnloadFromGPU() {
+    if (!isLoadedToGPU) {
+        // LOG("Mesh already unloaded from GPU or never loaded: %s", name.c_str());
+        return;
+    }
+
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
+
+
+    VAO = VBO = EBO = 0;
+    isLoadedToGPU = false;
+
+}
+
 void ResourceMesh::SaveMeta() const {
   //  std::string assetPath = GetAssetFilePath();
   //  if (assetPath.empty()) {
@@ -470,18 +487,4 @@ void ResourceMesh::LoadMeta() {
 }
 
 
-void ResourceMesh::UnloadFromGPU() {
-    if (!isLoadedToGPU) {
-        // LOG("Mesh already unloaded from GPU or never loaded: %s", name.c_str());
-        return;
-    }
 
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    glDeleteVertexArrays(1, &VAO);
-
-
-    VAO = VBO = EBO = 0;
-    isLoadedToGPU = false;
-
-}
