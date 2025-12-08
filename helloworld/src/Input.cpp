@@ -162,9 +162,16 @@ bool Input::PreUpdate()
 
 		case SDL_EVENT_DROP_FILE:
 			/*windowID = Application::GetInstance().window.get()->GetWindowID();*/
+
 			droppedFileDir = event.drop.data;
-			
-			ProcessDroppedFile(droppedFileDir);
+			//check if asset viewer is hovered to only add to folder 
+			if (Application::GetInstance().guiManager.get()->assetsViewerIsHovered) {
+				Application::GetInstance().guiManager.get()->HandleExternalFileDrop(droppedFileDir);
+			}
+			else {
+				//else add to the scene itself
+				ProcessDroppedFile(droppedFileDir);
+			}
 					
 			//not needed in SDL3, the new allocated memory created  gets freed automatically
 			/*SDL_free(&droppedFileDir);*/
@@ -208,20 +215,35 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 	std::string file = fs->GetFileFromPath(path.c_str());
 	std::string destPath, finalDestPath;
 
-	
+	//check if file is already part of assets
+	bool isExternalFile = path.find("Assets") == std::string::npos;
 
 	// Handle model files (FBX, OBJ)
 	if (fileExtension == "fbx" || fileExtension == "obj") {
 		
-		destPath = std::string(Paths::MODEL_ASSETS_DIR) + "/" + file;
-		finalDestPath = CopyFileToAssets(path, destPath.c_str(), file);
+		if (isExternalFile) {
+			//external -> copy
+			destPath = std::string(Paths::MODEL_ASSETS_DIR) + "/" + file;
+			finalDestPath = CopyFileToAssets(path, destPath.c_str(), file);
+		}
+		else {
+			//existing -> skip copy
+			finalDestPath = path;
+		}
 
 		Application::GetInstance().sceneManager.get()->GetActiveScene()->ImportModel(finalDestPath);
 	}
 	// Handle texture files (PNG, JPG, TGA, DDS)
 	else if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "tga" || fileExtension == "dds") {
-		destPath = std::string(Paths::TEXTURE_ASSETS_DIR) + '/' + file;
-		finalDestPath = CopyFileToAssets(path, destPath.c_str(), file);
+		if (isExternalFile) {
+			//external -> copy
+			destPath = std::string(Paths::MODEL_ASSETS_DIR) + "/" + file;
+			finalDestPath = CopyFileToAssets(path, destPath.c_str(), file);
+		}
+		else {
+			//existing -> skip copy
+			finalDestPath = path;
+		}
 		ApplyTextureToSelectedObject(finalDestPath);
 	}
 	else {

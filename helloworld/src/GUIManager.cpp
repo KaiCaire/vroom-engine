@@ -156,6 +156,23 @@ bool GUIManager::Update(float dt)
 	for (GUIElement e : WindowElements) {
 		e.ElementSetUp();
 	}
+
+	//process resource deletion
+	if (!resourceDeleteQueue.empty()) {
+		for (VroomUUID uuid : resourceDeleteQueue) {
+			Application::GetInstance().resourceManager->DeleteResource(uuid);
+		}
+		resourceDeleteQueue.clear();
+	}
+
+	//process file deletion
+	if (!fileDeleteQueue.empty()) {
+		for (const std::string& filePath : fileDeleteQueue) {
+			//delete the file/folder directly
+			Application::GetInstance().fileSystem->DeleteFile(filePath.c_str());
+		}
+		fileDeleteQueue.clear();
+	}
 	
 	Application::GetInstance().sceneManager.get()->GetActiveScene()->CleanUpDestroyedObjects();
 
@@ -326,6 +343,25 @@ void GUIManager::InitDock() {
 
 void GUIManager::ProcessEvents(SDL_Event event) {
 	ImGui_ImplSDL3_ProcessEvent(&event);
+}
+
+void GUIManager::HandleExternalFileDrop(const std::string& sourceOSPath) {
+	std::string fileName = Application::GetInstance().fileSystem->GetFileFromPath(sourceOSPath.c_str());
+	std::string targetDir = "../Assets";
+
+	//build final path
+	std::string targetPath = targetDir + "/" + fileName;
+
+	Application::GetInstance().fileSystem->CreateDir(targetDir.c_str());
+
+	if (Application::GetInstance().fileSystem->CopyFile(sourceOSPath.c_str(), targetPath.c_str())) {
+		std::string assetRelativePath = "Assets/" + fileName; 
+		Application::GetInstance().resourceManager->RequestResource(assetRelativePath);
+		LOG("External file '%s' successfully copied to Assets/ and imported.", fileName.c_str());
+	}
+	else {
+		LOG("ERROR: Failed to copy file %s to Assets/ folder.", fileName.c_str());
+	}
 }
 
 bool GUIManager::PostUpdate()

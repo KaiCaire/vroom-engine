@@ -42,7 +42,7 @@ public:
     void RegisterResource(std::shared_ptr<Resource> resource);
 
     // Find resource by UUID
-    std::shared_ptr<Resource> FindResource(VroomUUID uuid);
+    std::shared_ptr<Resource> GetResourceByUUID(VroomUUID uuid);
 
     // Reference counting
     void AddReference(VroomUUID uuid);
@@ -62,6 +62,9 @@ public:
     const std::unordered_map<VroomUUID, std::shared_ptr<Resource>>& GetAllResources() const {
         return resources;
     }
+    bool DeleteResource(VroomUUID uuid);
+    bool MoveAsset(VroomUUID uuid, const std::string& newAssetPath);
+    bool LoadResourceToGPU(std::shared_ptr<Resource> resource);
     
 
 private:
@@ -71,7 +74,6 @@ private:
     // Helper to load resource from Library
     bool SaveResourceToLibrary(std::shared_ptr<Resource> resource);
     bool LoadResourceFromLibrary(std::shared_ptr<Resource> resource);
-    bool LoadResourceToGPU(std::shared_ptr<Resource> resource);
     
 
     FileSystem* fs;

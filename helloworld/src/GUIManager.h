@@ -62,6 +62,9 @@ public:
 	//queue object for deletion
 	void AddToDeleteQueue(const std::shared_ptr<GameObject>& obj);
 
+	//add file to asset viewer
+	void HandleExternalFileDrop(const std::string& sourceOSPath);
+
 	/*void RefreshGUIHierarchy();*/
 
 private:
@@ -84,6 +87,17 @@ public:
 	std::shared_ptr<GameObject> selectedObject;
 
 	std::map<std::shared_ptr<GameObject>, std::shared_ptr<ResourceTexture>> originalTextures;
+
+	//queued resources for deletion
+	std::vector<VroomUUID> resourceDeleteQueue;
+	std::vector<std::string> fileDeleteQueue;
+
+	//for search bar and filters
+	char assetSearchBuffer[256] = "";     
+	int selectedFilterType = 0;
+
+	//check if asset viewer is hovered
+	bool assetsViewerIsHovered = false;
 
 	bool drawFaceNormals = false;
 	bool drawVertNormals = false;
