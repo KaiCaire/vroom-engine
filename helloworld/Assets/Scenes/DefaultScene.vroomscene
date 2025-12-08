@@ -1,28 +1,32 @@
 {
-    "gameObjects": [
+    "1.name": "DefaultScene",
+    "2.gameObjects": [
         {
-            "active": true,
-            "children": [
+            "1.name": "Survival_BackPack",
+            "2.active": true,
+            "3.transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "6.children": [
                 {
-                    "active": true,
-                    "children": [],
-                    "material": {
-                        "diffuseColor": [
-                            0.5,
-                            0.5,
-                            0.5,
-                            1.0
-                        ],
-                        "diffuseMapUUID": 849653093932799241,
-                        "metallic": 0.0,
-                        "roughness": 0.5,
-                        "shininess": 2.0
-                    },
-                    "meshRenderer": {
-                        "meshUUID": 14255068054034156718
-                    },
-                    "name": "Kadama",
-                    "transform": {
+                    "1.name": "backpack:Mesh",
+                    "2.active": true,
+                    "3.transform": {
                         "position": [
                             0.0,
                             0.0,
@@ -39,49 +43,30 @@
                             1.0,
                             1.0
                         ]
-                    }
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 16528812489341602109
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            0.800000011920929,
+                            0.800000011920929,
+                            0.800000011920929,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 5243800616785888168,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 227.0
+                    },
+                    "6.children": []
                 }
-            ],
-            "name": "Kodama_LOW",
-            "transform": {
-                "position": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "rotation": [
-                    1.0,
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "scale": [
-                    1.0,
-                    1.0,
-                    1.0
-                ]
-            }
+            ]
         },
         {
-            "active": true,
-            "children": [],
-            "material": {
-                "diffuseColor": [
-                    0.5,
-                    0.5,
-                    0.5,
-                    1.0
-                ],
-                "diffuseMapUUID": 849653093932799241,
-                "metallic": 0.0,
-                "roughness": 0.5,
-                "shininess": 2.0
-            },
-            "meshRenderer": {
-                "meshUUID": 14255068054034156718
-            },
-            "name": "Kadama",
-            "transform": {
+            "1.name": "BakerHouse",
+            "2.active": true,
+            "3.transform": {
                 "position": [
                     0.0,
                     0.0,
@@ -98,8 +83,85 @@
                     1.0,
                     1.0
                 ]
-            }
+            },
+            "6.children": [
+                {
+                    "1.name": "Chimney",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 11402527642816863597
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            0.800000011920929,
+                            0.800000011920929,
+                            0.800000011920929,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 13712345572701492852,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Baker_house",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 3216434459385555558
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            0.800000011920929,
+                            0.800000011920929,
+                            0.800000011920929,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2522055745368558498,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                }
+            ]
         }
-    ],
-    "name": "DefaultScene"
+    ]
 }

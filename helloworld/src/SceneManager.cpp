@@ -26,9 +26,12 @@ bool SceneManager::Update(float dt) {
 
     bool ctrl = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LCTRL) || Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_RCTRL);
     bool s = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_S);
+    bool l = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_L);
     std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + GetActiveScene()->GetName() + ".vroomscene";
 
     if (ctrl && s) GetActiveScene()->SaveScene(scenesPath);
+
+    if (ctrl && l) GetActiveScene()->LoadScene(scenesPath);
 
     return true;
 }

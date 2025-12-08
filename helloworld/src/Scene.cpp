@@ -5,9 +5,12 @@
 #include "ModelImporter.h"
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
+#include "SceneManager.h"
 #include "MaterialComponent.h"
 #include "Log.h"
 #include "Importer.h"
+
+
 
 Scene::Scene(const std::string& name) : Module(), sceneName(name) {
     // Create scene root
@@ -160,13 +163,13 @@ bool Scene::SaveScene(const std::string& filePath) {
     }
 
     nlohmann::json sceneMeta;
-    sceneMeta["name"] = sceneName;
-    sceneMeta["gameObjects"] = nlohmann::json::array();
+    sceneMeta["1.name"] = sceneName;
+    sceneMeta["2.gameObjects"] = nlohmann::json::array();
 
     // Serialize all GameObjects
-    for (auto& go : allGameObjects) {
-        if (go == root) continue; // Skip root, it's implicit
-        sceneMeta["gameObjects"].push_back(SerializeGameObject(go));
+    for (auto& go : root->GetChildren()) {
+        // No need to check for 'go == root' as we are getting children of root.
+        sceneMeta["2.gameObjects"].push_back(SerializeGameObject(go));
     }
 
     // Save to file
@@ -191,25 +194,31 @@ bool Scene::LoadScene(const std::string& filePath) {
 
     // Clear current scene
     Clear();
+   
 
     // Load scene name
-    if (sceneMeta.contains("name")) {
-        sceneName = sceneMeta["name"];
+    if (sceneMeta.contains("1.name")) {
+        sceneName = sceneMeta["1.name"];
     }
 
     // Recreate root
     root = std::make_shared<GameObject>("Scene Root");
     root->AddComponent(ComponentType::TRANSFORM);
-    allGameObjects.push_back(root);
+    /*allGameObjects.push_back(root);*/
 
     // Deserialize GameObjects
-    if (sceneMeta.contains("gameObjects")) {
-        for (auto& metaGO : sceneMeta["gameObjects"]) {
+    if (sceneMeta.contains("2.gameObjects")) {
+        for (auto& metaGO : sceneMeta["2.gameObjects"]) {
             auto go = DeserializeGameObject(metaGO);
             if (go) {
-                allGameObjects.push_back(go);
+                go->SetParent(root); 
+                
             }
         }
+    }
+
+    for (auto& topLevelObject : root->GetChildren()) {
+        CollectAllGameObjects(topLevelObject);
     }
 
     LOG("Scene loaded successfully: %d GameObjects", (int)allGameObjects.size());
@@ -219,25 +228,25 @@ bool Scene::LoadScene(const std::string& filePath) {
 nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> go) {
     nlohmann::json goMeta;
 
-    goMeta["name"] = go->GetName();
-    goMeta["active"] = go->IsActive();
+    goMeta["1.name"] = go->GetName();
+    goMeta["2.active"] = go->IsActive();
 
     // Serialize Transform
     auto transformComp = go->GetComponent(ComponentType::TRANSFORM);
     if (transformComp) {
         auto transform = std::dynamic_pointer_cast<TransformComponent>(transformComp);
-        goMeta["transform"]["position"] = {
+        goMeta["3.transform"]["position"] = {
             transform->GetPosition().x,
             transform->GetPosition().y,
             transform->GetPosition().z
         };
-        goMeta["transform"]["rotation"] = {
+        goMeta["3.transform"]["rotation"] = {
             transform->GetRotation().w,
             transform->GetRotation().x,
             transform->GetRotation().y,
             transform->GetRotation().z
         };
-        goMeta["transform"]["scale"] = {
+        goMeta["3.transform"]["scale"] = {
             transform->GetScale().x,
             transform->GetScale().y,
             transform->GetScale().z
@@ -248,78 +257,78 @@ nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> go) {
     auto rendererComp = go->GetComponent(ComponentType::MESH_RENDERER);
     if (rendererComp) {
         auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
-        goMeta["meshRenderer"]["meshUUID"] = renderer->GetMeshUUID();
+        goMeta["4.meshRenderer"]["meshUUID"] = renderer->GetMeshUUID();
     }
 
     // Serialize Material
     auto materialComp = go->GetComponent(ComponentType::MATERIAL);
     if (materialComp) {
         auto material = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
-        goMeta["material"]["diffuseColor"] = {
+        goMeta["5.material"]["diffuseColor"] = {
             material->GetDiffuseColor().r,
             material->GetDiffuseColor().g,
             material->GetDiffuseColor().b,
             material->GetDiffuseColor().a
         };
-        goMeta["material"]["shininess"] = material->GetShininess();
-        goMeta["material"]["metallic"] = material->GetMetallic();
-        goMeta["material"]["roughness"] = material->GetRoughness();
+        goMeta["5.material"]["shininess"] = material->GetShininess();
+        goMeta["5.material"]["metallic"] = material->GetMetallic();
+        goMeta["5.material"]["roughness"] = material->GetRoughness();
        
 
         // Store textures UUID if they exist
         if (material->GetDiffuseMap()) {
             VroomUUID diffuseTexUUID = material->GetDiffuseMap()->GetUUID();
             if(diffuseTexUUID!= 0)
-            goMeta["material"]["diffuseMapUUID"] = diffuseTexUUID;
+            goMeta["5.material"]["diffuseMapUUID"] = diffuseTexUUID;
         }
 
         if (material->GetNormalMap()) {
             VroomUUID normalTexUUID = material->GetNormalMap()->GetUUID();
             if (normalTexUUID != 0)
-                goMeta["material"]["normalMapUUID"] = normalTexUUID;
+                goMeta["5.material"]["normalMapUUID"] = normalTexUUID;
         }
 
         if (material->GetMetallicMap()) {
             VroomUUID metallicTexUUID = material->GetMetallicMap()->GetUUID();
             if (metallicTexUUID != 0)
-                goMeta["material"]["metallicMapUUID"] = metallicTexUUID;
+                goMeta["5.material"]["metallicMapUUID"] = metallicTexUUID;
         }
 
         if (material->GetRoughnessMap()) {
             VroomUUID roughTexUUID = material->GetRoughnessMap()->GetUUID();
             if (roughTexUUID != 0)
-                goMeta["material"]["roughnessMapUUID"] = roughTexUUID;
+                goMeta["5.material"]["roughnessMapUUID"] = roughTexUUID;
         }
 
         if (material->GetAOMap()) {
             VroomUUID aoTexUUID = material->GetAOMap()->GetUUID();
             if (aoTexUUID != 0)
-                goMeta["material"]["AOMapUUID"] = aoTexUUID;
+                goMeta["5.material"]["AOMapUUID"] = aoTexUUID;
         }
     }
 
     // Serialize children recursively
-    goMeta["children"] = nlohmann::json::array();
+    goMeta["6.children"] = nlohmann::json::array();
     for (auto& child : go->GetChildren()) {
-        goMeta["children"].push_back(SerializeGameObject(child));
+        goMeta["6.children"].push_back(SerializeGameObject(child));
     }
 
     return goMeta;
 }
 
 std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& goMeta) {
-    std::string name = goMeta.value("name", "GameObject");
+    std::string name = goMeta.value("1.name", "2.GameObject");
     auto go = std::make_shared<GameObject>(name);
 
-    if (goMeta.contains("active")) {
-        go->SetActive(goMeta["active"]);
+    if (goMeta.contains("2.active")) {
+        go->SetActive(goMeta["2.active"]);
     }
 
     auto transformComp = go->AddComponent(ComponentType::TRANSFORM);
 
-    if (goMeta.contains("transform")) {
+    if (goMeta.contains("3.transform")) {
         auto transform = std::dynamic_pointer_cast<TransformComponent>(transformComp);
-        const auto& t = goMeta["transform"];
+        const auto& t = goMeta["3.transform"];
 
         if (t.contains("position")) {
             auto pos = t["position"];
@@ -336,9 +345,10 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
     }
 
 
-    if (goMeta.contains("meshRenderer")) {
-        auto& mr = goMeta["meshRenderer"];
+    if (goMeta.contains("4.meshRenderer")) {
+        auto& mr = goMeta["4.meshRenderer"];
         auto rendererComp = go->AddComponent(ComponentType::MESH_RENDERER);
+        LOG("Added MESH_RENDERER component to GameObject '%s'", go->GetName().c_str());
         auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
 
         VroomUUID meshUUID = mr["meshUUID"];
@@ -347,11 +357,17 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
         // Request mesh from ResourceManager
         auto mesh = Application::GetInstance().resourceManager.get()->RequestResource(meshUUID);
         renderer->SetMesh(std::dynamic_pointer_cast<ResourceMesh>(mesh));
+
+        if (!mesh->isLoadedToGPU) {
+            Application::GetInstance().resourceManager.get()->LoadResourceToGPU(mesh);
+        }
+
+       
     }
 
 
-    if (goMeta.contains("material")) {
-        auto& m = goMeta["material"];
+    if (goMeta.contains("5.material")) {
+        auto& m = goMeta["5.material"];
         auto materialComp = go->AddComponent(ComponentType::MATERIAL);
         auto material = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
 
@@ -370,37 +386,44 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
         if (m.contains("diffuseMapUUID")) {
             VroomUUID id = m["diffuseMapUUID"];
             auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
+            /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
             material->SetDiffuseMap(std::static_pointer_cast<ResourceTexture>(tex));
         }
 
         if (m.contains("normalMapUUID")) {
             VroomUUID id = m["normalMapUUID"];
             auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
+            /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
             material->SetNormalMap(std::static_pointer_cast<ResourceTexture>(tex));
         }
 
         if (m.contains("metallicMapUUID")) {
             VroomUUID id = m["metallicMapUUID"];
             auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
+            /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
             material->SetMetallicMap(std::static_pointer_cast<ResourceTexture>(tex));
         }
 
         if (m.contains("roughnessMapUUID")) {
             VroomUUID id = m["roughnessMapUUID"];
             auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
+            /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
             material->SetRoughnessMap(std::static_pointer_cast<ResourceTexture>(tex));
         }
 
         if (m.contains("AOMapUUID")) {
             VroomUUID id = m["AOMapUUID"];
             auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
+            /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
             material->SetAOMap(std::static_pointer_cast<ResourceTexture>(tex));
         }
+
+       
     }
 
 
-    if (goMeta.contains("children")) {
-        for (auto& childJson : goMeta["children"]) {
+    if (goMeta.contains("6.children")) {
+        for (auto& childJson : goMeta["6.children"]) {
             auto child = DeserializeGameObject(childJson);
             if (child) {
                 child->SetParent(go);

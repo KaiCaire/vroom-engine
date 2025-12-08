@@ -56,12 +56,16 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
 
     std::string texturePath = Paths::TEXTURE_LIB_DIR + std::to_string(uuid) + ".vroomtex";
     std::string meshPath = Paths::MESH_LIB_DIR + std::to_string(uuid) + ".vroommesh";
+    std::string libraryPath;
 
     if (fs->Exists(texturePath.c_str())) {
         type = ResourceType::TEXTURE;
+        libraryPath = texturePath;
+        
     }
     else if (fs->Exists(meshPath.c_str())) {
         type = ResourceType::MESH;
+        libraryPath = meshPath;
     }
     else {
         LOG("ERROR: Library file not found for UUID %llu", uuid);
@@ -70,7 +74,9 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
 
     // Create and load from library
     auto resource = CreateResource(type, uuid);
-    if (resource && LoadResourceFromLibrary(resource)) {
+    resource->SetLibraryFilePath(libraryPath);
+    if (resource) {
+        LoadResourceFromLibrary(resource);
         RegisterResource(resource);
         return resource;
     }
@@ -199,6 +205,7 @@ std::shared_ptr<Resource> ResourceManager::CreateResource(ResourceType type, Vro
 
     if (resource) {
         resource->SetUUID(uuid);
+        
         resources[uuid] = resource;
         LOG("Created resource (UUID: %llu, Type: %d)", uuid, (int)type);
     }
