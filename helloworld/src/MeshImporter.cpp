@@ -58,7 +58,7 @@ std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene
     mesh->SetName(aiMesh->mName.C_Str());
 
     // Save to Library
-    std::string libraryPath = "Library/Meshes/" + std::to_string(meshUUID) + ".vroommesh";
+    std::string libraryPath = Paths::MESH_LIB_DIR + std::to_string(meshUUID) + ".vroommesh";
     mesh->SetLibraryFilePath(libraryPath);
     mesh->SaveBin();
 

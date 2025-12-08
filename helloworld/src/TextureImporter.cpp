@@ -93,7 +93,7 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     texture->LoadToGPU();  
 
     // Set library path
-    std::string libraryPath = "Library/Textures/" + std::to_string(uuid) + ".vroomtex";
+    std::string libraryPath = Paths::TEXTURE_LIB_DIR + std::to_string(uuid) + ".vroomtex";
     texture->SetLibraryFilePath(libraryPath);
 
     // Save to Library cache

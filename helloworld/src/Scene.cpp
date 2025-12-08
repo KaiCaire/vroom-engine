@@ -150,6 +150,15 @@ void Scene::CollectAllGameObjects(std::shared_ptr<GameObject> go) {
 bool Scene::SaveScene(const std::string& filePath) {
     LOG("Saving scene '%s' to '%s'", sceneName.c_str(), filePath.c_str());
 
+    // Extract directory from full path
+    FileSystem* fs = Application::GetInstance().fileSystem.get();
+    std::string directory = fs->GetDirFromPath(filePath.c_str());
+
+    // Create directory if it doesn't exist (e.g., "Assets/Scenes")
+    if (!directory.empty() && !fs->Exists(directory.c_str())) {
+        fs->CreateDir(directory.c_str());
+    }
+
     nlohmann::json sceneMeta;
     sceneMeta["name"] = sceneName;
     sceneMeta["gameObjects"] = nlohmann::json::array();
@@ -161,7 +170,7 @@ bool Scene::SaveScene(const std::string& filePath) {
     }
 
     // Save to file
-    FileSystem* fs = Application::GetInstance().fileSystem.get();
+   
     fs->SaveJSON(filePath.c_str(), sceneMeta);
 
     LOG("Scene saved successfully");

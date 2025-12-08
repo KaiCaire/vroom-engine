@@ -2,6 +2,7 @@
 #include "ResourceManager.h"
 #include "Application.h"
 #include "RenderMeshComponent.h"
+#include "Input.h"
 
 
 using namespace std;
@@ -22,6 +23,13 @@ bool SceneManager::Update(float dt) {
     /*currentScene->DebugDrawTree();*/
 
     currentScene->Update(static_cast<float>(dt));
+
+    bool ctrl = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LCTRL) || Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_RCTRL);
+    bool s = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_S);
+    std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + GetActiveScene()->GetName() + ".vroomscene";
+
+    if (ctrl && s) GetActiveScene()->SaveScene(scenesPath);
+
     return true;
 }
 

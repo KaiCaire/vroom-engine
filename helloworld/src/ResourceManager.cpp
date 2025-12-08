@@ -25,10 +25,10 @@ bool ResourceManager::Start() {
 
     // Create Library directories if they don't exist
     fs = Application::GetInstance().fileSystem.get();
-    fs->CreateDir("Library");
-    fs->CreateDir("Library/Meshes");
-    fs->CreateDir("Library/Textures");
-    fs->CreateDir("Library/Materials");
+    fs->CreateDir(Paths::LIB_DIR);
+    fs->CreateDir(Paths::MESH_LIB_DIR);
+    fs->CreateDir(Paths::TEXTURE_LIB_DIR);
+    
 
     //scan assets
     ScanAssetsFolder();
@@ -54,8 +54,8 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
     // Determine type from library file extension
     ResourceType type = ResourceType::UNKNOWN;
 
-    std::string texturePath = "Library/Textures/" + std::to_string(uuid) + ".vroomtex";
-    std::string meshPath = "Library/Meshes/" + std::to_string(uuid) + ".vroommesh";
+    std::string texturePath = Paths::TEXTURE_LIB_DIR + std::to_string(uuid) + ".vroomtex";
+    std::string meshPath = Paths::MESH_LIB_DIR + std::to_string(uuid) + ".vroommesh";
 
     if (fs->Exists(texturePath.c_str())) {
         type = ResourceType::TEXTURE;
@@ -113,7 +113,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
                 return it->second;
         }
         else {
-            std::string libraryPath = "Library/Textures/" + std::to_string(resUUID) + ".vroomtex";
+            std::string libraryPath = Paths::TEXTURE_LIB_DIR + std::to_string(resUUID) + ".vroomtex";
 
             if (!fs->Exists(libraryPath.c_str())) {
                 LOG("Library file missing, reimporting from source");

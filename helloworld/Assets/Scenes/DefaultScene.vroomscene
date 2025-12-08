@@ -1,0 +1,105 @@
+{
+    "gameObjects": [
+        {
+            "active": true,
+            "children": [
+                {
+                    "active": true,
+                    "children": [],
+                    "material": {
+                        "diffuseColor": [
+                            0.5,
+                            0.5,
+                            0.5,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 849653093932799241,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 2.0
+                    },
+                    "meshRenderer": {
+                        "meshUUID": 14255068054034156718
+                    },
+                    "name": "Kadama",
+                    "transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    }
+                }
+            ],
+            "name": "Kodama_LOW",
+            "transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "active": true,
+            "children": [],
+            "material": {
+                "diffuseColor": [
+                    0.5,
+                    0.5,
+                    0.5,
+                    1.0
+                ],
+                "diffuseMapUUID": 849653093932799241,
+                "metallic": 0.0,
+                "roughness": 0.5,
+                "shininess": 2.0
+            },
+            "meshRenderer": {
+                "meshUUID": 14255068054034156718
+            },
+            "name": "Kadama",
+            "transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        }
+    ],
+    "name": "DefaultScene"
+}

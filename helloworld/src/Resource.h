@@ -12,10 +12,10 @@ namespace Paths {
     inline const char* MODEL_ASSETS_DIR = "../Assets/Models";
     inline const char* TEXTURE_ASSETS_DIR = "../Assets/Textures";
     inline const char* SCENE_ASSETS_DIR = "../Assets/Scenes";
-    inline const char* MESH_LIB_DIR = "Library/Meshes/";
-    inline const char* TEXTURE_LIB_DIR = "Library/Textures/";
-    inline const char* MODEL_LIB_DIR = "Library/Models/";
-    inline const char* MATERIAL_LIB_DIR = "Library/Materials/";
+
+    inline const char* LIB_DIR = "../Library";
+    inline const char* MESH_LIB_DIR = "../Library/Meshes/";
+    inline const char* TEXTURE_LIB_DIR = "Library/Textures/";    
 }
 
 

@@ -30,6 +30,8 @@ public:
 	
 
 	void LoadDefaultScene();
+
+	void SaveActiveScene();
 	std::shared_ptr<Scene> GetActiveScene() const;
 	
 
