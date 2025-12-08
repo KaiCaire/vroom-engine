@@ -24,6 +24,8 @@ public:
     float pitch;
     float fov;
     float distance;
+    float nearPlane = 0.1f;
+    float farPlane = 1000.0f;
 
     // Mouse state (necesario para el modo de coordenadas absolutas)
     bool firstMouse;

@@ -274,6 +274,6 @@ void Camera::FocusObject(bool firstTime) {
 void Camera::RecalculateMatrices(int windowW, int windowH)
 {
 	float aspectRatio = (float)Application::GetInstance().window.get()->width / (float)Application::GetInstance().window.get()->height;
-	projectionMat = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
+	projectionMat = glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
 	viewMat = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 }

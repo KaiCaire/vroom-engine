@@ -15,7 +15,7 @@ namespace Paths {
 
     inline const char* LIB_DIR = "../Library";
     inline const char* MESH_LIB_DIR = "../Library/Meshes/";
-    inline const char* TEXTURE_LIB_DIR = "Library/Textures/";    
+    inline const char* TEXTURE_LIB_DIR = "../Library/Textures/";    
 }
 
 
