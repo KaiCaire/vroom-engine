@@ -36,6 +36,8 @@ public:
     glm::mat4 GetLocalTransform() const;
     glm::mat4 GetGlobalTransform() const;
 
+    glm::mat4 GetModelMatrix() const;
+
     // Mark transform as dirty (needs recalculation)
     void MarkAsDirty();
 

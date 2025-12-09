@@ -1,13 +1,15 @@
 #include "Application.h"
 #include <iostream>
 #include "Log.h"
-
+#include "SceneManager.h"
 #include "Window.h"
 #include "Input.h"
 #include "Render.h"
 #include "OpenGL.h"
 #include "FileSystem.h"
-#include "Textures.h"
+#include "ResourceTexture.h"
+#include "Importer.h"
+#include "ResourceManager.h"
 
 #include "GUIManager.h"
 
@@ -28,17 +30,21 @@ Application::Application() {
     render = std::make_shared<Render>();
     openGL = std::make_shared<OpenGL>();
     fileSystem = std::make_shared<FileSystem>();
-    textures = std::make_shared<Texture>();
+    resourceManager = std::make_shared<ResourceManager>();
+    sceneManager = std::make_shared<SceneManager>();
     camera = std::make_shared<Camera>();
+    importer = std::make_shared<Importer>();
 
     // Ordered for awake / Start / Update
     // Reverse order of CleanUp
     AddModule(std::static_pointer_cast<Module>(window));
     AddModule(std::static_pointer_cast<Module>(guiManager));
     AddModule(std::static_pointer_cast<Module>(input));
-    AddModule(std::static_pointer_cast<Module>(textures));
-    AddModule(std::static_pointer_cast<Module>(camera));
 
+    AddModule(std::static_pointer_cast<Module>(camera));
+    AddModule(std::static_pointer_cast<Module>(resourceManager));
+    AddModule(std::static_pointer_cast<Module>(importer));
+    AddModule(std::static_pointer_cast<Module>(sceneManager));
 
     // Render last 
     AddModule(std::static_pointer_cast<Module>(openGL));
@@ -139,8 +145,12 @@ void Application::PrepareUpdate()
 // ---------------------------------------------
 void Application::FinishUpdate()
 {
-    if (openGL && openGL->ourModel) {
+    /*if (openGL && openGL->ourModel) {
         openGL->ourModel->CleanUpDestroyedObjects();
+    }*/
+
+    if (sceneManager && sceneManager->GetActiveScene()) {
+        sceneManager->GetActiveScene()->CleanUpDestroyedObjects();
     }
 }
 

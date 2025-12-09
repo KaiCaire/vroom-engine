@@ -2,9 +2,11 @@
 
 #include "Module.h"
 #include "SDL3/SDL.h"
+#include "FileSystem"
 
 
-
+class ResourceTexture;
+class ResourceManager;
 
 #define MAX_KEYS 300
 #define NUM_MOUSE_BUTTONS 5
@@ -68,7 +70,7 @@ public:
 	// Get mouse / axis position
 	SDL_FPoint GetMousePosition();
 	SDL_FPoint GetMouseMotion();
-	Model* importedModel;
+	
 	
 
 
@@ -86,10 +88,18 @@ private:
 	int mouseMotionY;
 	int mouseX;
 	int mouseY;
-  int mouseWheelY;
+	int mouseWheelY;
 
 	const char* droppedFileDir;
 	/*std::vector<std::shared_ptr<GameObject>> selectedObjects;*/
+
+	
+	void ApplyTextureToSelectedObject(const std::string& texturePath);
+
+	FileSystem* fs;
+
+	std::string CopyFileToAssets(const std::string sourcePath, const char* destPath, const std::string file);
+	
 	
 
 };

@@ -1,4 +1,4 @@
-#pragma once
+
 #include "Application.h"
 #include "Camera.h"
 #include "Input.h"
@@ -6,6 +6,7 @@
 #include "GUIManager.h"
 #include "GameObject.h"
 #include "TransformComponent.h"
+#include "SceneManager.h"
 #include <glm/gtx/string_cast.hpp>
 
 
@@ -218,12 +219,30 @@ void Camera::ProcessScrollZoom(float delta, bool isMouseScroll)
 void Camera::FocusObject(bool firstTime) {
 	if (Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_F) == KEY_DOWN || firstTime)
 	{
-		std::shared_ptr<GameObject> selectedObj;
-		if (firstTime)
-			selectedObj = Application::GetInstance().guiManager->sceneObjects[0];
-		else
-			selectedObj = Application::GetInstance().guiManager->selectedObject;
+		std::shared_ptr<GameObject> selectedObj = nullptr;
 
+		if (firstTime) {
+			// Find the first valid object with a mesh (not the root)
+			auto scene = Application::GetInstance().sceneManager->GetActiveScene();
+			if (scene) {
+				const auto& allObjects = scene->GetAllGameObjects();
+
+				// Skip root (index 0), find first object with a mesh
+				for (size_t i = 1; i < allObjects.size(); i++) {
+					auto obj = allObjects[i];
+					if (obj && obj->GetComponent(ComponentType::MESH_RENDERER)) {
+						selectedObj = obj;
+						break;
+					}
+				}
+			}
+		}
+		else {
+			// Use the user's selected object
+			selectedObj = Application::GetInstance().guiManager->selectedObject;
+		}
+
+		// Only focus if we found a valid object
 		if (selectedObj)
 		{
 			auto transformComp = std::dynamic_pointer_cast<TransformComponent>(
@@ -233,20 +252,21 @@ void Camera::FocusObject(bool firstTime) {
 			if (transformComp)
 			{
 				glm::vec3 targetPosition = transformComp->GetWorldPosition();
-
 				UpdateCameraVectors();
 				const float focusDistance = 7.0f;
 				const float heightOffset = 1.0f;
-
 				cameraPos = targetPosition - cameraFront * focusDistance + glm::vec3(0, heightOffset, 0);
-
 				targetPos = targetPosition;
 				distance = glm::length(cameraPos - targetPos);
-
 				glm::vec3 direction = glm::normalize(targetPos - cameraPos);
 				yaw = glm::degrees(atan2(direction.z, direction.x));
 				pitch = glm::degrees(asin(direction.y));
+
+				LOG("Camera focused on '%s'", selectedObj->GetName().c_str());
 			}
+		}
+		else {
+			LOG("No valid object to focus on");
 		}
 	}
 }
@@ -254,6 +274,6 @@ void Camera::FocusObject(bool firstTime) {
 void Camera::RecalculateMatrices(int windowW, int windowH)
 {
 	float aspectRatio = (float)Application::GetInstance().window.get()->width / (float)Application::GetInstance().window.get()->height;
-	projectionMat = glm::perspective(glm::radians(fov), aspectRatio, 0.1f, 100.0f);
+	projectionMat = glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
 	viewMat = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 }

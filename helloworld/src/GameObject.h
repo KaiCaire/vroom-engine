@@ -2,15 +2,15 @@
 
 #include "Component.h"
 #include "TransformComponent.h"
-#include "Mesh.h"
-#include "Model.h"
+#include "ResourceMesh.h"
+#include "ModelImporter.h"
 #include <vector>
 #include <string>
 #include <memory>
 #include "UUID.h"
 
 
-class Model;
+class ModelImporter;
 
 class GameObject : public std::enable_shared_from_this<GameObject> {
 public:
@@ -47,19 +47,23 @@ public:
     const std::string& GetName() const { return name; }
     void SetName(const std::string& n) { name = n; }
 
+    //UUID
+    VroomUUID GetUUID() const { return uuid; }
+    void SetUUID(VroomUUID _uuid) { uuid = _uuid; }
+
     bool IsMarkedForDestroy() const { return markedForDestroy; }
     void MarkForDestroy() { markedForDestroy = true; }
     void SetAsEmpty() {
         isEmpty = true;
     }
 
-    void SetOwnerModel(Model* model) { 
-        ownerModel = model; 
-    }
+    //void SetOwnerModel(ModelImporter* model) { 
+    //    ownerModel = model; 
+    //}
 
-    Model* GetOwnerModel() { 
-        return ownerModel; 
-    }
+    //ModelImporter* GetOwnerModel() { 
+    //    return ownerModel; 
+    //}
 
     
 
@@ -71,8 +75,8 @@ private:
     bool markedForDestroy = false;
     bool isEmpty = false;
 
-    //store model owner for root objects
-    Model* ownerModel = nullptr;
+    ////store model owner for root objects
+    //ModelImporter* ownerModel = nullptr;
 
     std::weak_ptr<GameObject> parent;                          // Weak pointer to parent
     std::vector<std::shared_ptr<GameObject>> children;         // Shared pointers to children

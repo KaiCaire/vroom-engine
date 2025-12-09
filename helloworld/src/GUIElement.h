@@ -5,12 +5,14 @@
 #include <imgui_impl_opengl3.h>
 
 #include "SDL3/SDL.h"
-
+#include <memory>
 #include "Module.h"
 #include "FileSystem.h"
 #include "GameObject.h"
 
-enum ElementType{ Additional, MenuBar, Console, Config, Hierarchy, Inspector};
+enum ElementType{ Additional, MenuBar, Console, Config, Hierarchy, Inspector, AssetsViewer};
+
+class ResourceTexture;
 
 class GUIElement {
 public:
@@ -26,9 +28,13 @@ public:
 	void ConfigSetUp(bool* show);
 	void HierarchySetUp(bool* show);
 	void InspectorSetUp(bool* show);
+	void AssetsViewerSetUp(bool* show);
 
 	//other
 	void DrawNode(const std::shared_ptr<GameObject>& obj, std::shared_ptr<GameObject>& selected);
+	void DrawAssetTreeNode(const std::string& directoryPath);
+	void InstantiateAsset(const std::string& assetPath);
+	void ApplyTextureToSelection(const std::string& assetPath);
 	
 
 private:

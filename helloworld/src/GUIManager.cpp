@@ -12,8 +12,14 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_opengl3.h>
 #include "Camera.h"
+#include "SceneManager.h"
+#include "Importer.h"
+#include "TextureImporter.h"
+#include "Scene.h"
+#include "MaterialComponent.h"
+#include "RenderMeshComponent.h"
 
-GUIManager::GUIManager() : Module(), AdditionalElements(ElementType::Additional, this), Menu(ElementType::MenuBar, this), sceneObjects(), selectedObject(nullptr)
+GUIManager::GUIManager() : Module(), AdditionalElements(ElementType::Additional, this), Menu(ElementType::MenuBar, this), selectedObject(nullptr)
 {
 	name = "guiManager";
 }
@@ -69,6 +75,7 @@ std::vector<GUIElement> GUIManager::LoadElements()
 	elements.push_back(GUIElement(ElementType::Config, this));
 	elements.push_back(GUIElement(ElementType::Hierarchy, this));
 	elements.push_back(GUIElement(ElementType::Inspector, this));
+	elements.push_back(GUIElement(ElementType::AssetsViewer, this));
 
 	return elements;
 }
@@ -85,11 +92,11 @@ bool GUIManager::PreUpdate()
 	return true;
 }
 
-void GUIManager::AddGameObject(Model* obj) {
-	for (auto o : obj->gameObjects) {
-		sceneObjects.push_back(o);
-	}
-}
+//void GUIManager::AddGameObject(Model* obj) {
+//	for (auto o : obj->gameObjects) {
+//		sceneObjects.push_back(o);
+//	}
+//}
 
 bool GUIManager::Update(float dt)
 {
@@ -150,58 +157,165 @@ bool GUIManager::Update(float dt)
 		e.ElementSetUp();
 	}
 
-	//handle object deletion
-	for (auto& model : Application::GetInstance().openGL->modelObjects) model->CleanUpDestroyedObjects();
+	//process resource deletion
+	if (!resourceDeleteQueue.empty()) {
+		for (VroomUUID uuid : resourceDeleteQueue) {
+			Application::GetInstance().resourceManager->DeleteResource(uuid);
+		}
+		resourceDeleteQueue.clear();
+	}
+
+	//process file deletion
+	if (!fileDeleteQueue.empty()) {
+		for (const std::string& filePath : fileDeleteQueue) {
+			//delete the file/folder directly
+			Application::GetInstance().fileSystem->DeleteFile(filePath.c_str());
+		}
+		fileDeleteQueue.clear();
+	}
+	
+	Application::GetInstance().sceneManager.get()->GetActiveScene()->CleanUpDestroyedObjects();
 
 	return true;
 }
 
-Model* GUIManager::FindGameObjectModel(const std::shared_ptr<GameObject>& obj) {
-	//get all models
-	auto& models = Application::GetInstance().openGL.get()->modelObjects;
 
-	//search for the model that contains a specific game object
-	for (auto& model : models)
-	{
-		for (auto& o : model->gameObjects)
-		{
-			if (o == obj) return model;
+// CHECKER TEXTURE HANDLING
+void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
+	if (!go) return;
+
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
+	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER)); 
+
+	/*auto mesh = renderComp ? renderComp->GetMesh() : nullptr;*/
+
+	
+	auto mesh = renderComp->GetMesh();
+	
+
+
+	if (!materialComp || !renderComp) {
+		LOG("GameObject '%s' has no Material or RenderMesh Component", go->GetName().c_str());
+		return;
+	}
+
+	// Save the current texture (if not already saved)
+	if (originalTextures.find(go) == originalTextures.end()) {
+		auto currentTex = materialComp->GetDiffuseMap();
+		if (currentTex) {
+			originalTextures[go] = currentTex;
+			LOG("Saved original texture for '%s' (UUID: %llu)",
+				go->GetName().c_str(), currentTex->GetUUID());
 		}
 	}
-	//if not found return nullptr
-	return nullptr;
+
+	// Load checker texture
+	std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
+	auto checkerTex = std::dynamic_pointer_cast<ResourceTexture>(Application::GetInstance().resourceManager.get()->RequestResource(checkerPath.c_str()));
+	/*auto checkerTex = Application::GetInstance().importer.get()->textureImporter->Import(checkerPath);*/ 
+	//imagine reimporting every time we wanna switch texture lol
+
+	if (checkerTex) {
+		materialComp->SetDiffuseMap(checkerTex);  // Store UUID, not pointer
+
+		if (mesh->textures.empty()) {
+			mesh->textures.push_back(checkerTex); 
+		}
+		else {
+			mesh->textures[0] = checkerTex; 
+		}
+		LOG("Applied checker texture to '%s'", go->GetName().c_str());
+	}
+	else {
+		LOG("ERROR: Failed to load checker texture");
+	}
 }
 
-void GUIManager::AddToDeleteQueue(const std::shared_ptr<GameObject>& obj) {
-	if (obj) {
-		//find model that object belongs to
-		Model* ownerModel = FindGameObjectModel(obj);
-		if (ownerModel) {
-			//queue object for deletion
-			ownerModel->DestroyGameObject(obj);
-			LOG("Queued object %s for deletion.", obj.get()->GetName().c_str());
+void GUIManager::RestoreOGTexture(std::shared_ptr<GameObject> go) {
+	if (!go) return;
 
-			//remove object from list so it doesnt display on the hierarchy
-			sceneObjects.erase(std::remove(sceneObjects.begin(), sceneObjects.end(), obj), sceneObjects.end());
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
 
-			//if object is still marked as the selected object -> selected is null
-			if (selectedObject == obj) selectedObject = nullptr;
+	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER));
+	auto mesh = renderComp ? renderComp->GetMesh() : nullptr;
 
+	if (!materialComp || !mesh) return;
+
+	// Find saved texture
+	auto it = originalTextures.find(go);
+	if (it != originalTextures.end()) {
+		auto originalTex = it->second;
+		
+		if (originalTex) {
+
+			if (!originalTex->isLoadedToGPU) {
+				LOG("WARNING: Original texture not loaded to GPU, loading now...");
+				originalTex->LoadToGPU();
+			}
+			
+
+			if (originalTex->isLoadedToGPU) {
+				materialComp->SetDiffuseMap(originalTex);  // Restore by UUID
+				if (!mesh->textures.empty()) {
+					mesh->textures[0] = originalTex;
+				}
+				LOG("Restored original texture for '%s' (UUID: %llu)", go->GetName().c_str(), originalTex->GetUUID());
+			}
+			
 		}
-		else if (obj.get()->GetOwnerModel()) {
-			ownerModel = obj.get()->GetOwnerModel();
-			ownerModel->DestroyGameObject(obj);
-			LOG("Queued object %s for deletion.", obj.get()->GetName().c_str());
 
-			//remove object from list so it doesnt display on the hierarchy
-			sceneObjects.erase(std::remove(sceneObjects.begin(), sceneObjects.end(), obj), sceneObjects.end());
-
-			//if object is still marked as the selected object -> selected is null
-			if (selectedObject == obj) selectedObject = nullptr;
-		}
-		else LOG("Cannot delete Object %s- parent Model not found.", obj.get()->GetName().c_str());
+		// Remove from map
+		originalTextures.erase(it);
 	}
-	else LOG("Attempting to delete null object.");
+	else {
+		LOG("No saved texture found for '%s'", go->GetName().c_str());
+	}
+}
+
+//void GUIManager::RefreshGUIHierarchy() {
+//	sceneObjects.clear();
+//
+//	auto sceneManager = Application::GetInstance().sceneManager.get();
+//	auto scene = sceneManager->GetActiveScene();
+//
+//	if (scene) {
+//		// Get all GameObjects from the active scene
+//		sceneObjects = scene->GetAllGameObjects();
+//	}
+//}
+
+void GUIManager::AddToDeleteQueue(const std::shared_ptr<GameObject>& obj) {
+	if (!obj) {
+		LOG("Attempting to delete null object.");
+		return;
+	}
+
+	// Get the active scene
+	auto sceneManager = Application::GetInstance().sceneManager.get();
+	auto scene = sceneManager->GetActiveScene();
+
+	if (!scene) {
+		LOG("ERROR: No active scene found. Cannot delete object '%s'", obj->GetName().c_str());
+		return;
+	}
+
+	// Queue object for deletion in the scene
+	sceneManager->DestroyGameObject(obj);
+	LOG("Queued object '%s' for deletion.", obj->GetName().c_str());
+
+	//std::find returns:
+	//Iterator to the found element if it exists
+	//sceneObjects.end() if NOT found
+
+	//auto it = std::find(sceneObjects.begin(), sceneObjects.end(), obj);
+	//if (it != sceneObjects.end()) {
+	//	sceneObjects.erase(it);
+	//}
+
+	// Clear selection if deleting the selected object
+	if (selectedObject == obj) {
+		selectedObject = nullptr;
+	}
 }
 
 void GUIManager::InitDock() {
@@ -229,6 +343,25 @@ void GUIManager::InitDock() {
 
 void GUIManager::ProcessEvents(SDL_Event event) {
 	ImGui_ImplSDL3_ProcessEvent(&event);
+}
+
+void GUIManager::HandleExternalFileDrop(const std::string& sourceOSPath) {
+	std::string fileName = Application::GetInstance().fileSystem->GetFileFromPath(sourceOSPath.c_str());
+	std::string targetDir = "../Assets";
+
+	//build final path
+	std::string targetPath = targetDir + "/" + fileName;
+
+	Application::GetInstance().fileSystem->CreateDir(targetDir.c_str());
+
+	if (Application::GetInstance().fileSystem->CopyFile(sourceOSPath.c_str(), targetPath.c_str())) {
+		std::string assetRelativePath = "Assets/" + fileName; 
+		Application::GetInstance().resourceManager->RequestResource(assetRelativePath);
+		LOG("External file '%s' successfully copied to Assets/ and imported.", fileName.c_str());
+	}
+	else {
+		LOG("ERROR: Failed to copy file %s to Assets/ folder.", fileName.c_str());
+	}
 }
 
 bool GUIManager::PostUpdate()
@@ -264,3 +397,20 @@ bool GUIManager::CleanUp()
 
 	return true;
 }
+
+
+//Model* GUIManager::FindGameObjectModel(const std::shared_ptr<GameObject>& obj) {
+//	//get all models
+//	auto& models = Application::GetInstance().openGL.get()->modelObjects;
+//
+//	//search for the model that contains a specific game object
+//	for (auto& model : models)
+//	{
+//		for (auto& o : model->gameObjects)
+//		{
+//			if (o == obj) return model;
+//		}
+//	}
+//	//if not found return nullptr
+//	return nullptr;
+//}

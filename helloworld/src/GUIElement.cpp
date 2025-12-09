@@ -6,13 +6,17 @@
 #include "GUIManager.h"
 #include "SystemInfo.h"
 #include "OpenGL.h"
-#include "Model.h"
+#include "ModelImporter.h"
+#include "SceneManager.h"
+#include "Input.h"
 
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
 #include "MaterialComponent.h"
-#include "Textures.h"
+#include "ResourceTexture.h"
 #include "Render.h"
+#include "TextureImporter.h"
+#include "Importer.h"
 
 #include <SDL3/SDL_opengl.h>
 #include <glm/glm.hpp>
@@ -23,6 +27,8 @@
 #include <glm/gtx/transform.hpp>
 
 #include <vector>
+
+
 
 GUIElement::GUIElement(ElementType t, GUIManager* m)
 {
@@ -59,6 +65,9 @@ void GUIElement::ElementSetUp()
 	case ElementType::Inspector:
 		if (Application::GetInstance().guiManager.get()->showInspector) InspectorSetUp(&Application::GetInstance().guiManager.get()->showInspector);
 		break;
+	case ElementType::AssetsViewer:
+		if (Application::GetInstance().guiManager.get()->showAssetsViewer) AssetsViewerSetUp(&Application::GetInstance().guiManager.get()->showAssetsViewer);
+		break;
 	default:
 		LOG("No GUIType detected.");
 		break;
@@ -79,6 +88,10 @@ void GUIElement::MenuBarSetUp()
 
 		if (ImGui::BeginMenu("View")) {
 			//handle view
+			if (ImGui::MenuItem("Assets Viewer", nullptr, Application::GetInstance().guiManager.get()->showAssetsViewer)) {
+				bool set = !Application::GetInstance().guiManager.get()->showAssetsViewer;
+				Application::GetInstance().guiManager.get()->showAssetsViewer = set;
+			}
 			if (ImGui::MenuItem("Console", nullptr, Application::GetInstance().guiManager.get()->showConsole)) {
 				bool set = !Application::GetInstance().guiManager.get()->showConsole;
 				Application::GetInstance().guiManager.get()->showConsole = set;
@@ -234,7 +247,7 @@ void GUIElement::ConfigSetUp(bool* show) {
 	//window resolution
 	if (!fullscreen) {
 		//get resolutions and current resolution from window
-		vector<glm::vec2> options = Application::GetInstance().window.get()->resolutions;
+		std::vector<glm::vec2> options = Application::GetInstance().window.get()->resolutions;
 		glm::vec2 current = Application::GetInstance().window.get()->currentRes;
 
 		//find index of current resolution
@@ -302,33 +315,48 @@ void GUIElement::HierarchySetUp(bool* show)
 		return;
 	}
 
+	//drag and drop target
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			std::string droppedPath((const char*)payload->Data);
+
+			//handle instantiation
+			InstantiateAsset(droppedPath);
+		}
+		ImGui::EndDragDropTarget();
+	}
+
 	//create objects (minim cube)
 	if (ImGui::BeginMenu("Create...")) {
 		if (ImGui::MenuItem("Empty")) {
 			//Create empty 
-			auto empty = new Model();
-			Application::GetInstance().render->AddModel(empty);
-			
-			//add empty model to lists
-			Application::GetInstance().openGL.get()->modelObjects.push_back(empty);
-			Application::GetInstance().guiManager.get()->sceneObjects.push_back(empty->GetRootGameObject());
+			auto empty = std::make_shared<GameObject>();
+			Application::GetInstance().sceneManager->GetActiveScene()->AddGameObject(empty);
 			
 		}
 		if (ImGui::MenuItem("Cube")) {
-			Model* defaultCube = Application::GetInstance().openGL->CreateCube();
-			Application::GetInstance().render->AddModel(defaultCube);
+			auto defaultCube = Application::GetInstance().sceneManager->CreateCube();
+			/*Application::GetInstance().render->AddModel(defaultCube);*/
 		}
 		ImGui::EndMenu();
 	}
 
 	ImGui::Separator();
 
-	//game objects
-	//get root level objects
-	for (auto& obj : manager->sceneObjects)
+	auto scene = Application::GetInstance().sceneManager->GetActiveScene();
+	if (!scene) {
+		ImGui::Text("No active scene");
+		ImGui::End();
+		return;
+	}
+
+	const auto& sceneRoot = scene->GetRoot();
+
+	// Draw hierarchy
+	for (auto& child : sceneRoot->GetChildren())
 	{
-		//check for game objects with no parent
-		if (obj && obj->IsActive() && !obj->GetParent()) DrawNode(obj, manager->selectedObject);
+		if (child && child->IsActive()) 
+			DrawNode(child, manager->selectedObject);
 	}
 
 	ImGui::End();
@@ -383,6 +411,18 @@ void GUIElement::InspectorSetUp(bool* show)
 		return;
 	}
 
+	//drag and drop
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			//check if an object is selected
+			if (manager->selectedObject) {
+				std::string droppedPath((const char*)payload->Data);
+				ApplyTextureToSelection(droppedPath); 
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
+
 	//check if a game object is selected
 	auto selected = manager->selectedObject;
 
@@ -414,22 +454,22 @@ void GUIElement::InspectorSetUp(bool* show)
 		//get mesh component
 		auto meshComponent = std::dynamic_pointer_cast<RenderMeshComponent>(selected->GetComponent(ComponentType::MESH_RENDERER));
 		//get texture for next step
-		vector<Texture> textureComponent;
+		std::vector<std::shared_ptr<ResourceTexture>> textureComponent;
 
 		bool showFaceNormals = manager->drawFaceNormals;
 		bool showVertNormals = manager->drawVertNormals;
 
 		
 		if (meshComponent) {
-			std::shared_ptr<Mesh> mesh = meshComponent.get()->GetMesh();
+			std::shared_ptr<ResourceMesh> mesh = meshComponent.get()->GetMesh();
 			if(mesh) textureComponent = mesh.get()->textures;
 
 			//check if header is open
-			if (ImGui::CollapsingHeader("Mesh")) {
+			if (ImGui::CollapsingHeader("Mesh") && mesh) {
 				//get values
-				std::shared_ptr<Mesh> mesh = meshComponent.get()->GetMesh();
-				vector<Vertex> vert = mesh.get()->vertices;
-				vector<unsigned int> ind = mesh.get()->indices;
+				/*std::shared_ptr<ResourceMesh> mesh = meshComponent.get()->GetMesh();*/
+				std::vector<Vertex> vert = mesh.get()->vertices;
+				std::vector<unsigned int> ind = mesh.get()->indices;
 
 				//display values
 				ImGui::Text("Vertices: %d", vert.size());
@@ -439,48 +479,41 @@ void GUIElement::InspectorSetUp(bool* show)
 				ImGui::Checkbox("Show Vertex Normals", &mesh.get()->drawFaceNormals);
 				ImGui::Checkbox("Show Face Normals", &mesh.get()->drawVertNormals);
 			}
-
 			//texture
-			if (ImGui::CollapsingHeader("Texture")) {
-				// Show current texture info
+			if (ImGui::CollapsingHeader("Texture") && mesh) {
 				auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
 					selected->GetComponent(ComponentType::MATERIAL)
 				);
 
-				if (materialComp && materialComp->GetDiffuseMap()) {
+				if (materialComp) {
+					// Show current texture info
 					auto currentTex = materialComp->GetDiffuseMap();
-					ImGui::Text("Current Texture ID: %u", currentTex->id);
-					ImGui::BulletText("Path: %s", currentTex->path.c_str());
-					ImGui::BulletText("Width: %d", currentTex->texW);
-					ImGui::BulletText("Height: %d", currentTex->texH);
-				}
+					if (currentTex) {
+						ImGui::Text("Current Texture:");
+						ImGui::BulletText("UUID: %llu", currentTex->GetUUID());
+						ImGui::BulletText("Path: %s", currentTex->path.c_str());
+						ImGui::BulletText("Size: %dx%d", currentTex->texW, currentTex->texH);
+					}
+					else {
+						ImGui::Text("No texture assigned");
+					}
 
-				// Checker texture toggle
-				auto parentModel = manager->FindGameObjectModel(selected);
-				if (parentModel && materialComp) {
-					if (ImGui::Checkbox("Show Checker Texture", &parentModel->useDefaultTexture)) {
-						if (parentModel->useDefaultTexture) {
-							// SWITCHING TO CHECKER
-							// Save current texture
-							parentModel->savedTexture = materialComp->GetDiffuseMap();
+					// Checker texture toggle for THIS GameObject only
+					bool isShowingChecker = manager->IsShowingCheckerTexture(selected);
 
-							// Load checker
-							string fullPath = Application::GetInstance().textures.get()->defaultTexDir;
-							string fileName = fullPath.substr(fullPath.find_last_of('/') + 1);
-							auto checkerTex = std::make_shared<Texture>();
-							checkerTex->TextureFromFile(fullPath, fileName.c_str());
-
-							materialComp->SetDiffuseMap(checkerTex);
+					if (ImGui::Checkbox("Show Checker Texture", &isShowingChecker)) {
+						if (isShowingChecker) {
+							// SWITCH TO CHECKER
+							manager->ShowCheckerTexture(selected);
 						}
 						else {
-							// SWITCHING BACK TO ORIGINAL
-							if (parentModel->savedTexture) {
-								materialComp->SetDiffuseMap(parentModel->savedTexture);
-							}
+							// SWITCH BACK TO ORIGINAL
+							manager->RestoreOGTexture(selected);
 						}
 					}
 				}
 			}
+
 		}
 	}
 	else {
@@ -488,4 +521,211 @@ void GUIElement::InspectorSetUp(bool* show)
 	}
 
 	ImGui::End();
+}
+
+void GUIElement::AssetsViewerSetUp(bool* show) {
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+
+	ImGui::SetNextWindowDockID(0, ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(700, 400), ImGuiCond_FirstUseEver);
+
+	if (!ImGui::Begin("Assets Viewer", show, window_flags))
+	{
+		ImGui::End();
+		return;
+	}
+
+	GUIManager* manager = Application::GetInstance().guiManager.get();
+	//check if mouse is hovering on the viewer window
+	manager->assetsViewerIsHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow);
+
+	//search bar
+	ImGui::Text("Search:");
+	ImGui::SameLine();
+	ImGui::InputText("##search", manager->assetSearchBuffer, IM_ARRAYSIZE(manager->assetSearchBuffer));
+
+	ImGui::Separator();
+	ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 15.0f);
+
+	if (ImGui::TreeNodeEx("Assets", ImGuiTreeNodeFlags_DefaultOpen)) {
+		//recursion
+		DrawAssetTreeNode("../Assets");
+		ImGui::TreePop();
+	}
+	ImGui::PopStyleVar();
+
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			//Handled in process events
+		}
+		ImGui::EndDragDropTarget();
+	}
+
+	ImGui::End();
+}
+
+void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
+	//get search state
+	GUIManager* manager = Application::GetInstance().guiManager.get();
+	std::string search_text = manager->assetSearchBuffer;
+	std::transform(search_text.begin(), search_text.end(), search_text.begin(), ::tolower);
+
+	//get directory contents
+	auto entries = Application::GetInstance().fileSystem->GetDirectoryContents(directoryPath.c_str());
+
+	for (const auto& entry : entries) {
+		//check search
+		if (!search_text.empty()) {
+			std::string entryNameLower = entry.name;
+			std::transform(entryNameLower.begin(), entryNameLower.end(), entryNameLower.begin(), ::tolower);
+
+			//skip if the current item doesnt match and not a directory 
+			if (entryNameLower.find(search_text) == std::string::npos && !entry.isDirectory) {
+				continue;
+			}
+		}
+
+		bool is_file = !entry.isDirectory;
+		ImGui::PushID(entry.fullPath.c_str());
+		ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
+		if (!entry.isDirectory) {
+			//file doesnt expand
+			flags |= ImGuiTreeNodeFlags_Leaf;
+		}
+
+		std::string displayName = entry.name;
+		if (is_file) {
+			std::string metaPath = entry.fullPath + ".meta";
+			if (Application::GetInstance().fileSystem->Exists(metaPath.c_str())) {
+				VroomUUID uuid = Application::GetInstance().fileSystem->GetUUIDFromMeta(metaPath.c_str());
+
+				if (uuid != 0) {
+					std::shared_ptr<Resource> managedResource = Application::GetInstance().resourceManager->GetResourceByUUID(uuid);
+
+					if (managedResource) {
+						displayName = entry.name + " (Refs: " + std::to_string(managedResource->GetReferenceCount()) + ")";
+					}
+				}
+			}
+		}
+
+		//draw node
+		bool opened = ImGui::TreeNodeEx(displayName.c_str(), flags);
+
+		if (ImGui::BeginPopupContextItem()) {
+			if (ImGui::MenuItem("Delete")) {
+				std::string metaPath = entry.fullPath + ".meta";
+
+				std::string extension = Application::GetInstance().fileSystem->GetExtensionFromPath(entry.fullPath.c_str());
+				bool isModelFile = (extension == "fbx" || extension == "obj" || extension == "dae" || extension == "max");
+
+				if (entry.isDirectory || !Application::GetInstance().fileSystem->Exists(metaPath.c_str()) || isModelFile) {
+					Application::GetInstance().guiManager->fileDeleteQueue.push_back(entry.fullPath);
+				}
+				else {
+					VroomUUID uuid = Application::GetInstance().fileSystem->GetUUIDFromMeta(metaPath.c_str());
+					Application::GetInstance().guiManager->resourceDeleteQueue.push_back(uuid);
+				}
+			}
+			ImGui::EndPopup();
+		}
+
+		//drag and drop organization
+		if (entry.isDirectory && ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+
+				std::string draggedAssetPath((const char*)payload->Data);
+
+				std::string assetFileName = Application::GetInstance().fileSystem->GetFileFromPath(draggedAssetPath.c_str());
+				std::string newDirectoryPath = entry.fullPath;
+
+				//create new path
+				std::string newAssetPath = newDirectoryPath + "/" + assetFileName;
+
+				//find uuid
+				std::string draggedMetaPath = draggedAssetPath + ".meta";
+				if (Application::GetInstance().fileSystem->Exists(draggedMetaPath.c_str())) {
+					VroomUUID uuid = Application::GetInstance().fileSystem->GetUUIDFromMeta(draggedMetaPath.c_str());
+
+					//move the asset
+					Application::GetInstance().resourceManager->MoveAsset(uuid, newAssetPath);
+				}
+				else {
+					Application::GetInstance().fileSystem->MoveFileToNewPath(draggedAssetPath.c_str(), newAssetPath.c_str());
+				}
+			}
+			ImGui::EndDragDropTarget();
+		}
+
+		//dragging
+		if (!entry.isDirectory && ImGui::BeginDragDropSource()) {
+			ImGui::SetDragDropPayload("ASSET_PATH", entry.fullPath.c_str(), entry.fullPath.length() + 1);
+			ImGui::Text("%s", entry.name.c_str());
+			ImGui::EndDragDropSource();
+		}
+
+		//recursion loop
+		if (entry.isDirectory) {
+			if (opened) {
+				DrawAssetTreeNode(entry.fullPath);
+				ImGui::TreePop();
+			}
+		}
+		else {
+			if (opened) ImGui::TreePop(); 
+		}
+
+		ImGui::PopID();
+	}
+}
+
+void GUIElement::InstantiateAsset(const std::string& assetPath) {
+	Application::GetInstance().input.get()->ProcessDroppedFile(assetPath);
+}
+
+void GUIElement::ApplyTextureToSelection(const std::string& assetPath) {
+	//make sure an object is selected
+	auto go = manager->selectedObject;
+	if (!go) {
+		LOG("WARNING: Cannot apply texture - no GameObject selected.");
+		return;
+	}
+
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
+	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER));
+
+	//make sure needed components are available
+	if (!materialComp || !renderComp || !renderComp->GetMesh()) {
+		LOG("WARNING: GameObject '%s' cannot accept texture (missing Material or Mesh component).", go->GetName().c_str());
+		return;
+	}
+
+	auto mesh = renderComp->GetMesh();
+
+	//request resource
+	std::shared_ptr<Resource> resource = Application::GetInstance().resourceManager->RequestResource(assetPath);
+	std::shared_ptr<ResourceTexture> newTex = std::dynamic_pointer_cast<ResourceTexture>(resource);
+
+	if (newTex) {
+		//apply to MaterialComponent for inspector
+		materialComp->SetDiffuseMap(newTex);
+
+		//apply to ResourceMesh for rendering
+		if (mesh->textures.empty()) {
+			mesh->textures.push_back(newTex);
+		}
+		else {
+			mesh->textures[0] = newTex;
+		}
+
+		auto it = manager->originalTextures.find(go);
+		if (it != manager->originalTextures.end()) {
+			manager->originalTextures.erase(it);
+		}
+
+		LOG("SUCCESS: Applied texture '%s' to GameObject '%s'.", newTex->GetName().c_str(), go->GetName().c_str());
+	}
+	else {
+		LOG("ERROR: Failed to load/cast texture from path: %s", assetPath.c_str());
+	}
 }

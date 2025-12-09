@@ -1,2 +1,5 @@
 helloworld/build
 helloworld/CMakeUserPresets.json
+
+*.meta
+helloworld/Library

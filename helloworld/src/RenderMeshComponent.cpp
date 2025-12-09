@@ -5,12 +5,13 @@
 #include "Shader.h"
 
 
-RenderMeshComponent::RenderMeshComponent(std::shared_ptr<GameObject> owner)
-    : Component(owner, ComponentType::MESH_RENDERER),
-    mesh(nullptr) {
-}
+RenderMeshComponent::RenderMeshComponent(std::shared_ptr<GameObject> owner) : Component(owner, ComponentType::MESH_RENDERER), mesh(nullptr) {}
 
 RenderMeshComponent::~RenderMeshComponent() {
+
+    if (mesh) {
+        mesh->RemoveReference();
+    }
     
     mesh = nullptr;
 }
@@ -31,8 +32,18 @@ void RenderMeshComponent::OnEditor() {
     //laracode aqui
 }
 
-void RenderMeshComponent::SetMesh(std::shared_ptr<Mesh> newMesh) {
+void RenderMeshComponent::SetMesh(std::shared_ptr<ResourceMesh> newMesh) {
+    if (mesh) {
+        mesh->RemoveReference();
+    }
+
     mesh = newMesh;
+    if (newMesh) {
+        meshUUID = newMesh->GetUUID();
+        /*newMesh->AddReference();*/
+        LOG("RenderMeshComponent assigned Mesh UUID: %llu and added reference.", meshUUID);
+    }
+    else meshUUID = 0;
 }
 
 void RenderMeshComponent::Render(Shader* shader) {
@@ -64,10 +75,4 @@ void RenderMeshComponent::Render(Shader* shader) {
 
     mesh->Draw(*shader);
 }
-
-
-//void RenderMeshComponent::DrawNormals() {
-//    
-//    mesh->CalculateNormals();
-//}
 

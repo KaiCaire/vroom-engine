@@ -29,6 +29,7 @@ public:
 
 	ComponentType GetType() const { return type; }
 	bool IsActive() const { return active; }
+
 	std::shared_ptr<GameObject> GetOwner() const 
 	{ 
 		return owner.lock(); 
