@@ -133,12 +133,15 @@ void OctreeNode::Subdivide() {
     glm::vec3 max = bounds.max;
     glm::vec3 half = (min + max) * 0.5f;
 
+    children.clear();
+
     // Create bounds for the 8 children
     children.emplace_back(std::make_unique<OctreeNode>(AABB{ min, half }, level + 1, maxCapacity));
     children.emplace_back(std::make_unique<OctreeNode>(AABB{ glm::vec3(half.x, min.y, min.z), glm::vec3(max.x, half.y, half.z) }, level + 1, maxCapacity));
     children.emplace_back(std::make_unique<OctreeNode>(AABB{ glm::vec3(min.x, half.y, min.z), glm::vec3(half.x, max.y, half.z) }, level + 1, maxCapacity));
     children.emplace_back(std::make_unique<OctreeNode>(AABB{ glm::vec3(half.x, half.y, min.z), glm::vec3(max.x, max.y, half.z) }, level + 1, maxCapacity));
     children.emplace_back(std::make_unique<OctreeNode>(AABB{ glm::vec3(min.x, min.y, half.z), glm::vec3(half.x, half.y, max.z) }, level + 1, maxCapacity));
+    children.emplace_back(std::make_unique<OctreeNode>(AABB{ glm::vec3(half.x, min.y, half.z), glm::vec3(max.x, half.y, max.z) }, level + 1, maxCapacity));
     children.emplace_back(std::make_unique<OctreeNode>(AABB{ glm::vec3(min.x, half.y, half.z), glm::vec3(half.x, max.y, max.z) }, level + 1, maxCapacity));
     children.emplace_back(std::make_unique<OctreeNode>(AABB{ half, max }, level + 1, maxCapacity));
 
@@ -153,6 +156,7 @@ void OctreeNode::Subdivide() {
 
         //try inserting into the appropriate child
         int index = GetChildIndex(objBounds);
+        //index--;
 
         if (children[index]->GetBounds().Contains(objBounds)) {
             children[index]->Insert(obj);
@@ -189,6 +193,7 @@ bool OctreeNode::Insert(const std::shared_ptr<GameObject>& obj) {
     if (isDivided) {
         //try inserting into a child node
         int index = GetChildIndex(objBounds);
+        //if(index > 0) index--;
 
         //check if the child node can fully contain the AABB
         if (children[index]->GetBounds().Contains(objBounds)) {
