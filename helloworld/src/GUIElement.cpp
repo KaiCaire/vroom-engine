@@ -275,9 +275,14 @@ void GUIElement::ConfigSetUp(bool* show) {
 			ImGui::EndCombo();
 		}
 	}
+
+	
+
 	ImGui::Separator();
 
 	ImGui::Text("Debug Visualization:");
+	//toggle Z-buffer visualization
+	ImGui::Checkbox("Draw Z-Buffer", &Application::GetInstance().openGL.get()->drawZbuffer);
 	//toggle AABB drawing
 	ImGui::Checkbox("Show Object AABBs", &Application::GetInstance().guiManager.get()->drawAABBs);
 	//toggle raycast drawing

@@ -53,6 +53,7 @@ bool OpenGL::Start() {
 	LOG("Assimp Logger Initialized in OpenGL::Start()");
 
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
+	depthBufferShader = new Shader("TexCoordsShader.vert", "DepthBufferShader.frag");
 
 	/*normalShader = new Shader("")*/
 
@@ -95,10 +96,8 @@ bool OpenGL::Start() {
 
 	glEnable(GL_DEPTH_TEST);
 
-	texCoordsShader->Use();
-	viewMat = glm::mat4(1.0f);
-
-
+	//texCoordsShader->Use();
+	//viewMat = glm::mat4(1.0f);
 	Application::GetInstance().sceneManager->LoadDefaultScene();
 
 	return true;
@@ -107,51 +106,26 @@ bool OpenGL::Start() {
 bool OpenGL::Update(float dt) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	//glClearColor(0.1f, 0.2f, 0.3f, 1.0f); // dark bluish background
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
+	Shader* activeShader = nullptr;
 
+	if (drawZbuffer) {
+		activeShader = depthBufferShader;
+	}
+	else {
+		activeShader = texCoordsShader;
+		/*glUniform1f(glad_glGetUniformLocation(activeShader->ID, "near"), Application::GetInstance().camera->nearPlane);
+		glUniform1f(glad_glGetUniformLocation(activeShader->ID, "far"), Application::GetInstance().camera->farPlane);*/
+	}
 
-	////grid
-
-	//glUseProgram(texCoordsShader->ID);
-
-	////use shader's line color instead of texture
-	//glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), true);
-	//glUniform4f(glGetUniformLocation(texCoordsShader->ID, "lineColor"), 1.0f, 1.0f, 1.0f, 0.5f); //white grid
-
-	//Application::GetInstance().render.get()->DrawGrid(*texCoordsShader);
-
-	//// Restore to normal texture mode
-	//glUniform1i(glGetUniformLocation(texCoordsShader->ID, "useLineColor"), false);
-
-	//viewMat = Application::GetInstance().camera->viewMat;
-	//projectionMat = Application::GetInstance().camera->projectionMat;
-
-	//texCoordsShader->Use();
-	//texCoordsShader->setMat4("model", modelMat);
-	//texCoordsShader->setMat4("view", viewMat);
-	//texCoordsShader->setMat4("projection", projectionMat);
-
-	//draw all meshes
-	
-	//TODO:
-	//for (int i = 0; i < Application::GetInstance().render.get()->modelsToDraw.size(); i++) {
-	//	Application::GetInstance().render.get()->modelsToDraw[i]->Draw(*texCoordsShader);
-	//}
+	activeShader->Use();
 
 
 
-	// Let Render module handle all drawing
-	Application::GetInstance().render.get()->RenderFrame(*texCoordsShader);
-
-	return true;
-
+	// Render everything
+	Application::GetInstance().render.get()->RenderFrame(*activeShader);
 
 	return true;
 
