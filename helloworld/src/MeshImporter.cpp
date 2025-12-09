@@ -21,9 +21,9 @@ std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene
     
     VroomUUID meshUUID = cachedUUID;
 
-    //// If we have a cached UUID, try to load from Library
+    // If we have a cached UUID, try to load from Library
     //if (meshUUID != 0) {
-    //    std::string libraryPath = "Library/Meshes/" + std::to_string(meshUUID) + ".vroommesh";
+    //    std::string libraryPath = std::string(Paths::MESH_LIB_DIR) + std::to_string(meshUUID) + ".vroommesh";
 
     //    if (fs->Exists(libraryPath.c_str())) {
     //        LOG("Loading mesh from cache: %s", libraryPath.c_str());
@@ -31,9 +31,6 @@ std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene
     //        auto mesh = std::make_shared<ResourceMesh>();
     //        mesh->SetUUID(meshUUID);
     //        mesh->SetName(aiMesh->mName.C_Str());
-    //        mesh->SetLibraryFilePath(libraryPath);
-
-    //      
 
     //        LOG("Mesh loaded from cache successfully");
     //        return mesh;

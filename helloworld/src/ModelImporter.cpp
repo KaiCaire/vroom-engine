@@ -44,8 +44,12 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
     // Try to load model meta for caching
     nlohmann::json* modelMeta = LoadModelMeta(path);
 
-    if (modelMeta) LOG("Using cached model data");
-    else LOG("Importing model from scratch");
+    if (modelMeta) {
+        LOG("Reimporting model, using cached uuids");
+
+    }
+    else 
+        LOG("Importing model from scratch");
      
      
     fileExtension = fs->GetExtensionFromPath(fullPath.c_str());
@@ -164,45 +168,6 @@ void ModelImporter::Draw(Shader& shader) {
         auto mesh = renderer->GetMesh();
         if (!mesh) continue;
 
-
-        
-        ////trigger checkerboard texture
-        //if (useDefaultTexture) {
-        //    //store original texture if not yet stored
-        //    if (originalTextures.find(mesh) == originalTextures.end()) {
-        //        originalTextures[mesh] = mesh->textures;
-        //    }
-
-        //    mesh->textures.clear();
-
-        //    std::string checkersTexDir = Application::GetInstance().importer->defaultTexDir;
-        //    std::string checkersTexName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(checkersTexDir.c_str());
-        //    std::shared_ptr<ResourceTexture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
-
-
-        //    if (checkersTex) {
-        //        //mesh->textures.clear();
-        //        mesh->textures.push_back(checkersTex);
-        //    }
-
-        //    /*std::string checkersTexDir = Application::GetInstance().importer->defaultTexDir;
-        //    std::string checkersTexName = checkersTexDir.substr(checkersTexDir.find_last_of('/') + 1);
-        //    std::shared_ptr<ResourceTexture> checkersTex = GetOrLoadTexture(checkersTexDir, checkersTexName, "texture_diffuse");
-
-        //    mesh->textures.push_back(checkersTex);*/
-        //}
-        //else {
-        //    //restore original texture
-        //    auto ogTex = originalTextures.find(mesh);
-        //    if (ogTex != originalTextures.end()) {
-        //        mesh->textures = ogTex->second;
-        //        originalTextures.erase(ogTex);
-        //        LOG("Restored original textures for mesh: %s", gameObject->GetName().c_str());
-        //    }
-
-        //}
-
-        //draw the mesh
         renderer->GetMesh()->Draw(shader);
     }
 }
@@ -245,10 +210,6 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
     if (div_scale > 0.0f) {
         scaling /= div_scale;
     }
-
-   /* transform->SetPosition(glm::vec3(position.x, position.y, position.z));
-    transform->SetRotation(glm::quat(rotation.w, rotation.x, rotation.y, rotation.z));
-    transform->SetScale(glm::vec3(scaling.x, scaling.y, scaling.z));*/
 
     glm::vec3 pos(position.x, position.y, position.z);
     glm::quat rot(rotation.w, rotation.x, rotation.y, rotation.z);
@@ -293,6 +254,7 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
         aiMesh* aiMesh = scene->mMeshes[meshIndex];
 
 
+
         createComponentsForMesh(gameObject, aiMesh, scene, modelMeta);
     }
     //else { //no meshes-> create empty GO
@@ -316,22 +278,11 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
     LOG("=== createComponentsForMesh START ===");
 
     std::shared_ptr<ResourceMesh> mesh;
-    /*VroomUUID meshUUID = 0;*/
-
-    //// Check if we have cached UUID from model meta
-    //if (modelMeta && modelMeta->contains("meshes")) {
-    //    for (auto& meshEntry : (*modelMeta)["meshes"]) {
-    //        if (meshEntry["name"] == aiMesh->mName.C_Str()) {
-    //            meshUUID = meshEntry["uuid"];
-    //            LOG("Found cached mesh UUID: %llu", meshUUID);
-    //            break;
-    //        }
-    //    }
-    //}
+    
 
     // Let MeshImporter handle loading/importing
     // Pass the cached UUID if we have one
-    mesh = Application::GetInstance().importer->meshImporter->Import(aiMesh, scene, fullPath/*, meshUUID*/);
+    mesh = Application::GetInstance().importer->meshImporter->Import(aiMesh, scene, fullPath);
 
     if (!mesh) {
         LOG("ERROR: Failed to import mesh");
@@ -566,8 +517,6 @@ void ModelImporter::SaveModelMeta(const char* modelPath) {
         nlohmann::json meshEntry;
         meshEntry["name"] = meshInfo.name;
         meshEntry["uuid"] = meshInfo.uuid;
-        meshEntry["vertexCount"] = meshInfo.vertexCount;
-        meshEntry["indexCount"] = meshInfo.indexCount;
         meshesArray.push_back(meshEntry);
     }
     meta["meshes"] = meshesArray;
@@ -598,6 +547,7 @@ nlohmann::json* ModelImporter::LoadModelMeta(const char* modelPath) {
     if (fs->NeedsReimport(metaPath.c_str(), modelPath)) {
         LOG("Model has been modified, needs reimport: %s", modelPath);
         return nullptr;
+        //TODO REIMPORT
     }
 
     // Load and return the meta

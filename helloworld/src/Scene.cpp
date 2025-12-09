@@ -356,9 +356,15 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
 
         // Request mesh from ResourceManager
         auto mesh = Application::GetInstance().resourceManager.get()->RequestResource(meshUUID);
+        if (mesh == nullptr) {
+            LOG("ERROR: Failed to load mesh from library and reimport from scratch");
+
+           /* Application::GetInstance().importer.get()->modelImporter->ImportScene(modelPath)*/
+        }
+        
         renderer->SetMesh(std::dynamic_pointer_cast<ResourceMesh>(mesh));
 
-        if (!mesh->isLoadedToGPU) {
+        if (mesh && !mesh->isLoadedToGPU) {
             Application::GetInstance().resourceManager.get()->LoadResourceToGPU(mesh);
         }
 

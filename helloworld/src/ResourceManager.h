@@ -49,7 +49,7 @@ public:
     void RemoveReference(VroomUUID uuid);
 
     // Cleanup unused resources (refCount == 0)
-    void CleanupUnusedResources();
+    void DeleteUnusedLibraryFiles();
 
     std::shared_ptr<ResourceMesh> CreateCubeMesh();
 
@@ -65,6 +65,7 @@ public:
     bool DeleteResource(VroomUUID uuid);
     bool MoveAsset(VroomUUID uuid, const std::string& newAssetPath);
     bool LoadResourceToGPU(std::shared_ptr<Resource> resource);
+    bool DeleteFileFromLibrary(const std::string filePath);
     
 
 private:
@@ -74,6 +75,7 @@ private:
     // Helper to load resource from Library
     bool SaveResourceToLibrary(std::shared_ptr<Resource> resource);
     bool LoadResourceFromLibrary(std::shared_ptr<Resource> resource);
+    bool TryReimportResource(VroomUUID uuid, ResourceType& outType);
     
 
     FileSystem* fs;

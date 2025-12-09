@@ -7,6 +7,7 @@
 #include "MeshImporter.h"
 #include "ResourceTexture.h"
 #include "ResourceMesh.h"
+#include "SceneManager.h"
 #include "Log.h"
 #include "ModelImporter.h"
 
@@ -68,7 +69,10 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
         libraryPath = meshPath;
     }
     else {
-        LOG("ERROR: Library file not found for UUID %llu", uuid);
+        LOG("ERROR: Library file not found for UUID %llu, reimporting", uuid);
+        TryReimportResource(uuid, type);
+
+        //TODO: REIMPORT !!
         return nullptr;
     }
 
@@ -82,6 +86,86 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
     }
 
     return nullptr;
+}
+
+bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType) {
+
+
+    LOG("Attempting to reimport resource %llu", uuid);
+
+    // Search for .meta files in Assets that reference this UUID
+    std::string assetsPath = Paths::ASSETS_DIR;
+
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(assetsPath)) {
+        
+        if (entry.path().extension() == ".fbx" || entry.path().extension() == ".obj") {
+            //Find the meta file
+            std::string metaPath = entry.path().string() + ".meta";
+            metaPath = fs->NormalizePath(metaPath.c_str());
+            if (!fs->Exists(metaPath.c_str())) continue;
+            nlohmann::json modelMeta = fs->LoadJSON(metaPath.c_str());
+
+            if (modelMeta.contains("meshes")) 
+            {
+                for (auto& meshEntry : modelMeta["meshes"]) 
+                {
+                    if (meshEntry.contains("uuid")){
+
+                        if (meshEntry["uuid"].get<VroomUUID>() == uuid) {
+                            // Found it! Reimport the model
+                            std::string modelPath = entry.path().string();
+                            modelPath = fs->NormalizePath(modelPath.c_str());
+                            //modelPath = modelPath.substr(0, modelPath.length() - 5); // Remove ".meta"
+
+                            LOG("Found source model: %s", modelPath.c_str());
+                            LOG("Reimporting to regenerate mesh UUID %llu", uuid);
+
+                            // Reimport (importers already handle looking at the meta!)
+                            Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath);
+
+                            outType = ResourceType::MESH;
+                            return true;
+                        }
+
+                    }
+
+                }
+            }
+        }
+
+        
+        if (entry.path().extension() == ".png" || entry.path().extension() == ".dds" 
+            || entry.path().extension() == ".jpg" || entry.path().extension() == ".tga") {
+            std::string texMetaPath = entry.path().string() + ".meta";
+            texMetaPath = fs->NormalizePath(texMetaPath.c_str());
+
+            nlohmann::json texMeta = fs->LoadJSON(texMetaPath.c_str());
+            if (!fs->Exists(texMetaPath.c_str()))
+               
+            //check if uuid is in meta
+            if (texMeta.contains("uuid") && texMeta["uuid"].get<VroomUUID>() == uuid) {
+                std::string texturePath = entry.path().string();
+                texturePath = fs->NormalizePath(texturePath.c_str());
+                //texturePath = texturePath.substr(0, texturePath.length() - 5); // Remove ".meta"
+
+                LOG("Found source texture: %s", texturePath.c_str());
+                LOG("Reimporting texture UUID %llu", uuid);
+
+                // Reimport texture
+                Application::GetInstance().importer.get()->textureImporter->Import(texturePath.c_str());
+
+                outType = ResourceType::TEXTURE;
+                return true;
+            }
+
+
+                
+        }
+        
+    }
+
+    LOG("ERROR: Could not find source file for UUID %llu", uuid);
+    return false;
 }
 
 std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& assetsPath) {
@@ -123,6 +207,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
 
             if (!fs->Exists(libraryPath.c_str())) {
                 LOG("Library file missing, reimporting from source");
+                //handle reimporting from source
                 
             }
             else {
@@ -135,7 +220,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
                     return res;
                 }
                 else {
-                    LOG("Failed to load from Library, reimporting");
+                    LOG("Failed to load from Library, reimporting from source");
                 }
             }
 
@@ -236,7 +321,7 @@ void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource)
     }
 
     resources[uuid] = resource;
-    resource->AddReference();
+    //resource->AddReference();
 
     LOG("Registered resource (UUID: %llu, Name: %s)", uuid, resource->GetName().c_str());
 }
@@ -260,29 +345,40 @@ void ResourceManager::RemoveReference(VroomUUID uuid) {
     }
 }
 
-void ResourceManager::CleanupUnusedResources() {
-    int cleaned = 0;
 
-    for (auto it = resources.begin(); it != resources.end(); ) {
-        if (it->second->GetReferenceCount() == 0) {
-            LOG("Cleaning up unused resource: %llu", it->first);
-            it->second->FreeMemory();
-            it = resources.erase(it);
-            cleaned++;
-        }
-        else {
-            ++it;
+void ResourceManager::DeleteUnusedLibraryFiles() {
+    LOG("Cleaning up orphaned library files...");
+
+    // Collect all UUIDs referenced in .meta files
+    std::unordered_set<VroomUUID> validUUIDs;
+    
+
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::ASSETS_DIR))) {
+        std::string path = entry.path().string(); 
+        if (Application::GetInstance().fileSystem.get()->GetExtensionFromPath(path.c_str()) == ".meta") {
+            nlohmann::json meta = fs->LoadJSON(path.c_str());
+            if (meta.contains("meshes")) {
+                for (const auto& mesh : meta["meshes"]) {
+                    validUUIDs.insert(std::stoull(std::string(mesh["uuid"])));
+                }
+            }
         }
     }
 
-    if (cleaned > 0) {
-        LOG("Cleaned up %d unused resources", cleaned);
+    // Delete library files not in the set
+    for (const auto& entry : std::filesystem::directory_iterator(std::string(Paths::LIB_DIR))) {
+        std::string filename = entry.path().stem().string(); //gets filename without extension
+        VroomUUID uuid = std::stoull(filename); //converts to unsigned long
+
+        if (validUUIDs.find(uuid) == validUUIDs.end()) {
+            std::filesystem::remove(entry.path());
+            LOG("Deleted orphaned library file: %s", entry.path().string().c_str());
+        }
     }
 }
 
 bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource) {
    
-
     if (!fs->Exists(resource->GetLibraryFilePath())) {
         LOG("ERROR: Library file not found: %s", resource->GetLibraryFilePath());
         return false;
@@ -302,8 +398,6 @@ bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource
         LOG("ERROR: Failed to load binary data for resource %llu", resource->GetUUID());
         return false;
     }
-
-    
 
     return true;
 }
@@ -338,28 +432,6 @@ bool ResourceManager::SaveResourceToLibrary(std::shared_ptr<Resource> resource) 
     }
 
     resource->SaveBin();
-
-    //if (!resource->IsLoadedToRAM()) {
-    //    LOG("ERROR: Failed to load binary data for resource %llu", resource->GetUUID());
-    //    return false;
-    //}
-
-    //if (resource->GetType() == ResourceType::MESH) {
-    //    std::shared_ptr<ResourceMesh> mesh = std::dynamic_pointer_cast<ResourceMesh>(resource);
-    //    if (mesh) {
-    //        mesh->LoadToGPU();
-    //        // Return GPU status (true if successful)
-    //        return mesh->isLoadedToGPU;
-    //    }
-    //}
-    //else if (resource->GetType() == ResourceType::TEXTURE) {
-    //    std::shared_ptr<ResourceTexture> texture = std::dynamic_pointer_cast<ResourceTexture>(resource);
-    //    if (texture) {
-    //        texture->LoadToGPU();
-    //        // Return GPU status (true if successful)
-    //        return texture->isLoadedToGPU;
-    //    }
-    //}
 
     return true;
 }
@@ -539,6 +611,17 @@ bool ResourceManager::DeleteResource(VroomUUID uuid) {
     else LOG("ERROR: Failed to delete all files for resource: %s", resource->GetName().c_str());
  
     return success;
+
+}
+
+bool ResourceManager::DeleteFileFromLibrary(const std::string filePath) {
+    FileSystem* fs = Application::GetInstance().fileSystem.get();
+    if (fs->DeleteFile(filePath.c_str())) {
+        LOG("Resource file successfully deleted from %s", filePath.c_str());
+        return true;
+    }
+    LOG("ERROR: Couldn't delete resource file at %s", filePath.c_str());
+    return false;
 }
 
 bool ResourceManager::MoveAsset(VroomUUID uuid, const std::string& newAssetPath) {

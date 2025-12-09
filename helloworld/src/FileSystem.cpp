@@ -335,9 +335,10 @@ std::vector<std::string> FileSystem::IterateAssetsRecursive(const char* director
 	
 }
 
-bool FileSystem::DeleteFile(const char* path) {
+bool FileSystem::DeleteFile(const char* filePath) {
 	//check if file path exists
-	if (!Exists(path)) {
+	std::string path = NormalizePath(filePath);
+	if (!Exists(path.c_str())) {
 		LOG("WARNING: Cannot delete file %s - does not exist.", path);
 		return true; 
 	}

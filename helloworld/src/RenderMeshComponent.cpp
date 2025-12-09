@@ -40,7 +40,7 @@ void RenderMeshComponent::SetMesh(std::shared_ptr<ResourceMesh> newMesh) {
     mesh = newMesh;
     if (newMesh) {
         meshUUID = newMesh->GetUUID();
-        newMesh->AddReference();
+        /*newMesh->AddReference();*/
         LOG("RenderMeshComponent assigned Mesh UUID: %llu and added reference.", meshUUID);
     }
     else meshUUID = 0;

@@ -15,7 +15,7 @@ class ResourceTexture;
 
 class MeshImporter {
 public:
-    // Main import function: aiMesh → Mesh (which is now a Resource)
+    
     static std::shared_ptr<ResourceMesh> Import(aiMesh* aiMesh, const aiScene* scene, const std::string& modelPath, VroomUUID cachedUUID = 0);
 
 private:
