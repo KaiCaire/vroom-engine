@@ -1303,6 +1303,106 @@
                     "6.children": []
                 }
             ]
+        },
+        {
+            "1.name": "BakerHouse",
+            "2.active": true,
+            "3.transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "6.children": [
+                {
+                    "1.name": "Chimney",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 12392662087603976477
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            0.800000011920929,
+                            0.800000011920929,
+                            0.800000011920929,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 5710037342363527861,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Baker_house",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 12440768463226953901
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            0.800000011920929,
+                            0.800000011920929,
+                            0.800000011920929,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 5710037342363527861,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                }
+            ]
         }
     ]
 }

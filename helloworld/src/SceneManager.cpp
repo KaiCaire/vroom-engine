@@ -27,7 +27,8 @@ bool SceneManager::Update(float dt) {
     bool ctrl = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LCTRL) || Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_RCTRL);
     bool s = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_S);
     bool l = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_L);
-    std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + GetActiveScene()->GetName() + ".vroomscene";
+
+    std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/SampleScene.vroomscene";
 
     if (ctrl && s) GetActiveScene()->SaveScene(scenesPath);
 
@@ -42,25 +43,19 @@ bool SceneManager::CleanUp() {
 }
 
 
-// In SceneManager.cpp
 void SceneManager::LoadDefaultScene() {
-    LOG("SceneManager: Loading default scene");
+    LOG("SceneManager: Loading scenes");
 
-    // Create a new scene
-    const std::string sceneName = "DefaultScene";
-    auto defaultScene = std::make_shared<Scene>(sceneName);
+    // Load the default scene
+    auto defaultScene = std::make_shared<Scene>("DefaultScene");
+    defaultScene->LoadScene("../Assets/Scenes/DefaultScene.vroomscene");
     scenes.push_back(defaultScene);
-    SetActiveScene(sceneName);
 
-    // Import the model through ResourceManager
-    std::string modelPath = "../Assets/Models/Street/Street environment_V01.FBX";
-    auto ourScene = currentScene->ImportModel(modelPath);
-
-    if (ourScene) {
-        LOG("Default scene loaded successfully");
-    }
+    SetActiveScene("DefaultScene");
+    LOG("Successfully created DefaultScene");
     
 }
+
 
 
 

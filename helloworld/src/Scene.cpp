@@ -151,6 +151,7 @@ void Scene::CollectAllGameObjects(std::shared_ptr<GameObject> go) {
 }
 
 bool Scene::SaveScene(const std::string& filePath) {
+    /*Application::GetInstance().sceneManager.get()->SetActiveScene("SampleScene");*/
     LOG("Saving scene '%s' to '%s'", sceneName.c_str(), filePath.c_str());
 
     // Extract directory from full path
@@ -181,6 +182,8 @@ bool Scene::SaveScene(const std::string& filePath) {
 }
 
 bool Scene::LoadScene(const std::string& filePath) {
+
+    
     LOG("Loading scene from '%s'", filePath.c_str());
 
     FileSystem* fs = Application::GetInstance().fileSystem.get();
@@ -221,7 +224,7 @@ bool Scene::LoadScene(const std::string& filePath) {
         CollectAllGameObjects(topLevelObject);
     }
 
-    LOG("Scene loaded successfully: %d GameObjects", (int)allGameObjects.size());
+    LOG("Scene %s loaded successfully: %d GameObjects", sceneName.c_str(), (int)allGameObjects.size());
     return true;
 }
 
