@@ -74,7 +74,11 @@ bool OpenGL::Start() {
 bool OpenGL::Update(float dt) {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// clean stencil and depth buffer every frame
+	glClearStencil(0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
 	Shader* activeShader = nullptr;
@@ -106,12 +110,11 @@ bool OpenGL::CleanUp() {
 }
 
 
-// Implementación de RenderOutline basada en LearnOpenGL - Stencil Testing
+
 void OpenGL::RenderOutline(std::shared_ptr<GameObject> selectedObj, const glm::vec3& color, float scale) {
 	if (!selectedObj) return;
 	if (!texCoordsShader || !outlineShader) return;
 
-	// Obtener componentes necesarios
 	auto rendererComp = std::dynamic_pointer_cast<RenderMeshComponent>(selectedObj->GetComponent(ComponentType::MESH_RENDERER));
 	if (!rendererComp) return;
 
@@ -121,55 +124,57 @@ void OpenGL::RenderOutline(std::shared_ptr<GameObject> selectedObj, const glm::v
 	auto transformComp = std::dynamic_pointer_cast<TransformComponent>(selectedObj->GetComponent(ComponentType::TRANSFORM));
 	if (!transformComp) return;
 
-	// Cámara
 	auto camera = Application::GetInstance().camera.get();
 	if (!camera) return;
 
-	// ----- Primera pasada: dibujar el objeto y escribir 1 en el stencil -----
-	glEnable(GL_STENCIL_TEST);
-	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-	glStencilFunc(GL_ALWAYS, 1, 0xFF);
-	glStencilMask(0xFF); // permitir escritura en el stencil
+	// save previous GL states to restore later
+	GLboolean prevCull = (GLboolean)glIsEnabled(GL_CULL_FACE);
+	GLboolean prevDepthTest = (GLboolean)glIsEnabled(GL_DEPTH_TEST);
+	GLboolean prevDepthMask;
+	glGetBooleanv(GL_DEPTH_WRITEMASK, &prevDepthMask);
+	GLint prevCullFaceMode;
+	glGetIntegerv(GL_CULL_FACE_MODE, &prevCullFaceMode);
+	GLint prevDepthFunc;
+	glGetIntegerv(GL_DEPTH_FUNC, &prevDepthFunc);
+
+	// Modelos
+	glm::mat4 model = transformComp->GetModelMatrix();
+	glm::mat4 scaledModel = glm::scale(model, glm::vec3(scale));
 
 	glEnable(GL_DEPTH_TEST);
-	texCoordsShader->Use();
-	texCoordsShader->setMat4("view", camera->viewMat);
-	texCoordsShader->setMat4("projection", camera->projectionMat);
-
-	glm::mat4 model = transformComp->GetModelMatrix();
-	texCoordsShader->setMat4("model", model);
-
-	// Dibujar mesh con shader normal para que llene stencil y depth
-	mesh->Draw(*texCoordsShader);
-
-	// ----- Segunda pasada: dibujar contorno donde stencil != 1 -----
-	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-	glStencilMask(0x00); // deshabilitar escritura en stencil
-	glDisable(GL_DEPTH_TEST); // para que el outline sobresalga
+	glDepthFunc(GL_LEQUAL);
+	glDepthMask(GL_FALSE); 
 
 	outlineShader->Use();
 	outlineShader->setMat4("view", camera->viewMat);
 	outlineShader->setMat4("projection", camera->projectionMat);
-
-	// Modelo escalado para el contorno (escala alrededor del origen del modelo)
-	glm::mat4 scaledModel = glm::scale(model, glm::vec3(scale));
 	outlineShader->setMat4("model", scaledModel);
 
-	// enviar color (usar glad_glGetUniformLocation para compatibilidad con el resto)
 	int colorLoc = glad_glGetUniformLocation(outlineShader->ID, "outlineColor");
 	if (colorLoc >= 0) {
 		glUniform3f(colorLoc, color.r, color.g, color.b);
 	}
 
-	// Dibujar mesh con shader de color plano
 	mesh->Draw(*outlineShader);
 
-	// Restaurar estado GL
-	glStencilMask(0xFF);
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_STENCIL_TEST);
+	glDepthMask(GL_TRUE);
+
+	// draw object over the outline
+	texCoordsShader->Use();
+	texCoordsShader->setMat4("view", camera->viewMat);
+	texCoordsShader->setMat4("projection", camera->projectionMat);
+	texCoordsShader->setMat4("model", model);
+
+	mesh->Draw(*texCoordsShader);
+
+	// restore previous GL states
+	glCullFace(prevCullFaceMode);
+	if (!prevCull) glDisable(GL_CULL_FACE);
+
+	if (!prevDepthTest) glDisable(GL_DEPTH_TEST);
+	glDepthFunc(prevDepthFunc);
+
+	glDepthMask(prevDepthMask);
+
+	glActiveTexture(GL_TEXTURE0);
 }
-
-
-
-

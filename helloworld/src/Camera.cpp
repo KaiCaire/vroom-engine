@@ -1,4 +1,3 @@
-
 #include "Application.h"
 #include "Camera.h"
 #include "Input.h"
@@ -8,6 +7,10 @@
 #include "TransformComponent.h"
 #include "SceneManager.h"
 #include <glm/gtx/string_cast.hpp>
+#include <imgui.h> 
+#include <cfloat>
+#include <functional>
+#include "RenderMeshComponent.h"
 
 //helper function
 void NormalizePlane(Plane& plane) {
@@ -16,6 +19,75 @@ void NormalizePlane(Plane& plane) {
 	if (length > 1e-6f) {
 		plane.normal /= length;
 		plane.distance /= length;
+	}
+}
+
+namespace {
+	// Ray-AABB intersection (slab method). returns true and tOut is the distance to the intersection point.
+	bool RayIntersectsAABB(const glm::vec3& rayOrigin, const glm::vec3& rayDir, const glm::vec3& aabbMin, const glm::vec3& aabbMax, float& tOut) {
+		float tmin = (aabbMin.x - rayOrigin.x) / (rayDir.x == 0.0f ? 1e-8f : rayDir.x);
+		float tmax = (aabbMax.x - rayOrigin.x) / (rayDir.x == 0.0f ? 1e-8f : rayDir.x);
+		if (tmin > tmax) std::swap(tmin, tmax);
+
+		float tymin = (aabbMin.y - rayOrigin.y) / (rayDir.y == 0.0f ? 1e-8f : rayDir.y);
+		float tymax = (aabbMax.y - rayOrigin.y) / (rayDir.y == 0.0f ? 1e-8f : rayDir.y);
+		if (tymin > tymax) std::swap(tymin, tymax);
+
+		if ((tmin > tymax) || (tymin > tmax)) return false;
+
+		if (tymin > tmin) tmin = tymin;
+		if (tymax < tmax) tmax = tymax;
+
+		float tzmin = (aabbMin.z - rayOrigin.z) / (rayDir.z == 0.0f ? 1e-8f : rayDir.z);
+		float tzmax = (aabbMax.z - rayOrigin.z) / (rayDir.z == 0.0f ? 1e-8f : rayDir.z);
+		if (tzmin > tzmax) std::swap(tzmin, tzmax);
+
+		if ((tmin > tzmax) || (tzmin > tmax)) return false;
+
+		if (tzmin > tmin) tmin = tzmin;
+		if (tzmax < tmax) tmax = tzmax;
+
+		//if tmax is negative, the AABB is behind the ray
+		if (tmax < 0.0f) return false;
+
+		// tmin is the distance to the intersection point
+		tOut = (tmin >= 0.0f) ? tmin : tmax;
+		return true;
+	}
+
+	//world AABB of a GameObject
+	void ComputeWorldAABB(const std::shared_ptr<GameObject>& go, glm::vec3& outMin, glm::vec3& outMax) {
+		outMin = glm::vec3(std::numeric_limits<float>::max());
+		outMax = glm::vec3(std::numeric_limits<float>::lowest());
+
+		if (!go) return;
+		auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER));
+		auto transformComp = std::dynamic_pointer_cast<TransformComponent>(go->GetComponent(ComponentType::TRANSFORM));
+		if (!renderComp || !transformComp) return;
+		auto mesh = renderComp->GetMesh();
+		if (!mesh) return;
+
+		glm::mat4 worldMatrix = transformComp->GetGlobalTransform();
+		glm::vec3 localMin = mesh->minAABB;
+		glm::vec3 localMax = mesh->maxAABB;
+
+		std::vector<glm::vec3> localCorners = {
+			glm::vec3(localMin.x, localMin.y, localMin.z),
+			glm::vec3(localMax.x, localMin.y, localMin.z),
+			glm::vec3(localMin.x, localMax.y, localMin.z),
+			glm::vec3(localMin.x, localMin.y, localMax.z),
+			glm::vec3(localMax.x, localMax.y, localMin.z),
+			glm::vec3(localMax.x, localMin.y, localMax.z),
+			glm::vec3(localMin.x, localMax.y, localMax.z),
+			glm::vec3(localMax.x, localMax.y, localMax.z)
+		};
+
+		for (const auto& corner : localCorners) {
+			glm::vec4 wc = worldMatrix * glm::vec4(corner, 1.0f);
+			glm::vec3 p = glm::vec3(wc);
+			outMin = glm::min(outMin, p);
+			outMax = glm::max(outMax, p);
+		}
 	}
 }
 
@@ -133,10 +205,87 @@ bool Camera::Update(float dt)
 	RecalculateMatrices(windowW, windowH);
 	ExtractFrustumPlanes();
 
+	//click selection
+	Input* input = Application::GetInstance().input.get();
+	if (input->GetMouseButtonDown(SDL_BUTTON_LEFT) == KEY_DOWN) {
+		//avoids selecting when clicking on GUI
+		ImGuiIO& io = ImGui::GetIO();
+		if (!io.WantCaptureMouse && !Application::GetInstance().guiManager->assetsViewerIsHovered) {
+			auto scene = Application::GetInstance().sceneManager->GetActiveScene();
+			if (scene) {
+				int mx = input->mouseX;
+				int my = input->mouseY;
+				glm::vec3 rayDir = input->MouseRay(mx, my, projectionMat, viewMat);
+				glm::vec3 rayOrigin = cameraPos;
+
+				std::shared_ptr<GameObject> bestHit = nullptr;
+				float bestT = FLT_MAX;
+
+				// iterates over all GameObjects in the scene
+				std::function<void(const std::shared_ptr<GameObject>&)> Traverse;
+				Traverse = [&](const std::shared_ptr<GameObject>& go) {
+					if (!go) return;
+
+					// ignore empty root objects
+					if (!go->IsActive()) {
+						for (auto& child : go->GetChildren()) Traverse(child);
+						return;
+					}
+
+					// if it has a mesh renderer and transform, test intersection
+	
+					auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER));
+					auto transformComp = std::dynamic_pointer_cast<TransformComponent>(go->GetComponent(ComponentType::TRANSFORM));
+					if (renderComp && transformComp) {
+						glm::vec3 worldMin, worldMax;
+						ComputeWorldAABB(go, worldMin, worldMax);
+
+						// if aabb is valid, test intersection
+						if (worldMin.x <= worldMax.x && worldMin.y <= worldMax.y && worldMin.z <= worldMax.z) {
+							float t = 0.0f;
+							if (RayIntersectsAABB(rayOrigin, rayDir, worldMin, worldMax, t)) {
+								if (t < bestT) {
+									bestT = t;
+									bestHit = go;
+								}
+							}
+						}
+					}
+
+					// iterate children
+					for (auto& child : go->GetChildren()) {
+						Traverse(child);
+					}
+				};
+
+				// from root, traverse all
+				auto root = scene->GetRoot();
+				if (root) {
+					Traverse(root);
+				}
+
+				// set guimanager selection
+				auto gui = Application::GetInstance().guiManager.get();
+
+				if (gui->selectedObject) {
+					gui->selectedObject->isSelected = false;
+				}
+				if (bestHit) {
+					gui->selectedObject = bestHit;
+					bestHit->isSelected = true;
+					LOG("Selected GameObject: %s (UUID: %llu)", bestHit->GetName().c_str(), bestHit->GetUUID());
+				}
+				else {
+					gui->selectedObject = nullptr;
+					LOG("No GameObject selected by click");
+				}
+			}
+		}
+	}
+
 	return true;
 }
 
-// Implementaciones de las funciones helper
 
 void Camera::ProcessMouseRotation(float xoffset, float yoffset, float sensitivity)
 {
