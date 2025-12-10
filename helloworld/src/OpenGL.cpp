@@ -12,6 +12,9 @@
 #include "Camera.h"
 #include "GUIManager.h"
 
+#include "RenderMeshComponent.h"
+#include "TransformComponent.h"
+
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
 
@@ -23,6 +26,7 @@ OpenGL::OpenGL() : Module()
 	EBO = 2;
 	/*shaderProgram = 3;*/
 	glContext = NULL;
+	outlineShader = nullptr;
 }
 
 // Destructor
@@ -55,49 +59,13 @@ bool OpenGL::Start() {
 	texCoordsShader = new Shader("TexCoordsShader.vert", "TexCoordsShader.frag");
 	depthBufferShader = new Shader("TexCoordsShader.vert", "DepthBufferShader.frag");
 
-	/*normalShader = new Shader("")*/
+	// Shader para el contorno (simple color)
+	outlineShader = new Shader("Outline.vert", "Outline.frag");
 
 	std::cout << "OpenGL initialized successfully" << std::endl;
 
-
-	/*If you declare a uniform that isn't used anywhere in your GLSL code
-	the compiler will silently remove the variable from the compiled version
-	is the cause for several frustrating errors; keep this in mind!*/
-	//3D transformation matrices  --> Vclip = Mprojection⋅Mview⋅Mmodel⋅Vlocal
-
-	//glm::mat4 modelMat = glm::mat4(1.0f);
-	//modelMat = glm::rotate(modelMat, glm::radians(45.0f), glm::vec3(0.0f, -1.0f, 0.0f)); //transforms vertex coordinates into world coordinates.
-	////^rotates on the x axis so it looks like laying on the floor
-	///*modelMat = glm::scale(modelMat, glm::vec3(0.05, 0.05, 0.05));*/
-
-	//texCoordsShader->Use();
-	//uint modelMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "model");
-	//glUniformMatrix4fv(modelMatLoc, 1, GL_FALSE, glm::value_ptr(modelMat));
-
-	//viewMat = glm::mat4(1.0f);
-	//// translate scene in the reverse direction of moving direction
-	//viewMat = glm::translate(viewMat, glm::vec3(0.0f, -2.0f, -15.0f));
-
-	////OpenGL = righthanded system --> move cam in  positive z-axis (= translate scene towards negative z-axis)
-	//texCoordsShader->Use();
-	//uint viewMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "view");
-	//glUniformMatrix4fv(viewMatLoc, 1, GL_FALSE, glm::value_ptr(viewMat));
-
-
-	////projection mat = perspective (FOV, aspectRatio, nearPlane, farPlane)
-	//int windowW, windowH;
-	//Application::GetInstance().window.get()->GetSize(windowW, windowH);
-
-	//projectionMat = glm::mat4(1.0f);
-	//projectionMat = glm::perspective(glm::radians(45.0f), (float)windowW / windowH, 0.1f, 100.0f);
-	//texCoordsShader->Use();
-	//uint projectionMatLoc = glad_glGetUniformLocation(texCoordsShader->ID, "projection");
-	//glUniformMatrix4fv(projectionMatLoc, 1, GL_FALSE, glm::value_ptr(projectionMat));
-
 	glEnable(GL_DEPTH_TEST);
 
-	//texCoordsShader->Use();
-	//viewMat = glm::mat4(1.0f);
 	Application::GetInstance().sceneManager->LoadDefaultScene();
 
 	return true;
@@ -116,13 +84,9 @@ bool OpenGL::Update(float dt) {
 	}
 	else {
 		activeShader = texCoordsShader;
-		/*glUniform1f(glad_glGetUniformLocation(activeShader->ID, "near"), Application::GetInstance().camera->nearPlane);
-		glUniform1f(glad_glGetUniformLocation(activeShader->ID, "far"), Application::GetInstance().camera->farPlane);*/
 	}
 
 	activeShader->Use();
-
-
 
 	// Render everything
 	Application::GetInstance().render.get()->RenderFrame(*activeShader);
@@ -139,6 +103,71 @@ bool OpenGL::CleanUp() {
 	LOG("Assimp Logger Shutdown in OpenGL::CleanUp()");
 
 	return true;
+}
+
+
+// Implementación de RenderOutline basada en LearnOpenGL - Stencil Testing
+void OpenGL::RenderOutline(std::shared_ptr<GameObject> selectedObj, const glm::vec3& color, float scale) {
+	if (!selectedObj) return;
+	if (!texCoordsShader || !outlineShader) return;
+
+	// Obtener componentes necesarios
+	auto rendererComp = std::dynamic_pointer_cast<RenderMeshComponent>(selectedObj->GetComponent(ComponentType::MESH_RENDERER));
+	if (!rendererComp) return;
+
+	auto mesh = rendererComp->GetMesh();
+	if (!mesh) return;
+
+	auto transformComp = std::dynamic_pointer_cast<TransformComponent>(selectedObj->GetComponent(ComponentType::TRANSFORM));
+	if (!transformComp) return;
+
+	// Cámara
+	auto camera = Application::GetInstance().camera.get();
+	if (!camera) return;
+
+	// ----- Primera pasada: dibujar el objeto y escribir 1 en el stencil -----
+	glEnable(GL_STENCIL_TEST);
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glStencilFunc(GL_ALWAYS, 1, 0xFF);
+	glStencilMask(0xFF); // permitir escritura en el stencil
+
+	glEnable(GL_DEPTH_TEST);
+	texCoordsShader->Use();
+	texCoordsShader->setMat4("view", camera->viewMat);
+	texCoordsShader->setMat4("projection", camera->projectionMat);
+
+	glm::mat4 model = transformComp->GetModelMatrix();
+	texCoordsShader->setMat4("model", model);
+
+	// Dibujar mesh con shader normal para que llene stencil y depth
+	mesh->Draw(*texCoordsShader);
+
+	// ----- Segunda pasada: dibujar contorno donde stencil != 1 -----
+	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	glStencilMask(0x00); // deshabilitar escritura en stencil
+	glDisable(GL_DEPTH_TEST); // para que el outline sobresalga
+
+	outlineShader->Use();
+	outlineShader->setMat4("view", camera->viewMat);
+	outlineShader->setMat4("projection", camera->projectionMat);
+
+	// Modelo escalado para el contorno (escala alrededor del origen del modelo)
+	glm::mat4 scaledModel = glm::scale(model, glm::vec3(scale));
+	outlineShader->setMat4("model", scaledModel);
+
+	// enviar color (usar glad_glGetUniformLocation para compatibilidad con el resto)
+	int colorLoc = glad_glGetUniformLocation(outlineShader->ID, "outlineColor");
+	if (colorLoc >= 0) {
+		glUniform3f(colorLoc, color.r, color.g, color.b);
+	}
+
+	// Dibujar mesh con shader de color plano
+	mesh->Draw(*outlineShader);
+
+	// Restaurar estado GL
+	glStencilMask(0xFF);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_STENCIL_TEST);
 }
 
 

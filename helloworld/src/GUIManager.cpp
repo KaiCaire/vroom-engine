@@ -18,6 +18,7 @@
 #include "Scene.h"
 #include "MaterialComponent.h"
 #include "RenderMeshComponent.h"
+#include <glm/glm.hpp>
 
 GUIManager::GUIManager() : Module(), AdditionalElements(ElementType::Additional, this), Menu(ElementType::MenuBar, this), selectedObject(nullptr)
 {
@@ -368,6 +369,11 @@ bool GUIManager::PostUpdate()
 {
 	//Render
 	ImGui::Render();
+
+	// if there's an object selected, ask OpenGL module to render its outline
+	if (selectedObject) {
+		Application::GetInstance().openGL.get()->RenderOutline(selectedObject, glm::vec3(1.0f, 0.5f, 0.0f), 1.05f);
+	}
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
