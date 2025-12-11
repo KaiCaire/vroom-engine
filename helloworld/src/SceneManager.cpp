@@ -47,34 +47,23 @@ bool SceneManager::CleanUp() {
 }
 
 
+// In SceneManager.cpp
 void SceneManager::LoadDefaultScene() {
-    LOG("SceneManager: Loading scenes");
+    LOG("SceneManager: Loading default scene");
 
-    // Load the default scene
-    auto defaultScene = std::make_shared<Scene>("DefaultScene");
+    // Create a new scene
+    const std::string sceneName = "DefaultScene";
+    auto defaultScene = std::make_shared<Scene>(sceneName);
     scenes.push_back(defaultScene);
-    SetActiveScene("DefaultScene");
+    SetActiveScene(sceneName);
 
-    std::string defaultSceneDir = std::string(Paths::SCENE_ASSETS_DIR) + "/DefaultScene.vroomscene";
-    std::string sampleSceneDir = std::string(Paths::SCENE_ASSETS_DIR) + "/SampleScene.vroomscene";
+    // Import the model through ResourceManager
+    std::string modelPath = "../Assets/Models/Street/Street environment_V01.FBX";
+    auto ourScene = currentScene->ImportModel(modelPath);
 
-    if (!fs->Exists(Paths::LIB_DIR) 
-        || (fs->IsFolderEmpty(Paths::MESH_LIB_DIR) && fs->IsFolderEmpty(Paths::TEXTURE_LIB_DIR))
-        || !fs->Exists(defaultSceneDir.c_str())) {
-
-        LOG("Importing Default Scene from scratch");
-        
-        GetActiveScene()->ImportModel("../Assets/Models/Street/Street environment_V01.FBX", nullptr, true);
-        GetActiveScene()->SaveScene(defaultSceneDir);
-        GetActiveScene()->SaveScene(sampleSceneDir);
-
+    if (ourScene) {
+        LOG("Default scene loaded successfully");
     }
-    else {
-        LOG("Loading Scene from Scene Assets file");
-        defaultScene->LoadScene(defaultSceneDir);
-    }
-
-    LOG("Successfully created DefaultScene");
     
 }
 
