@@ -90,7 +90,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 15018970050403704229
+                                "meshUUID": 13286470067389014425
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -99,7 +99,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -128,7 +128,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 8910067953173262953
+                                "meshUUID": 15440951654738477532
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -137,7 +137,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -166,7 +166,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 18145803472821216368
+                                "meshUUID": 7116719014014008441
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -175,7 +175,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -204,7 +204,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 7647596475622029663
+                                "meshUUID": 4568703081460222570
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -213,7 +213,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -242,7 +242,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 11552772389028837980
+                                "meshUUID": 3198846271690397134
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -251,7 +251,7 @@
                                     0.2705882489681244,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 7.999999046325684
@@ -280,7 +280,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 3972218283514683435
+                                "meshUUID": 8048849902196246838
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -289,7 +289,7 @@
                                     0.05882353335618973,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -318,7 +318,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 1739980298232983644
+                                "meshUUID": 11419876620378473919
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -327,7 +327,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1024.0
@@ -356,7 +356,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 15564604209090587033
+                                "meshUUID": 1988670480734413279
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -365,7 +365,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -394,7 +394,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 14128299226915380992
+                                "meshUUID": 9075483935894983870
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -403,7 +403,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 21.112125396728516
@@ -432,7 +432,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 2136657943738750266
+                                "meshUUID": 12882053557884882959
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -441,7 +441,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -470,7 +470,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 15465336919478059522
+                                "meshUUID": 12537394236513801170
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -479,7 +479,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1024.0
@@ -508,7 +508,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 18429226727067410633
+                                "meshUUID": 3936206944469607826
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -517,7 +517,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1024.0
@@ -546,7 +546,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 12506626643717327155
+                                "meshUUID": 5627346283559029565
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -555,7 +555,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -584,7 +584,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 9659986264787253820
+                                "meshUUID": 16364807554696013979
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -593,7 +593,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -622,7 +622,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 18422770779276510146
+                                "meshUUID": 13763241376637683096
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -631,7 +631,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -660,7 +660,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 1483151361882669197
+                                "meshUUID": 199463723310928413
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -669,7 +669,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -698,7 +698,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 4094780808428071612
+                                "meshUUID": 2470343129920395196
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -707,7 +707,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -736,7 +736,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 17569885481133280046
+                                "meshUUID": 10782675988888908420
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -745,7 +745,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -774,7 +774,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 14569763904779495777
+                                "meshUUID": 7204228871277550219
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -783,7 +783,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -812,7 +812,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 11222327090813068804
+                                "meshUUID": 15433925364822189919
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -821,7 +821,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -850,7 +850,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 8214727815783100895
+                                "meshUUID": 7243012359378244066
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -859,7 +859,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -888,7 +888,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 10076597516218079618
+                                "meshUUID": 12198973739472936796
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -897,7 +897,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 21.112125396728516
@@ -926,7 +926,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 15116808901799194234
+                                "meshUUID": 15703863681360819372
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -935,7 +935,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -964,7 +964,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 3787455074301405740
+                                "meshUUID": 7718235365515170077
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -973,7 +973,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -1002,7 +1002,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 13091370795537177881
+                                "meshUUID": 10361550622032930764
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1011,7 +1011,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 21.112125396728516
@@ -1040,7 +1040,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 1973912446856791767
+                                "meshUUID": 11211487952730655376
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1049,7 +1049,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -1078,7 +1078,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 6342983649038494533
+                                "meshUUID": 15751478223723149820
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1087,7 +1087,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -1116,7 +1116,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 2002690509702215566
+                                "meshUUID": 11969709817862632608
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1125,7 +1125,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -1154,7 +1154,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 9896758779706420886
+                                "meshUUID": 3213349471271701525
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1163,7 +1163,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -1192,7 +1192,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 3124441583266053212
+                                "meshUUID": 8495585225222658256
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1201,7 +1201,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 9718001105613707155,
+                                "diffuseMapUUID": 7681679439923526916,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -1348,7 +1348,7 @@
                         ]
                     },
                     "4.meshRenderer": {
-                        "meshUUID": 12392662087603976477
+                        "meshUUID": 13470652354473296
                     },
                     "5.material": {
                         "diffuseColor": [
@@ -1357,7 +1357,7 @@
                             0.800000011920929,
                             1.0
                         ],
-                        "diffuseMapUUID": 5710037342363527861,
+                        "diffuseMapUUID": 4612756335676882187,
                         "metallic": 0.0,
                         "roughness": 0.5,
                         "shininess": 32.0
@@ -1386,7 +1386,7 @@
                         ]
                     },
                     "4.meshRenderer": {
-                        "meshUUID": 12440768463226953901
+                        "meshUUID": 5483500652480524610
                     },
                     "5.material": {
                         "diffuseColor": [
@@ -1395,10 +1395,72 @@
                             0.800000011920929,
                             1.0
                         ],
-                        "diffuseMapUUID": 5710037342363527861,
+                        "diffuseMapUUID": 4612756335676882187,
                         "metallic": 0.0,
                         "roughness": 0.5,
                         "shininess": 32.0
+                    },
+                    "6.children": []
+                }
+            ]
+        },
+        {
+            "1.name": "Kodama_LOW",
+            "2.active": true,
+            "3.transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "6.children": [
+                {
+                    "1.name": "Kadama",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 4966695448791697111
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            0.5,
+                            0.5,
+                            0.5,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 3707169714669798077,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 2.0
                     },
                     "6.children": []
                 }

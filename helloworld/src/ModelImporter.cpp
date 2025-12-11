@@ -27,7 +27,7 @@
 using namespace std;
 
 
-std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
+std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path, nlohmann::json* modelMeta) {
 
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -42,9 +42,9 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
     fileName = fs->GetFileNameFromPath(path);
 
     // Try to load model meta for caching
-    nlohmann::json* modelMeta = LoadModelMeta(path);
+    nlohmann::json* json = modelMeta;
 
-    if (modelMeta) {
+    if (json != nullptr) {
         LOG("Reimporting model, using cached uuids");
 
     }
@@ -62,7 +62,7 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
 
     // Process scene - pass the meta pointer
     for (int i = 0; i < scene->mRootNode->mNumChildren; i++) {
-        processNodeWithGameObjects(scene->mRootNode->mChildren[i], scene, modelRootGO, modelMeta);
+        processNodeWithGameObjects(scene->mRootNode->mChildren[i], scene, modelRootGO, json);
     }
 
     // Save/update model meta

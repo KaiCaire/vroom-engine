@@ -2,13 +2,15 @@
 #include "ResourceManager.h"
 #include "Application.h"
 #include "RenderMeshComponent.h"
+#include "Importer.h"
 #include "Input.h"
+
 
 
 using namespace std;
 
 SceneManager::SceneManager() {
-
+    
 }
 
 SceneManager::~SceneManager() {
@@ -16,6 +18,7 @@ SceneManager::~SceneManager() {
 }
 
 bool SceneManager::Start() {
+    fs = Application::GetInstance().fileSystem.get();
     return true;
 }
 
@@ -32,7 +35,8 @@ bool SceneManager::Update(float dt) {
 
     if (ctrl && s) GetActiveScene()->SaveScene(scenesPath);
 
-    if (ctrl && l) GetActiveScene()->LoadScene(scenesPath);
+    if (ctrl && l) 
+        GetActiveScene()->LoadScene(scenesPath);
 
     return true;
 }
@@ -48,10 +52,28 @@ void SceneManager::LoadDefaultScene() {
 
     // Load the default scene
     auto defaultScene = std::make_shared<Scene>("DefaultScene");
-    defaultScene->LoadScene("../Assets/Scenes/DefaultScene.vroomscene");
     scenes.push_back(defaultScene);
-
     SetActiveScene("DefaultScene");
+
+    std::string defaultSceneDir = std::string(Paths::SCENE_ASSETS_DIR) + "/DefaultScene.vroomscene";
+    std::string sampleSceneDir = std::string(Paths::SCENE_ASSETS_DIR) + "/SampleScene.vroomscene";
+
+    if (!fs->Exists(Paths::LIB_DIR) 
+        || (fs->IsFolderEmpty(Paths::MESH_LIB_DIR) && fs->IsFolderEmpty(Paths::TEXTURE_LIB_DIR))
+        || !fs->Exists(defaultSceneDir.c_str())) {
+
+        LOG("Importing Default Scene from scratch");
+        
+        GetActiveScene()->ImportModel("../Assets/Models/Street/Street environment_V01.FBX");
+        GetActiveScene()->SaveScene(defaultSceneDir);
+        GetActiveScene()->SaveScene(sampleSceneDir);
+
+    }
+    else {
+        LOG("Loading Scene from Scene Assets file");
+        defaultScene->LoadScene(defaultSceneDir);
+    }
+
     LOG("Successfully created DefaultScene");
     
 }
