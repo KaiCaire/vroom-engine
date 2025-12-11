@@ -121,7 +121,8 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
                             LOG("Reimporting to regenerate mesh UUID %llu", uuid);
 
                             // Reimport (importers already handle looking at the meta!)
-                            Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath);
+
+                            Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath, &modelMeta, false);
 
                             outType = ResourceType::MESH;
                             return true;
@@ -255,7 +256,9 @@ VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceTyp
     }
     case ResourceType::SCENE:
         /*auto mesh = Application::GetInstance().importer.get()->meshImporter->Import(assetsPath.c_str());*/
-        Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str());
+
+        /*Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str(), modelMeta);*/
+        Application::GetInstance().sceneManager.get()->GetActiveScene()->ImportModel(assetsPath.c_str(), modelMeta, true);
         
         break;
 
