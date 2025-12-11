@@ -7,6 +7,7 @@
 
 class GameObject;
 class Shader;
+struct AABB;
 
 class Render : public Module {
 public:
@@ -25,6 +26,10 @@ public:
     void DrawActiveScene(Shader& shader);
     void DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader);
     void DrawGrid();
+
+    //aabb drawing
+    void DrawAABB(const AABB& bounds, const glm::vec4& color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    void DrawRay(const glm::vec3& origin, const glm::vec3& direction, const glm::vec4& color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
     // Shader utilities
     void UpdateShaderMatrices(Shader& shader);

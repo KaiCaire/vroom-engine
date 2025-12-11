@@ -25,6 +25,10 @@ public:
 
     uint numVertices = 0;
     uint numIndices = 0;
+
+    //bounding boxes
+    glm::vec3 minAABB = glm::vec3(0.0f); 
+    glm::vec3 maxAABB = glm::vec3(0.0f);
     
     // OpenGL buffers
     unsigned int VAO, VBO, EBO;

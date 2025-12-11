@@ -9,12 +9,17 @@
 #include "ResourceManager.h"
 #include "Camera.h"
 #include "OpenGL.h"
-
+#include "Octree.h"
+#include "GUIManager.h"
+#include "Input.h"
 
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+
+//forward declaration
+AABB GetGameObjectAABB(const std::shared_ptr<GameObject>& obj);
 
 Render::Render() : Module()
 {
@@ -171,6 +176,97 @@ void Render::DrawGrid() {
 	glUniform1i(glGetUniformLocation(gridShader->ID, "useLineColor"), false);
 }
 
+void Render::DrawAABB(const AABB& bounds, const glm::vec4& color) {
+	Shader* debugShader = Application::GetInstance().openGL.get()->texCoordsShader;
+	if (!debugShader) return;
+
+	debugShader->Use();
+
+	//set matrices
+	auto camera = Application::GetInstance().camera.get();
+	debugShader->setMat4("view", camera->viewMat);
+	debugShader->setMat4("projection", camera->projectionMat);
+
+	glm::mat4 identityMat = glm::mat4(1.0f);
+	debugShader->setMat4("model", identityMat); 
+
+	//set color uniform
+	glUniform1i(glGetUniformLocation(debugShader->ID, "useLineColor"), true);
+	glUniform4f(glGetUniformLocation(debugShader->ID, "lineColor"), color.r, color.g, color.b, color.a);
+
+	glLineWidth(2.0f); //make AABB lines thicker
+
+	glm::vec3 min = bounds.min;
+	glm::vec3 max = bounds.max;
+
+	glBegin(GL_LINES);
+
+	//bottom Face
+	glVertex3f(min.x, min.y, min.z); glVertex3f(max.x, min.y, min.z);
+	glVertex3f(max.x, min.y, min.z); glVertex3f(max.x, min.y, max.z);
+	glVertex3f(max.x, min.y, max.z); glVertex3f(min.x, min.y, max.z);
+	glVertex3f(min.x, min.y, max.z); glVertex3f(min.x, min.y, min.z);
+
+	//top Face
+	glVertex3f(min.x, max.y, min.z); glVertex3f(max.x, max.y, min.z);
+	glVertex3f(max.x, max.y, min.z); glVertex3f(max.x, max.y, max.z);
+	glVertex3f(max.x, max.y, max.z); glVertex3f(min.x, max.y, max.z);
+	glVertex3f(min.x, max.y, max.z); glVertex3f(min.x, max.y, min.z);
+
+	//vertical Edges
+	glVertex3f(min.x, min.y, min.z); glVertex3f(min.x, max.y, min.z);
+	glVertex3f(max.x, min.y, min.z); glVertex3f(max.x, max.y, min.z);
+	glVertex3f(max.x, min.y, max.z); glVertex3f(max.x, max.y, max.z);
+	glVertex3f(min.x, min.y, max.z); glVertex3f(min.x, max.y, max.z);
+
+	glEnd();
+
+	//restore state
+	glUniform1i(glGetUniformLocation(debugShader->ID, "useLineColor"), false);
+	glLineWidth(1.0f);
+}
+
+void Render::DrawRay(const glm::vec3& origin, const glm::vec3& direction, const glm::vec4& color) {
+	Shader* debugShader = Application::GetInstance().openGL.get()->texCoordsShader;
+	if (!debugShader) return;
+
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_LINE_SMOOTH);
+	debugShader->Use();
+
+	//set matrices
+	auto camera = Application::GetInstance().camera.get();
+	debugShader->setMat4("view", camera->viewMat);
+	debugShader->setMat4("projection", camera->projectionMat);
+	glm::mat4 identityMat = glm::mat4(1.0f);
+	debugShader->setMat4("model", identityMat);
+
+	//set color
+	glUniform1i(glGetUniformLocation(debugShader->ID, "useLineColor"), true);
+	glUniform4f(glGetUniformLocation(debugShader->ID, "lineColor"), color.r, color.g, color.b, color.a);
+
+	glLineWidth(3.0f); //make ray thicker
+
+	//start ray 0.1 units away so its more visible
+	glm::vec3 startPoint = origin + direction * 0.1f;
+
+	//draw ray 5000 units long
+	glm::vec3 endPoint = origin + direction * 5000.0f;
+
+	glBegin(GL_LINES);
+	glVertex3f(origin.x, origin.y, origin.z);
+	glVertex3f(endPoint.x, endPoint.y, endPoint.z);
+	glEnd();
+
+	//restore state
+	glUniform1i(glGetUniformLocation(debugShader->ID, "useLineColor"), false);
+	glLineWidth(1.0f);
+
+	glEnable(GL_DEPTH_TEST);
+}
+
 void Render::UpdateShaderMatrices(Shader& shader) {
 	auto camera = Application::GetInstance().camera.get();
 
@@ -190,6 +286,20 @@ void Render::RenderFrame(Shader& shader) {
 	// Draw grid
 	DrawGrid();
 
+	//draw raycast
+	auto camera = Application::GetInstance().camera.get();
+	auto input = Application::GetInstance().input.get();
+	auto guiManager = Application::GetInstance().guiManager.get();
+
+	if (guiManager->drawRaycast) {
+		//calculate current mouse ray
+		auto mousePos = input->GetMousePosition();
+		glm::vec3 rayDir = input->MouseRay(mousePos.x, mousePos.y, camera->projectionMat, camera->viewMat);
+
+		//draw the ray
+		DrawRay(camera->GetWorldPosition(), rayDir, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	}
+
 	shader.Use();
 
 	// Draw scene
@@ -199,19 +309,49 @@ void Render::RenderFrame(Shader& shader) {
 void Render::DrawActiveScene(Shader& shader) {
 	auto sceneManager = Application::GetInstance().sceneManager.get();
 	auto scene = sceneManager->GetActiveScene();
+	auto guiManager = Application::GetInstance().guiManager.get();
+	auto camera = Application::GetInstance().camera.get();
 
 	if (!scene) {
 		LOG("WARNING: No active scene to render");
 		return;
 	}
 
+	std::vector<std::shared_ptr<GameObject>> visibleObjects;
+	//get total object count in order to log rendered objects (to test frustum culling)
+	int totalObjects = (int)scene->GetAllGameObjects().size();
+
+	if (scene->GetOctree()) {
+		// Query the Octree using the camera's pre-calculated frustum
+		scene->GetOctree()->Query(camera->frustum, visibleObjects);
+	}
+	else {
+		// Fallback: If no Octree, render all objects
+		visibleObjects = scene->GetAllGameObjects();
+		LOG("WARNING: Octree not active. Rendering all %d GameObjects.", (int)visibleObjects.size());
+	}
+
+	int drawnObjects = (int)visibleObjects.size();
+
+	//log culling to check (commented to not flood the console)
+	/*if (totalObjects > 1) {
+		LOG("Culling Stats: Drawn/Total = %d / %d. Culled: %d", drawnObjects, totalObjects, totalObjects - drawnObjects);
+	}*/
+
 	// Iterate through all GameObjects in the scene
-	for (auto& gameObject : scene->GetAllGameObjects()) {
+	for (auto& gameObject : visibleObjects) {
 		if (!gameObject || !gameObject->IsActive() || gameObject->IsMarkedForDestroy()) {
 			continue;
 		}
 
 		DrawGameObject(gameObject, shader);
+
+		if (guiManager->drawAABBs) {
+			AABB bounds = GetGameObjectAABB(gameObject);
+			if (bounds.min != bounds.max) {
+				DrawAABB(bounds, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+			}
+		}
 	}
 }
 

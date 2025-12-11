@@ -6,6 +6,9 @@
 #include "GameObject.h"
 #include <nlohmann/json.hpp>
 #include "Module.h"
+#include "Octree.h"
+
+class GameObject;
 
 class Scene : public Module {
 public:
@@ -34,6 +37,10 @@ public:
 
     std::string GetName() const { return sceneName; }
 
+    Octree* GetOctree() {
+        return octree.get();
+    }
+
     void SetName(const std::string& name) { sceneName = name; }
 
     // Find by UUID 
@@ -57,4 +64,7 @@ private:
     void CollectAllGameObjects(std::shared_ptr<GameObject> go);
 
     void LogGameObjectHierarchy(std::shared_ptr<GameObject> go, int depth);
+
+    std::unique_ptr<Octree> octree;
+    AABB worldBounds;
 };

@@ -78,17 +78,19 @@ public:
 
 	void SetMouseWheelDeltaY(int mouse) { mouseWheelY = mouse; }
 
+public:
+	int	mouseMotionX;
+	int mouseMotionY;
+	int mouseX;
+	int mouseY;
+	int mouseWheelY;
+
 private:
 	bool windowEvents[WE_COUNT];
 	KeyState* keyboard;
 	int* numkeys;
 
 	KeyState mouseButtons[NUM_MOUSE_BUTTONS];
-	int	mouseMotionX;
-	int mouseMotionY;
-	int mouseX;
-	int mouseY;
-	int mouseWheelY;
 
 	const char* droppedFileDir;
 	/*std::vector<std::shared_ptr<GameObject>> selectedObjects;*/

@@ -101,4 +101,7 @@ public:
 
 	bool drawFaceNormals = false;
 	bool drawVertNormals = false;
+
+	bool drawAABBs = false;
+	bool drawRaycast = false;
 };

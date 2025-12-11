@@ -221,7 +221,7 @@ void GUIElement::ConfigSetUp(bool* show) {
 
 	//initial states
 	ImGui::SetNextWindowDockID(0, ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowSize(ImVec2(500, 300), ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
 
 	//check if we should show it
 	if (!ImGui::Begin("Configuration", show, window_flags))
@@ -275,6 +275,18 @@ void GUIElement::ConfigSetUp(bool* show) {
 			ImGui::EndCombo();
 		}
 	}
+
+	
+
+	ImGui::Separator();
+
+	ImGui::Text("Debug Visualization:");
+	//toggle Z-buffer visualization
+	ImGui::Checkbox("Draw Z-Buffer", &Application::GetInstance().openGL.get()->drawZbuffer);
+	//toggle AABB drawing
+	ImGui::Checkbox("Show Object AABBs", &Application::GetInstance().guiManager.get()->drawAABBs);
+	//toggle raycast drawing
+	ImGui::Checkbox("Show Debug Raycast", &Application::GetInstance().guiManager.get()->drawRaycast);
 	ImGui::Separator();
 
 	//hardware and memory consuption
