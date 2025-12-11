@@ -64,7 +64,7 @@ void SceneManager::LoadDefaultScene() {
 
         LOG("Importing Default Scene from scratch");
         
-        GetActiveScene()->ImportModel("../Assets/Models/Street/Street environment_V01.FBX");
+        GetActiveScene()->ImportModel("../Assets/Models/Street/Street environment_V01.FBX", nullptr, true);
         GetActiveScene()->SaveScene(defaultSceneDir);
         GetActiveScene()->SaveScene(sampleSceneDir);
 

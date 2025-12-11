@@ -28,7 +28,7 @@ public:
     void CleanUpDestroyedObjects();
 
     // Import 3D model into scene (calls SceneImporter internally)
-    std::shared_ptr<GameObject> ImportModel(const std::string& modelPath, nlohmann::json* modelMeta = nullptr);
+    std::shared_ptr<GameObject> ImportModel(const std::string& modelPath, nlohmann::json* modelMeta = nullptr, bool addToScene = true);
 
     // Getters
     std::shared_ptr<GameObject> GetRoot() const { return root; }

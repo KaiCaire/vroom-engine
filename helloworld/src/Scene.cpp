@@ -119,7 +119,7 @@ void Scene::CleanUpDestroyedObjects() {
 }
 
 
-std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath, nlohmann::json* modelMeta) {
+std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath, nlohmann::json* modelMeta, bool addToScene) {
     LOG("Scene: Importing model '%s'", modelPath.c_str());
 
     // Call SceneImporter (renamed from ModelImporter::ImportScene)
@@ -130,14 +130,17 @@ std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath, nlo
         return nullptr;
     }
 
-    // Add to scene
-    AddGameObject(sceneGO);
+    //dont add to scene if called from load to avoid endless loop
+    if (addToScene) {
+        // Add to scene
+        AddGameObject(sceneGO);
 
-    // Collect all children recursively and add them
-    CollectAllGameObjects(sceneGO);
+        // Collect all children recursively and add them
+        CollectAllGameObjects(sceneGO);
 
-    if (octree) {
-        octree->Rebuild(allGameObjects);
+        if (octree) {
+            octree->Rebuild(allGameObjects);
+        }
     }
 
     LOG("Model imported successfully: %d GameObjects created", (int)allGameObjects.size());
