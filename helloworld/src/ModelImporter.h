@@ -49,7 +49,7 @@ public:
     ~ModelImporter();
 
     // Import scene from file
-    std::shared_ptr<GameObject> ImportScene(const char* path, nlohmann::json* modelMeta = nullptr);
+    std::shared_ptr<GameObject> ImportScene(const char* path);
 
     // Rendering
     void Draw(Shader& shader);

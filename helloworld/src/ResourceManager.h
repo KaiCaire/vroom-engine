@@ -33,7 +33,7 @@ public:
     std::shared_ptr<Resource> RequestResource(const std::string& assetsPath);
 
     // Import a new file from disk
-    VroomUUID ImportFile(const std::string& assetsPath, ResourceType type, nlohmann::json* modelMeta = nullptr);
+    VroomUUID ImportFile(const std::string& assetsPath, ResourceType type);
 
     // Create a new resource (used by importers)
     std::shared_ptr<Resource> CreateResource(ResourceType type, VroomUUID uuid = 0);

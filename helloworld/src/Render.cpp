@@ -85,6 +85,7 @@ bool Render::Start()
 	{
 		LOG("SDL_GetRenderViewport failed: %s", SDL_GetError());
 	}
+	InitSceneFBO(Application::GetInstance().window->width, Application::GetInstance().window->height);
 
 	glEnable(GL_DEPTH_TEST); 
 	glDepthFunc(GL_LESS);
@@ -108,7 +109,26 @@ bool Render::Update(float dt)
 
 bool Render::PostUpdate()
 {
+	//scene rendering to fbo
+	glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+	glViewport(0, 0, Application::GetInstance().window->width, Application::GetInstance().window->height);
+	glClearColor(background.r / 255.0f, background.g / 255.0f, background.b / 255.0f, 1.0f);
+	//glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//render scene content
+	Shader* renderShader = Application::GetInstance().openGL.get()->texCoordsShader;
+	if (renderShader) RenderFrame(*renderShader);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, Application::GetInstance().window->width, Application::GetInstance().window->height);
+
+	//clear screen
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	//imgui rendering
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 	SDL_GL_SwapWindow(Application::GetInstance().window->window);
 	return true;
@@ -117,9 +137,43 @@ bool Render::PostUpdate()
 // Called before quitting
 bool Render::CleanUp()
 {
+	if (sceneFBO) glDeleteFramebuffers(1, &sceneFBO);
+	if (sceneTextureID) glDeleteTextures(1, &sceneTextureID);
+	if (sceneRBO) glDeleteRenderbuffers(1, &sceneRBO);
+	
 	LOG("Destroying SDL render");
 	SDL_DestroyRenderer(renderer);
 	return true;
+}
+
+void Render::InitSceneFBO(int w, int h) {
+	//create fbo
+	if (sceneFBO) glDeleteFramebuffers(1, &sceneFBO);
+	glGenFramebuffers(1, &sceneFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
+
+	//create texture attatchment
+	if (sceneTextureID) glDeleteTextures(1, &sceneTextureID);
+	glGenTextures(1, &sceneTextureID);
+	glBindTexture(GL_TEXTURE_2D, sceneTextureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sceneTextureID, 0);
+
+	//renderbuffer
+	if (sceneRBO) glDeleteRenderbuffers(1, &sceneRBO);
+	glGenRenderbuffers(1, &sceneRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, sceneRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, sceneRBO);
+
+	//unbind
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		LOG("ERROR: Scene Framebuffer is not complete!");
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	LOG("Scene FBO initialized/resized to %dx%d.", w, h);
 }
 
 void Render::SetBackgroundColor(SDL_Color color)
