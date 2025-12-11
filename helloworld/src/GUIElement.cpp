@@ -368,7 +368,7 @@ void GUIElement::HierarchySetUp(bool* show)
 			DrawNode(child, manager->selectedObject);
 	}
 
-	//creating invisible object
+	//creating invisible object for drag and drop
 	//get avaiable size 
 	ImVec2 contentSize = ImGui::GetContentRegionAvail();
 
@@ -438,18 +438,6 @@ void GUIElement::InspectorSetUp(bool* show)
 		return;
 	}
 
-	//drag and drop
-	if (ImGui::BeginDragDropTarget()) {
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
-			//check if an object is selected
-			if (manager->selectedObject) {
-				std::string droppedPath((const char*)payload->Data);
-				ApplyTextureToSelection(droppedPath); 
-			}
-		}
-		ImGui::EndDragDropTarget();
-	}
-
 	//check if a game object is selected
 	auto selected = manager->selectedObject;
 
@@ -508,6 +496,18 @@ void GUIElement::InspectorSetUp(bool* show)
 			}
 			//texture
 			if (ImGui::CollapsingHeader("Texture") && mesh) {
+				//drag and drop of textures
+				if (ImGui::BeginDragDropTarget()) {
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+						//check if an object is selected
+						if (manager->selectedObject) {
+							std::string droppedPath((const char*)payload->Data);
+							ApplyTextureToSelection(droppedPath);
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+
 				auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
 					selected->GetComponent(ComponentType::MATERIAL)
 				);
