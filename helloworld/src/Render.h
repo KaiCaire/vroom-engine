@@ -21,8 +21,6 @@ public:
     bool PostUpdate() override;
     bool CleanUp() override;
 
-    void InitSceneFBO(int w, int h);
-
     // 3D Rendering
     void RenderFrame(Shader& shader);
     void DrawActiveScene(Shader& shader);
@@ -39,8 +37,6 @@ public:
     // Background color
     void SetBackgroundColor(SDL_Color color);
 
-    unsigned int sceneTextureID = 0;
-
 private:
     SDL_Renderer* renderer = nullptr;
     SDL_Rect camera;
@@ -52,7 +48,4 @@ private:
     glm::mat4 projectionMat;
 
     bool vsync;
-
-    unsigned int sceneFBO = 0;
-    unsigned int sceneRBO = 0;
 };

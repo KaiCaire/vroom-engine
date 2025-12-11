@@ -78,8 +78,6 @@ public:
     Frustum frustum;
     void ExtractFrustumPlanes();
 
-    void RecalculateMatrices(int windowW, int windowH);
-
 private:
-
+    void RecalculateMatrices(int windowW, int windowH);
 };
