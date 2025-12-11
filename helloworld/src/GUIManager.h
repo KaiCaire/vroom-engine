@@ -82,7 +82,7 @@ public:
 	bool showConfig = false;
 	bool showHierarchy = true;
 	bool showInspector = true;
-	bool showAssetsViewer = false;
+	bool showAssetsViewer = true;
 	bool showSceneViewport = true;
 
 	std::shared_ptr<GameObject> selectedObject;
