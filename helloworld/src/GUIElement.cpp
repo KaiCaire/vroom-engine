@@ -10,6 +10,7 @@
 #include "SceneManager.h"
 #include "Input.h"
 #include "Camera.h"
+#include "SceneManager.h"
 
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
@@ -83,6 +84,18 @@ void GUIElement::MenuBarSetUp()
 {
 	if (ImGui::BeginMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
+			if (ImGui::MenuItem("Save Scene")) {
+				//call save scene function
+				auto activeScene = Application::GetInstance().sceneManager.get()->GetActiveScene();
+				std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + activeScene->GetName() + ".vroomscene";
+				activeScene->SaveScene(scenesPath);
+			}
+			if (ImGui::MenuItem("Load Scene")) {
+				//call load scene function
+				auto activeScene = Application::GetInstance().sceneManager.get()->GetActiveScene();
+				std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + activeScene->GetName() + ".vroomscene";
+				activeScene->LoadScene(scenesPath);
+			}
 			if (ImGui::MenuItem("Exit")) {
 				//handle exit
 				Application::GetInstance().requestExit = true;
@@ -294,7 +307,7 @@ void GUIElement::ConfigSetUp(bool* show) {
 	//toggle AABB drawing
 	ImGui::Checkbox("Show Object AABBs", &Application::GetInstance().guiManager.get()->drawAABBs);
 	//toggle raycast drawing
-	ImGui::Checkbox("Show Debug Raycast", &Application::GetInstance().guiManager.get()->drawRaycast);
+	//ImGui::Checkbox("Show Debug Raycast", &Application::GetInstance().guiManager.get()->drawRaycast);
 	ImGui::Separator();
 
 	//hardware and memory consuption
