@@ -107,6 +107,24 @@ bool FileSystem::CopyFile(const char* src, const char* dest)
 	}
 }
 
+bool FileSystem::IsFolderEmpty(const char* path) {
+
+	std:: string folderPath = NormalizePath(path);
+
+	if (!std::filesystem::exists(path)) {
+		LOG("ERROR: Path does not exist: %s", path);
+		return true; 
+	}
+
+	if (!std::filesystem::is_directory(path)) {
+		LOG("ERROR: Path is not a directory: %s", path);
+		return true;
+	}
+
+	return std::filesystem::is_empty(folderPath);
+	
+}
+
 std::string FileSystem::GetDirFromPath(const char* path) {
 
 	std::string filePath = NormalizePath(path);

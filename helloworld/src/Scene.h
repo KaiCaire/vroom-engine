@@ -2,6 +2,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 #include "GameObject.h"
 #include <nlohmann/json.hpp>
 #include "Module.h"
@@ -27,7 +28,7 @@ public:
     void CleanUpDestroyedObjects();
 
     // Import 3D model into scene (calls SceneImporter internally)
-    std::shared_ptr<GameObject> ImportModel(const std::string& modelPath);
+    std::shared_ptr<GameObject> ImportModel(const std::string& modelPath, nlohmann::json* modelMeta = nullptr);
 
     // Getters
     std::shared_ptr<GameObject> GetRoot() const { return root; }
@@ -48,15 +49,18 @@ public:
     //Find by name:
     std::shared_ptr<GameObject> FindGameObjectByName(const std::string name);
 
+    std::string FindModelInAssetsFolder(std::string modelName);
+
 
 private:
     std::string sceneName;
     std::shared_ptr<GameObject> root;
     std::vector<std::shared_ptr<GameObject>> allGameObjects;
+    std::unordered_set<std::string> reimportedModels;
 
     // Serialization helpers
     nlohmann::json SerializeGameObject(std::shared_ptr<GameObject> go);
-    std::shared_ptr<GameObject> DeserializeGameObject(const nlohmann::json& j);
+    std::shared_ptr<GameObject> DeserializeGameObject(const nlohmann::json& j, const std::string sourceModelName);
     void CollectAllGameObjects(std::shared_ptr<GameObject> go);
 
     void LogGameObjectHierarchy(std::shared_ptr<GameObject> go, int depth);
