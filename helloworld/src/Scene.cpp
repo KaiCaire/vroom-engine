@@ -117,8 +117,7 @@ void Scene::CleanUpDestroyedObjects() {
 }
 
 
-
-std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath, nlohmann::json* modelMeta, bool addToScene) {
+std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath) {
     LOG("Scene: Importing model '%s'", modelPath.c_str());
 
     // Call SceneImporter (renamed from ModelImporter::ImportScene)
@@ -131,17 +130,14 @@ std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath, nlo
         return nullptr;
     }
 
-    //dont add to scene if called from load to avoid endless loop
-    if (addToScene) {
-        // Add to scene
-        AddGameObject(sceneGO);
+    // Add to scene
+    AddGameObject(sceneGO);
 
-        // Collect all children recursively and add them
-        CollectAllGameObjects(sceneGO);
+    // Collect all children recursively and add them
+    CollectAllGameObjects(sceneGO);
 
-        if (octree) {
-            octree->Rebuild(allGameObjects);
-        }
+    if (octree) {
+        octree->Rebuild(allGameObjects);
     }
 
     LOG("Model imported successfully: %d GameObjects created", (int)allGameObjects.size());
@@ -224,7 +220,7 @@ bool Scene::LoadScene(const std::string& filePath) {
     // Recreate root
     root = std::make_shared<GameObject>("Scene Root");
     root->AddComponent(ComponentType::TRANSFORM);
-    allGameObjects.push_back(root);
+    /*allGameObjects.push_back(root);*/
 
     // Deserialize GameObjects
     if (sceneMeta.contains("2.gameObjects")) {
@@ -240,13 +236,8 @@ bool Scene::LoadScene(const std::string& filePath) {
     for (auto& topLevelObject : root->GetChildren()) {
         CollectAllGameObjects(topLevelObject);
     }
-    //rebuild octree
-    if (octree) {
-        octree->Rebuild(allGameObjects);
-    }
 
-    reimportedModels.clear();
-    LOG("Scene %s loaded successfully: %d GameObjects", sceneName.c_str(), (int)allGameObjects.size());
+    LOG("Scene loaded successfully: %d GameObjects", (int)allGameObjects.size());
     return true;
 }
 
@@ -383,43 +374,8 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
         auto mesh = Application::GetInstance().resourceManager.get()->RequestResource(meshUUID);
         if (mesh == nullptr) {
             LOG("ERROR: Failed to load mesh from library and reimport from scratch");
-                // Mark the model as reimported to avoid repeating
-                reimportedModels.insert(sourceModelName);
 
-                LOG("Mesh missing -> reimporting entire model once: %s", sourceModelName.c_str());
-
-                std::string modelPath = Application::GetInstance().fileSystem->NormalizePath(
-                    FindModelInAssetsFolder(sourceModelName).c_str()
-                );
-
-                // IMPORT WITH NO META
-                //Application::GetInstance().importer->modelImporter->ImportScene(modelPath.c_str());
-                Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath.c_str(), nullptr, false);
-                // Traverse importedRoot to find the mesh by UUID
-                
-                
-                
-                // Try fetching the mesh again from the ResourceManager
-                mesh = Application::GetInstance().resourceManager->RequestResource(meshUUID);
-
-                if (mesh != nullptr)
-                {
-                    // Update JSON with new UUID
-                    
-                   /* mr["meshUUID"] = meshUUIDstring.c_str();*/
-                    // scene saving can be done once after the loop (as you moved it)
-                }
-                else
-                {
-                    LOG("ERROR: Mesh still missing after reimport: %llu", meshUUID);
-                }
-
-            }
-            else
-            {
-                LOG("Mesh missing but model already reimported. Skipping second reimport.");
-            }
-
+           /* Application::GetInstance().importer.get()->modelImporter->ImportScene(modelPath)*/
         }
         
         renderer->SetMesh(std::dynamic_pointer_cast<ResourceMesh>(mesh));
