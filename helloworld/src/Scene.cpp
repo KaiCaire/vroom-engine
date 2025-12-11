@@ -226,7 +226,7 @@ bool Scene::LoadScene(const std::string& filePath) {
     // Recreate root
     root = std::make_shared<GameObject>("Scene Root");
     root->AddComponent(ComponentType::TRANSFORM);
-    /*allGameObjects.push_back(root);*/
+    allGameObjects.push_back(root);
 
     // Deserialize GameObjects
     if (sceneMeta.contains("2.gameObjects")) {
@@ -246,6 +246,11 @@ bool Scene::LoadScene(const std::string& filePath) {
 
     for (auto& topLevelObject : root->GetChildren()) {
         CollectAllGameObjects(topLevelObject);
+    }
+
+    //rebuild octree
+    if (octree) {
+        octree->Rebuild(allGameObjects);
     }
 
     reimportedModels.clear();
