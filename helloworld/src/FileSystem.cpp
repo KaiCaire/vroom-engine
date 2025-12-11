@@ -441,3 +441,23 @@ bool FileSystem::MoveFileToNewPath(const char* oldPath, const char* newPath) {
 	LOG("Successfully moved file from %s to %s", oldPath, newPath);
 	return true;
 }
+
+
+bool FileSystem::IsFolderEmpty(const char* path) {
+
+	std::string folderPath = NormalizePath(path);
+
+	if (!std::filesystem::exists(path)) {
+		LOG("ERROR: Path does not exist: %s", path);
+		return true;
+	}
+
+	if (!std::filesystem::is_directory(path)) {
+		LOG("ERROR: Path is not a directory: %s", path);
+		return true;
+	}
+
+	return std::filesystem::is_empty(folderPath);
+
+}
+
