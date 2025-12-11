@@ -76,6 +76,7 @@ std::vector<GUIElement> GUIManager::LoadElements()
 	elements.push_back(GUIElement(ElementType::Hierarchy, this));
 	elements.push_back(GUIElement(ElementType::Inspector, this));
 	elements.push_back(GUIElement(ElementType::AssetsViewer, this));
+	elements.push_back(GUIElement(ElementType::SceneViewport, this));
 
 	return elements;
 }
@@ -335,6 +336,9 @@ void GUIManager::InitDock() {
 	ImGui::DockBuilderDockWindow("Console", dockBottomID);
 	ImGui::DockBuilderDockWindow("Hierarchy", dockLeftID);
 	ImGui::DockBuilderDockWindow("Inspector", dockRightID);
+
+	//dock scene in the middle
+	ImGui::DockBuilderDockWindow("Scene", dockMainID);
 
 	ImGui::DockBuilderFinish(dockspaceID);
 	//only do this once

@@ -83,6 +83,7 @@ public:
 	bool showHierarchy = true;
 	bool showInspector = true;
 	bool showAssetsViewer = false;
+	bool showSceneViewport = true;
 
 	std::shared_ptr<GameObject> selectedObject;
 
@@ -98,6 +99,8 @@ public:
 
 	//check if asset viewer is hovered
 	bool assetsViewerIsHovered = false;
+	//check if scene is hovered
+	bool sceneViewportIsHovered = false;
 
 	bool drawFaceNormals = false;
 	bool drawVertNormals = false;
