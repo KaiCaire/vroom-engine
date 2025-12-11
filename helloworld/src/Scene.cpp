@@ -405,7 +405,8 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
                 );
 
                 // IMPORT WITH NO META
-                Application::GetInstance().importer->modelImporter->ImportScene(modelPath.c_str());
+                //Application::GetInstance().importer->modelImporter->ImportScene(modelPath.c_str());
+                Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath.c_str(), nullptr, false);
                 // Traverse importedRoot to find the mesh by UUID
                 
                 
