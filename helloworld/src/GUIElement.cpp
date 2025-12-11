@@ -335,17 +335,6 @@ void GUIElement::HierarchySetUp(bool* show)
 		return;
 	}
 
-	//drag and drop target
-	if (ImGui::BeginDragDropTarget()) {
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
-			std::string droppedPath((const char*)payload->Data);
-
-			//handle instantiation
-			InstantiateAsset(droppedPath);
-		}
-		ImGui::EndDragDropTarget();
-	}
-
 	//create objects (minim cube)
 	if (ImGui::BeginMenu("Create...")) {
 		if (ImGui::MenuItem("Empty")) {
@@ -377,6 +366,24 @@ void GUIElement::HierarchySetUp(bool* show)
 	{
 		if (child && child->IsActive()) 
 			DrawNode(child, manager->selectedObject);
+	}
+
+	//creating invisible object
+	//get avaiable size 
+	ImVec2 contentSize = ImGui::GetContentRegionAvail();
+
+	//give area an id and create invisible box
+	ImGui::InvisibleButton("##HierarchyDropTraget", contentSize);
+
+	//drag and drop target
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			std::string droppedPath((const char*)payload->Data);
+
+			//handle instantiation
+			InstantiateAsset(droppedPath);
+		}
+		ImGui::EndDragDropTarget();
 	}
 
 	ImGui::End();
