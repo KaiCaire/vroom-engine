@@ -29,7 +29,6 @@ public:
 	bool CreateDir(const char* path);
 
 	bool CopyFile(const char* src, const char* dest);
-	bool IsFolderEmpty(const char* path);
 
 
 	//binary file handling (for resources)

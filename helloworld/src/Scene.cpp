@@ -17,8 +17,6 @@ Scene::Scene(const std::string& name) : Module(), sceneName(name) {
     root = std::make_shared<GameObject>("Scene Root");
     root->AddComponent(ComponentType::TRANSFORM);
     allGameObjects.push_back(root);
-    std::unordered_set<std::string> reimportedModels = {};
-    
 
     //initialize world bounds for octree
     worldBounds.min = glm::vec3(-100.0f, -100.0f, -100.0f);
@@ -119,11 +117,14 @@ void Scene::CleanUpDestroyedObjects() {
 }
 
 
+
 std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath, nlohmann::json* modelMeta, bool addToScene) {
     LOG("Scene: Importing model '%s'", modelPath.c_str());
 
     // Call SceneImporter (renamed from ModelImporter::ImportScene)
-    std::shared_ptr<GameObject> sceneGO = Application::GetInstance().importer.get()->modelImporter->ImportScene(modelPath.c_str(), modelMeta);
+  
+    
+    std::shared_ptr<GameObject> sceneGO = Application::GetInstance().importer.get()->modelImporter->ImportScene(modelPath.c_str());
 
     if (!sceneGO) {
         LOG("ERROR: Failed to import model");
@@ -170,9 +171,6 @@ void Scene::CollectAllGameObjects(std::shared_ptr<GameObject> go) {
 }
 
 bool Scene::SaveScene(const std::string& filePath) {
-
-    
-    /*Application::GetInstance().sceneManager.get()->SetActiveScene("SampleScene");*/
     LOG("Saving scene '%s' to '%s'", sceneName.c_str(), filePath.c_str());
 
     // Extract directory from full path
@@ -203,9 +201,6 @@ bool Scene::SaveScene(const std::string& filePath) {
 }
 
 bool Scene::LoadScene(const std::string& filePath) {
-
-    
-    
     LOG("Loading scene from '%s'", filePath.c_str());
 
     FileSystem* fs = Application::GetInstance().fileSystem.get();
@@ -234,15 +229,10 @@ bool Scene::LoadScene(const std::string& filePath) {
     // Deserialize GameObjects
     if (sceneMeta.contains("2.gameObjects")) {
         for (auto& metaGO : sceneMeta["2.gameObjects"]) {
-            //find parent name
-            std::string sourceModelName = metaGO["1.name"];
-            auto go = DeserializeGameObject(metaGO, sourceModelName);
+            auto go = DeserializeGameObject(metaGO);
             if (go) {
                 go->SetParent(root); 
-                /*if (!reimportedModels.empty()) {
-                    
-                    SaveScene(std::string(Paths::SCENE_ASSETS_DIR) + "/" + std::string(sceneMeta["1.name"]) + ".vroomscene");
-                }*/
+                
             }
         }
     }
@@ -250,7 +240,6 @@ bool Scene::LoadScene(const std::string& filePath) {
     for (auto& topLevelObject : root->GetChildren()) {
         CollectAllGameObjects(topLevelObject);
     }
-
     //rebuild octree
     if (octree) {
         octree->Rebuild(allGameObjects);
@@ -352,7 +341,7 @@ nlohmann::json Scene::SerializeGameObject(std::shared_ptr<GameObject> go) {
     return goMeta;
 }
 
-std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& goMeta, const std::string sourceModelName) {
+std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& goMeta) {
     std::string name = goMeta.value("1.name", "2.GameObject");
     auto go = std::make_shared<GameObject>(name);
 
@@ -393,8 +382,7 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
         // Request mesh from ResourceManager
         auto mesh = Application::GetInstance().resourceManager.get()->RequestResource(meshUUID);
         if (mesh == nullptr) {
-            if (reimportedModels.find(sourceModelName) == reimportedModels.end()) {
-
+            LOG("ERROR: Failed to load mesh from library and reimport from scratch");
                 // Mark the model as reimported to avoid repeating
                 reimportedModels.insert(sourceModelName);
 
@@ -431,18 +419,15 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
             {
                 LOG("Mesh missing but model already reimported. Skipping second reimport.");
             }
+
+        }
+        
+        renderer->SetMesh(std::dynamic_pointer_cast<ResourceMesh>(mesh));
+
+        if (mesh && !mesh->isLoadedToGPU) {
+            Application::GetInstance().resourceManager.get()->LoadResourceToGPU(mesh);
         }
 
-        // Assign the mesh to the current GameObject’s RenderMeshComponent
-        if (mesh)
-        {
-            renderer->SetMesh(std::dynamic_pointer_cast<ResourceMesh>(mesh));
-
-            if (!mesh->isLoadedToGPU)
-            {
-                Application::GetInstance().resourceManager->LoadResourceToGPU(mesh);
-            }
-        }
        
     }
 
@@ -505,7 +490,7 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
 
     if (goMeta.contains("6.children")) {
         for (auto& childJson : goMeta["6.children"]) {
-            auto child = DeserializeGameObject(childJson, sourceModelName);
+            auto child = DeserializeGameObject(childJson);
             if (child) {
                 child->SetParent(go);
             }
@@ -532,22 +517,4 @@ std::shared_ptr<GameObject> Scene::FindGameObjectByName(const std::string name) 
         }
     }
     return nullptr;
-}
-
-
-std::string Scene::FindModelInAssetsFolder(std::string sourceModelName) {
-
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::MODEL_ASSETS_DIR))) {
-       
-        if (entry.path().extension().string() == ".fbx" || entry.path().extension().string() == ".FBX" || entry.path().extension().string() == ".obj") {
-            std::string modelName = entry.path().stem().string();
-            if (modelName == sourceModelName) {
-                return std::string(entry.path().string());
-            }
-        }
-
-    }
-
-    LOG("Could not retrieve source model file name");
-    return "";
 }
