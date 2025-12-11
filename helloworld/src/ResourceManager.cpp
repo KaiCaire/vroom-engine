@@ -15,6 +15,7 @@
 
 ResourceManager::ResourceManager() : Module() {
     LOG("ResourceManager Constructor");
+    
 }
 
 ResourceManager::~ResourceManager() {
@@ -90,7 +91,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
 
 bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType) {
 
-
+    //we call this whenever the library file isn't found!
     LOG("Attempting to reimport resource %llu", uuid);
 
     // Search for .meta files in Assets that reference this UUID
@@ -102,7 +103,18 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
             //Find the meta file
             std::string metaPath = entry.path().string() + ".meta";
             metaPath = fs->NormalizePath(metaPath.c_str());
-            if (!fs->Exists(metaPath.c_str())) continue;
+            if (!fs->Exists(metaPath.c_str())) {
+                std::string modelPath = entry.path().string();
+                modelPath = fs->NormalizePath(modelPath.c_str());
+
+                //Import fresh  (pass no meta) 
+                //DON'T CALL IMPORTFILE! IT'LL TRY TO ACCESS SCENE WHICH MIGHT NOT BE LOADED YET
+                Application::GetInstance().importer.get()->modelImporter->ImportScene(modelPath.c_str());
+                //unused library files will be handled during the next engine start
+                LOG("Found source model: %s", modelPath.c_str());
+                
+            }
+               
             nlohmann::json modelMeta = fs->LoadJSON(metaPath.c_str());
 
             if (modelMeta.contains("meshes")) 
@@ -113,21 +125,19 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
 
                         if (meshEntry["uuid"].get<VroomUUID>() == uuid) {
                             // Found it! Reimport the model
+                           
+                            //modelPath = modelPath.substr(0, modelPath.length() - 5); // Remove ".meta"
                             std::string modelPath = entry.path().string();
                             modelPath = fs->NormalizePath(modelPath.c_str());
-                            //modelPath = modelPath.substr(0, modelPath.length() - 5); // Remove ".meta"
-
-                            LOG("Found source model: %s", modelPath.c_str());
-                            LOG("Reimporting to regenerate mesh UUID %llu", uuid);
-
                             // Reimport (importers already handle looking at the meta!)
-                            Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath);
+                            Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath, &modelMeta, false);
 
                             outType = ResourceType::MESH;
                             return true;
                         }
 
                     }
+                    
 
                 }
             }
@@ -164,7 +174,9 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
         
     }
 
-    LOG("ERROR: Could not find source file for UUID %llu", uuid);
+    LOG("ERROR: Could not find source file for UUID %llu, reimporting fresh", uuid);
+    
+
     return false;
 }
 
@@ -237,7 +249,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
     return GetResourceByUUID(resUUID);
 }
 
-VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type) {
+VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type, nlohmann::json* modelMeta) {
     LOG("ResourceManager: Importing file '%s' (type: %d)", assetsPath.c_str(), (int)type);
 
     Importer* importer = Application::GetInstance().importer.get();
@@ -255,7 +267,8 @@ VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceTyp
     }
     case ResourceType::SCENE:
         /*auto mesh = Application::GetInstance().importer.get()->meshImporter->Import(assetsPath.c_str());*/
-        Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str());
+        /*Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str(), modelMeta);*/
+        Application::GetInstance().sceneManager.get()->GetActiveScene()->ImportModel(assetsPath.c_str(), modelMeta, true);
         
         break;
 
@@ -347,8 +360,18 @@ void ResourceManager::RemoveReference(VroomUUID uuid) {
 
 
 void ResourceManager::DeleteUnusedLibraryFiles() {
-    LOG("Cleaning up orphaned library files...");
+    
+    if (!fs->Exists(Paths::LIB_DIR)) {
+        LOG("Library not found, no unused resource files to delete");
+        return;
+    }
 
+    if (fs->IsFolderEmpty(Paths::MESH_LIB_DIR) || fs->IsFolderEmpty(Paths::TEXTURE_LIB_DIR)) {
+        LOG("Library exists but the folders are empty");
+        return;
+    }
+
+    LOG("Cleaning up orphaned library files...");
     // Collect all UUIDs referenced in .meta files
     std::unordered_set<VroomUUID> validUUIDs;
     
@@ -365,6 +388,7 @@ void ResourceManager::DeleteUnusedLibraryFiles() {
         }
     }
 
+    
     // Delete library files not in the set
     for (const auto& entry : std::filesystem::directory_iterator(std::string(Paths::LIB_DIR))) {
         std::string filename = entry.path().stem().string(); //gets filename without extension

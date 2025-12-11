@@ -76,7 +76,6 @@ std::vector<GUIElement> GUIManager::LoadElements()
 	elements.push_back(GUIElement(ElementType::Hierarchy, this));
 	elements.push_back(GUIElement(ElementType::Inspector, this));
 	elements.push_back(GUIElement(ElementType::AssetsViewer, this));
-	elements.push_back(GUIElement(ElementType::SceneViewport, this));
 
 	return elements;
 }
@@ -331,16 +330,11 @@ void GUIManager::InitDock() {
 	ImGuiID dockBottomID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Down, 0.25f, nullptr, &dockMainID);
 	ImGuiID dockLeftID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Left, 0.25f, nullptr, &dockMainID);
 	ImGuiID dockRightID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Right, 0.35f, nullptr, &dockMainID);
-	ImGuiID dockRightDownID = ImGui::DockBuilderSplitNode(dockRightID, ImGuiDir_Down, 0.50f, nullptr, &dockRightID);
 
 	//assign windows to dock spaces
 	ImGui::DockBuilderDockWindow("Console", dockBottomID);
 	ImGui::DockBuilderDockWindow("Hierarchy", dockLeftID);
 	ImGui::DockBuilderDockWindow("Inspector", dockRightID);
-	ImGui::DockBuilderDockWindow("Assets Viewer", dockRightDownID);
-
-	//dock scene in the middle
-	ImGui::DockBuilderDockWindow("Scene", dockMainID);
 
 	ImGui::DockBuilderFinish(dockspaceID);
 	//only do this once

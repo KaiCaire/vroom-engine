@@ -70,15 +70,6 @@ bool Camera::Update(float dt)
 	float xoffset = xpos - lastX;
 	float yoffset = lastY - ypos;
 
-	//input gate
-	GUIManager* guiManager = Application::GetInstance().guiManager.get();
-	if (!guiManager->sceneViewportIsHovered) {
-		int windowW, windowH;
-		Application::GetInstance().window->GetSize(windowW, windowH);
-		RecalculateMatrices(windowW, windowH);
-		return true;
-	}
-
 	//Right Click
 	if (Application::GetInstance().input.get()->GetMouseButtonDown(SDL_BUTTON_RIGHT) == KEY_REPEAT &&
 		Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LALT) != KEY_REPEAT)
