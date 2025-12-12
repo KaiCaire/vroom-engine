@@ -198,6 +198,16 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
         if (it != resources.end()) {
             LOG("Resource '%s' (UUID: %llu) already loaded in memory, increasing reference count.", normalizedPath.c_str(), resUUID);
             it->second->AddReference();
+            // Set asset path if not set
+            if (it->second->GetAssetFilePath() == "") {
+                it->second->SetAssetFilePath(normalizedPath);
+                LOG("Set asset path: %s", normalizedPath.c_str());
+            }
+            
+            if (!it->second->IsLoadedToRAM()) {
+                LOG("Resource data is NULL, reloading from library...");
+                it->second->LoadBin();
+            }
 
             if (LoadResourceToGPU(it->second))
                 return it->second;
@@ -213,6 +223,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
             else {
                 auto res = CreateResource(type, resUUID);
                 res->SetLibraryFilePath(libraryPath);
+                res->SetAssetFilePath(normalizedPath);
 
                 if (LoadResourceFromLibrary(res)) {
                     RegisterResource(res);

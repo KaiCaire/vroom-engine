@@ -84,19 +84,17 @@ void GUIElement::MenuBarSetUp()
 {
 	if (ImGui::BeginMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
+			auto activeScene = Application::GetInstance().sceneManager.get()->GetActiveScene();
+			std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/SampleScene.vroomscene";
 			if (ImGui::MenuItem("Save Scene")) {
-				//call save scene function
-				auto activeScene = Application::GetInstance().sceneManager.get()->GetActiveScene();
-				std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + activeScene->GetName() + ".vroomscene";
+				
 				activeScene->SaveScene(scenesPath);
 			}
 			if (ImGui::MenuItem("Load Scene")) {
-				//call load scene function
-				auto activeScene = Application::GetInstance().sceneManager.get()->GetActiveScene();
-				std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + activeScene->GetName() + ".vroomscene";
+				
 				activeScene->LoadScene(scenesPath);
 			}
-			if (ImGui::MenuItem("Exit")) {
+			if (ImGui::MenuItem("Al carrer")) {
 				//handle exit
 				Application::GetInstance().requestExit = true;
 			}
@@ -531,7 +529,7 @@ void GUIElement::InspectorSetUp(bool* show)
 					if (currentTex) {
 						ImGui::Text("Current Texture:");
 						ImGui::BulletText("UUID: %llu", currentTex->GetUUID());
-						ImGui::BulletText("Path: %s", currentTex->path.c_str());
+						ImGui::BulletText("Path: %s", currentTex->GetAssetFilePath());
 						ImGui::BulletText("Size: %dx%d", currentTex->texW, currentTex->texH);
 					}
 					else {

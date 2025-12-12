@@ -59,7 +59,10 @@ public:
     const char* GetAssetFilePath() const { return assetsPath.c_str(); }
     const char* GetLibraryFilePath() const { return libraryPath.c_str(); }
 
-    void SetAssetFilePath(const std::string& path) { assetsPath = path; }
+    void SetAssetFilePath(const std::string& path) 
+    { 
+        assetsPath = path; 
+    }
     void SetLibraryFilePath(const std::string& path) { libraryPath = path; }
 
 

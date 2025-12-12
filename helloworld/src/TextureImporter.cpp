@@ -28,7 +28,7 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     }
 
     // Create Texture resource
-    auto texture = std::make_shared<ResourceTexture>();
+    std::shared_ptr<ResourceTexture> texture = std::make_shared<ResourceTexture>();
 
     // Set paths
     texture->SetAssetFilePath(normalizedPath);
@@ -131,6 +131,9 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
         LOG("TextureImporter: Successfully imported '%s' (UUID: %llu, GPU ID: %u, %dx%d)",
             texture->GetName().c_str(), texture->GetUUID(), texture->gpu_id,
             texture->texW, texture->texH);
+
+
+        LOG("Successfully set assetPath '%s', libraryPath '%s'", texture->GetAssetFilePath(), texture->GetLibraryFilePath());
 
         return texture;
     }

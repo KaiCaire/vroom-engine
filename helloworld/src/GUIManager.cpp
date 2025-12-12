@@ -193,26 +193,52 @@ void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
 	
 	auto mesh = renderComp->GetMesh();
 	
-
-
 	if (!materialComp || !renderComp) {
 		LOG("GameObject '%s' has no Material or RenderMesh Component", go->GetName().c_str());
 		return;
 	}
-
 	// Save the current texture (if not already saved)
 	if (originalTextures.find(go) == originalTextures.end()) {
 		auto currentTex = materialComp->GetDiffuseMap();
+
+
 		if (currentTex) {
 			originalTextures[go] = currentTex;
-			LOG("Saved original texture for '%s' (UUID: %llu)",
-				go->GetName().c_str(), currentTex->GetUUID());
+
+			const char* assetPath = currentTex->GetAssetFilePath();
+			const char* textureName = currentTex->GetName().c_str(); 
+
+			// *** REWRITTEN LOGGING HERE ***
+			LOG("  - UUID: %llu", currentTex->GetUUID());
+			LOG("  - GPU ID: %u", currentTex->gpu_id);
+			LOG("  - Loaded to GPU: %d", currentTex->isLoadedToGPU);
+
+			// Check for null pointer OR empty string
+			LOG("  - Asset path: %s", (assetPath == nullptr || assetPath[0] == '\0') ?
+				"(ASSET PATH IS EMPTY)" :
+				assetPath
+			);
+
+			// Check for null pointer OR empty string
+			LOG("  - Name: %s", (textureName == nullptr || textureName[0] == '\0') ?
+				"(NAME IS EMPTY)" :
+				textureName
+			);
+
+			LOG("Saved original texture for '%s' (UUID: %llu)", go->GetName().c_str(), currentTex->GetUUID());
 		}
 	}
 
 	// Load checker texture
 	std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
-	auto checkerTex = std::dynamic_pointer_cast<ResourceTexture>(Application::GetInstance().resourceManager.get()->RequestResource(checkerPath.c_str()));
+	std::shared_ptr<ResourceTexture> checkerTex = std::dynamic_pointer_cast<ResourceTexture>(Application::GetInstance().resourceManager.get()->RequestResource(checkerPath.c_str()));
+
+	LOG("  - UUID: %llu", checkerTex->GetUUID());
+	LOG("  - GPU ID: %u", checkerTex->gpu_id);
+	LOG("  - Loaded to GPU: %d", checkerTex->isLoadedToGPU);
+	LOG("  - Asset path: %s", checkerTex->GetAssetFilePath());
+	LOG("  - Name: %s", checkerTex->GetName().c_str());
+
 	/*auto checkerTex = Application::GetInstance().importer.get()->textureImporter->Import(checkerPath);*/ 
 	//imagine reimporting every time we wanna switch texture lol
 
@@ -242,13 +268,38 @@ void GUIManager::RestoreOGTexture(std::shared_ptr<GameObject> go) {
 
 	if (!materialComp || !mesh) return;
 
+	// 1. REQUEST CHECKER TEXTURE ONLY ONCE
+	std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
+	std::shared_ptr<ResourceTexture> checkerTex = std::dynamic_pointer_cast<ResourceTexture>(Application::GetInstance().resourceManager.get()->RequestResource(checkerPath.c_str()));
+
+	if (checkerTex) { 
+		for (auto tex : mesh->textures) {
+			
+			if (tex.get() && tex.get()->GetUUID() == checkerTex->GetUUID()) {
+				tex->RemoveReference();
+			}
+		}
+	}
+	
+	for (auto tex : originalTextures) {
+		LOG("  - UUID: %llu", tex.second->GetUUID());
+		LOG("  - GPU ID: %u", tex.second->gpu_id);
+		LOG("  - Loaded to GPU: %d", tex.second->isLoadedToGPU);
+		LOG("  - Asset path: %s", tex.second->GetAssetFilePath());
+		LOG("  - Name: %s", tex.second->GetName().c_str());
+	}
+
 	// Find saved texture
 	auto it = originalTextures.find(go);
 	if (it != originalTextures.end()) {
 		auto originalTex = it->second;
 		
+
 		if (originalTex) {
 
+			if (!originalTex->IsLoadedToRAM()) {
+				originalTex->LoadBin();
+			}
 			if (!originalTex->isLoadedToGPU) {
 				LOG("WARNING: Original texture not loaded to GPU, loading now...");
 				originalTex->LoadToGPU();
@@ -257,9 +308,9 @@ void GUIManager::RestoreOGTexture(std::shared_ptr<GameObject> go) {
 
 			if (originalTex->isLoadedToGPU) {
 				materialComp->SetDiffuseMap(originalTex);  // Restore by UUID
-				if (!mesh->textures.empty()) {
-					mesh->textures[0] = originalTex;
-				}
+				/*if (!mesh->textures.empty()) {
+					mesh->SetDiffuseMap(originalTex)
+				}*/
 				LOG("Restored original texture for '%s' (UUID: %llu)", go->GetName().c_str(), originalTex->GetUUID());
 			}
 			

@@ -21,7 +21,7 @@ bool SceneManager::Start() {
 }
 
 bool SceneManager::Update(float dt) {
-    /*currentScene->DebugDrawTree();*/
+
 
     currentScene->Update(static_cast<float>(dt));
 

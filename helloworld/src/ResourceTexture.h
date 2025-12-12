@@ -25,7 +25,7 @@ public:
     // Texture data
     unsigned int id;        // OpenGL texture ID
     std::string mapType;    // e.g., "texture_diffuse", "texture_specular"
-    std::string path;       // Full file path (kept for backward compatibility)
+    
     int texW, texH;         // Dimensions
     uint nChannels;         // number of channels (RGB/RGBA)
     unsigned char* data = nullptr; //contains raw pixel info (RBG/RGBA values for each pixel)

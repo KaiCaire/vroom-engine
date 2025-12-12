@@ -313,7 +313,8 @@ void Input::ApplyTextureToSelectedObject(const std::string& texturePath) {
 
 	if (newTexture) {
 		newTexture->mapType = "texture_diffuse";
-		newTexture->path = texturePath;
+		newTexture->SetAssetFilePath(texturePath.c_str());
+		newTexture->SetName(fs->GetFileNameFromPath(texturePath.c_str()));
 	}
 
 	// Apply texture to MaterialComponent

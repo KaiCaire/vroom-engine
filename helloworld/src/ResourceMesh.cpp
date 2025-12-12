@@ -243,6 +243,8 @@ void ResourceMesh::SaveBin() {
     }
 
     std::string binPath = GetLibraryFilePath();
+    std::string meshAssetPath = GetAssetFilePath();
+    
     if (binPath.empty()) {
         LOG("ERROR: Library path not set for mesh");
         return;
@@ -258,6 +260,8 @@ void ResourceMesh::SaveBin() {
     uint indexCount = indices.size();
     uint textureCount = textures.size();
 
+
+
     // Calculate buffer size
     size_t bufferSize = sizeof(uint) * 3; // header (3 counts)
     bufferSize += vertexCount * sizeof(Vertex);
@@ -266,7 +270,8 @@ void ResourceMesh::SaveBin() {
     // Add texture string sizes
     for (const auto& tex : textures) {
         bufferSize += sizeof(uint); // path length
-        bufferSize += tex.get()->path.length();
+        std::string texAssetPath = tex->GetAssetFilePath();
+        bufferSize += texAssetPath.length();
         bufferSize += sizeof(uint); // type length
         bufferSize += tex.get()->mapType.length();
     }
@@ -293,10 +298,11 @@ void ResourceMesh::SaveBin() {
 
     // Write texture info
     for (const auto& tex : textures) {
-        uint pathLength = tex.get()->path.length();
+        std::string texPath = tex.get()->GetAssetFilePath();
+        uint pathLength = texPath.length();
         std::memcpy(ptr, &pathLength, sizeof(uint));
         ptr += sizeof(uint);
-        std::memcpy(ptr, tex.get()->path.c_str(), pathLength);
+        std::memcpy(ptr, texPath.c_str(), pathLength);
         ptr += pathLength;
 
         uint typeLength = tex.get()->mapType.length();
@@ -384,7 +390,7 @@ void ResourceMesh::LoadBin() {
             LOG("WARNING: Failed to load texture '%s' from cached mesh", path.c_str());
             // Create placeholder
             tex = std::make_shared<ResourceTexture>();
-            tex->path = path;
+            tex->SetAssetFilePath(path);
             tex->mapType = mapType;
         }
         else {
