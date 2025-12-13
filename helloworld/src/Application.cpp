@@ -31,6 +31,7 @@ Application::Application() {
     openGL = std::make_shared<OpenGL>();
     fileSystem = std::make_shared<FileSystem>();
     resourceManager = std::make_shared<ResourceManager>();
+
     sceneManager = std::make_shared<SceneManager>();
     camera = std::make_shared<Camera>();
     importer = std::make_shared<Importer>();

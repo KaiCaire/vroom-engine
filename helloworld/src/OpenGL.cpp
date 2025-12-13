@@ -109,21 +109,21 @@ bool OpenGL::Update(float dt) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
-	Shader* activeShader = nullptr;
+	activeShader = nullptr;
 
 	if (drawZbuffer) {
 		activeShader = depthBufferShader;
+		activeShader->Use();
+		activeShader->setFloat("near", Application::GetInstance().camera->nearPlane);
+		activeShader->setFloat("far", Application::GetInstance().camera->farPlane / 5);
+		
 	}
 	else {
 		activeShader = texCoordsShader;
+		activeShader->Use();
 		/*glUniform1f(glad_glGetUniformLocation(activeShader->ID, "near"), Application::GetInstance().camera->nearPlane);
 		glUniform1f(glad_glGetUniformLocation(activeShader->ID, "far"), Application::GetInstance().camera->farPlane);*/
 	}
-
-	activeShader->Use();
-
-
-
 	// Render everything
 	Application::GetInstance().render.get()->RenderFrame(*activeShader);
 

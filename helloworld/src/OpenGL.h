@@ -16,8 +16,7 @@ public:
 	unsigned int VBO;
 	unsigned int EBO;
 
-	Shader* texCoordsShader;
-	Shader* depthBufferShader;
+	Shader* GetActiveShader() { return activeShader; }
 
 	bool drawZbuffer = false;
 
@@ -25,5 +24,10 @@ public:
 	bool Start() override;
 	bool Update(float dt) override;
 	bool CleanUp() override;
+
+	Shader* texCoordsShader, * depthBufferShader;
+
+private:
+	Shader* activeShader;
 
 };

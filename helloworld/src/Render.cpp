@@ -117,7 +117,7 @@ bool Render::PostUpdate()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//render scene content
-	Shader* renderShader = Application::GetInstance().openGL.get()->texCoordsShader;
+	Shader* renderShader = Application::GetInstance().openGL.get()->GetActiveShader();
 	if (renderShader) RenderFrame(*renderShader);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
