@@ -29,7 +29,8 @@ bool ResourceManager::Start() {
     fs->CreateDir(Paths::LIB_DIR);
     fs->CreateDir(Paths::MESH_LIB_DIR);
     fs->CreateDir(Paths::TEXTURE_LIB_DIR);
-    
+
+    DeleteUnusedLibraryFiles();
 
     //scan assets
     ScanAssetsFolder();
@@ -365,27 +366,47 @@ void ResourceManager::DeleteUnusedLibraryFiles() {
     
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::ASSETS_DIR))) {
+        if(!entry.is_regular_file()) continue;
         std::string path = entry.path().string(); 
-        if (Application::GetInstance().fileSystem.get()->GetExtensionFromPath(path.c_str()) == ".meta") {
+        path = fs->NormalizePath(path.c_str());
+       
+        if (Application::GetInstance().fileSystem.get()->GetExtensionFromPath(path.c_str()) == "meta") {
             nlohmann::json meta = fs->LoadJSON(path.c_str());
             if (meta.contains("meshes")) {
                 for (const auto& mesh : meta["meshes"]) {
-                    validUUIDs.insert(std::stoull(std::string(mesh["uuid"])));
+                    if (mesh.contains("meshUUID")) {
+                        validUUIDs.insert(mesh["meshUUID"].get<VroomUUID>());
+                    }
+                    if (mesh.contains("meshTextures")) {
+                        for (const auto& tex : mesh["meshTextures"]) {
+                            if (tex.contains("texUUID")) {
+                                validUUIDs.insert(tex["texUUID"].get<VroomUUID>());
+                            }
+                        }
+                    }
+                    
+                    
                 }
             }
         }
     }
 
+    int deletedFiles = 0;
     // Delete library files not in the set
-    for (const auto& entry : std::filesystem::directory_iterator(std::string(Paths::LIB_DIR))) {
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::LIB_DIR))) {
+
+        if (!entry.is_regular_file()) continue;
         std::string filename = entry.path().stem().string(); //gets filename without extension
         VroomUUID uuid = std::stoull(filename); //converts to unsigned long
 
         if (validUUIDs.find(uuid) == validUUIDs.end()) {
             std::filesystem::remove(entry.path());
+            deletedFiles++;
             LOG("Deleted orphaned library file: %s", entry.path().string().c_str());
         }
     }
+
+    LOG("Unused Library Files Clean Up Complete: %d files deleted", deletedFiles);
 }
 
 bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource) {

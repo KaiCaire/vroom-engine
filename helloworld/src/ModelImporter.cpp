@@ -289,11 +289,18 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         return;
     }
 
+    std::vector<TexMetaInfo> texMetaInfo;
+
+    for (auto tex : mesh->textures) {
+        texMetaInfo.push_back({ tex->GetName(), tex->GetUUID(), tex->mapType });
+    }
+
     //register resource
     /*Application::GetInstance().resourceManager->RegisterResource(mesh);*/
 
     // Store mesh info for model meta
-    meshMetaInfo.push_back({aiMesh->mName.C_Str(), mesh->GetUUID(), mesh->vertices.size(), mesh->indices.size() });
+    meshMetaInfo.push_back({aiMesh->mName.C_Str(), mesh->GetUUID(), texMetaInfo});
+
 
     // Store the mesh in the model
     meshes.push_back(mesh);
@@ -430,6 +437,7 @@ std::shared_ptr<ResourceTexture> ModelImporter::GetOrLoadTexture(const std::stri
     
     texture.get()->mapType = typeName;
     texture.get()->SetAssetFilePath(fullPath);
+    texture.get()->SetName(fileName);
     textures_loaded.push_back(texture);
 
     return texture;
@@ -481,12 +489,25 @@ void ModelImporter::SaveModelMeta(const char* modelPath) {
 
     // Add all mesh info
     nlohmann::json meshesArray = nlohmann::json::array();
+
     for (const auto& meshInfo : meshMetaInfo) {
         nlohmann::json meshEntry;
-        meshEntry["name"] = meshInfo.name;
-        meshEntry["uuid"] = meshInfo.uuid;
+        meshEntry["meshName"] = meshInfo.name;
+        meshEntry["meshUUID"] = meshInfo.uuid;
+
+        nlohmann::json texturesArray = nlohmann::json::array();
+        for (const auto & texInfo : meshInfo.textures) {
+            nlohmann::json texEntry;
+            texEntry["texName"] = texInfo.name;
+            texEntry["texUUID"] = texInfo.uuid;
+            texEntry["texType"] = texInfo.texType;
+
+            texturesArray.push_back(texEntry);
+        }
+        meshEntry["meshTextures"] = texturesArray;
         meshesArray.push_back(meshEntry);
     }
+    
     meta["meshes"] = meshesArray;
 
     fs->SaveJSON(metaPath.c_str(), meta);

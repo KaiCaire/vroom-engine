@@ -56,15 +56,21 @@ public:
 
     const std::vector<std::shared_ptr<ResourceMesh>>& GetMeshes() const { return meshes; }
 
+    struct TexMetaInfo {
+        std::string name;
+        VroomUUID uuid;
+        std::string texType;
+    };
+
     struct MeshMetaInfo {
         std::string name;
         VroomUUID uuid;
-        size_t vertexCount;
-        size_t indexCount;
+        std::vector<TexMetaInfo> textures;
     };
 
-   
     std::vector<MeshMetaInfo> meshMetaInfo;
+    //td::vector<TexMetaInfo> texMetaInfo; --> should be created for each meshEntry of meshMetaInfo
+    
 
 
     void SaveModelMeta(const char* modelPath);
