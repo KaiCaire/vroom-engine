@@ -29,7 +29,15 @@ public:
     void SetRoughness(float rough) { roughness = rough; }
     float GetRoughness() const { return roughness; }
 
-    void SetDiffuseMap(std::shared_ptr<ResourceTexture> tex) { diffuseMap = tex; }
+    void SetDiffuseMap(std::shared_ptr<ResourceTexture> tex) 
+    { 
+        if (tex->mapType.empty()) {
+            tex->mapType = "texture_diffuse";
+        }
+            
+        diffuseMap = tex; 
+        
+    }
     std::shared_ptr<ResourceTexture> GetDiffuseMap() const { return diffuseMap; }
 
     void SetNormalMap(std::shared_ptr<ResourceTexture> tex) { normalMap = tex; }
@@ -46,6 +54,9 @@ public:
 
     void SetAOMap(std::shared_ptr<ResourceTexture> tex) { aoMap = tex; }
     std::shared_ptr<ResourceTexture> GetAOMap() const { return aoMap; }
+
+
+
 
 private:
     // Material properties

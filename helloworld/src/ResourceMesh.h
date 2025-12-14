@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include "Shader.h"
 #include "UUID.h"
+#include "MaterialComponent.h"
 
 
 struct Vertex {
@@ -42,7 +43,8 @@ public:
     // Draw the mesh
 
     ~ResourceMesh() override;
-    void Draw(Shader& shader);
+    void Draw(Shader& shader, MaterialComponent* material);
+    /*void Draw(Shader& shader);*/
 
     
 

@@ -168,7 +168,16 @@ void ModelImporter::Draw(Shader& shader) {
         auto mesh = renderer->GetMesh();
         if (!mesh) continue;
 
-        renderer->GetMesh()->Draw(shader);
+        auto materialComp = gameObject->GetComponent(ComponentType::MATERIAL);
+        if (!materialComp)
+            continue;
+
+        auto material = std::dynamic_pointer_cast<MaterialComponent>(rendererComp);
+        if (!material) continue;
+
+      
+
+        renderer->GetMesh()->Draw(shader, material.get());
     }
 }
 
@@ -351,7 +360,7 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
             aiString str;
             aiMat->GetTexture(type, 0, &str);
 
-            std::string relativePath = str.C_Str();
+            std::string relativePath = Application::GetInstance().fileSystem.get()->GetFileFromPath(str.C_Str());
             std::string modelDirectory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());    
 
             std::string filenameOnly = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(relativePath.c_str());
@@ -473,9 +482,10 @@ void ModelImporter::SaveModelMeta(const char* modelPath) {
     VroomUUID modelUUID = 0;
 
     if (fs->Exists(metaPath.c_str())) {
-        nlohmann::json existingMeta = fs->LoadJSON(metaPath.c_str());
-        if (existingMeta.contains("uuid")) {
-            modelUUID = existingMeta["uuid"];
+        meta = fs->LoadJSON(metaPath.c_str());
+       
+        if (meta.contains("uuid")) {
+            modelUUID = meta["uuid"];
         }
     }
 

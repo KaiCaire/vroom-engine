@@ -276,7 +276,8 @@ bool FileSystem::NeedsReimport(const char* metaPath, const char* sourceFilePath)
 	uint64_t savedModTime = meta["modTime"]; //checks meta
 	uint64_t currentModTime = GetFileModTime(sourceFilePath); //checks source file (fbx)
 
-	return currentModTime != savedModTime;
+	if (currentModTime != savedModTime) return true;
+	else return false;
 }
 
 bool FileSystem::ExistsInDirectory(const char* directory, const char* file) {

@@ -3,6 +3,7 @@
 #include "Module.h"
 #include "SDL3/SDL.h"
 #include "FileSystem"
+#include "RenderMeshComponent.h"
 
 
 class ResourceTexture;
@@ -95,12 +96,14 @@ private:
 	const char* droppedFileDir;
 	/*std::vector<std::shared_ptr<GameObject>> selectedObjects;*/
 
-	
 	void ApplyTextureToSelectedObject(const std::string& texturePath);
+	
 
 	FileSystem* fs;
 
 	std::string CopyFileToAssets(const std::string sourcePath, const char* destPath, const std::string file);
+	std::string CopyToTexFolder(const std::string sourcePath, const std::string file);
+	bool UpdateTexturesInModelMeta(std::string metaPath, std::shared_ptr<RenderMeshComponent> renderComp);
 	
 	
 

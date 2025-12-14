@@ -254,7 +254,10 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
             defaultTex.get()->SetAssetFilePath(defaultTexPath);
             std::string fileName = fs->GetFileFromPath(defaultTexPath.c_str());
             defaultTex.get()->SetName(fileName);
-            textures_loaded.push_back(defaultTex);
+
+            if (std::find(textures_loaded.begin(), textures_loaded.end(), defaultTex) == textures_loaded.end()) {
+                textures_loaded.push_back(defaultTex);
+            }
             textures.push_back(defaultTex);
 
         }

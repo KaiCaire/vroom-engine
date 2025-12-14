@@ -419,8 +419,8 @@ void Render::DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader) {
 	if (!renderer) 
 		return;
 
-	auto meshComp = go->GetComponent(ComponentType::MESH_RENDERER);
-	auto mesh = std::dynamic_pointer_cast<RenderMeshComponent>(meshComp);
+	//auto meshComp = go->GetComponent(ComponentType::MESH_RENDERER);
+	//auto mesh = std::dynamic_pointer_cast<RenderMeshComponent>(meshComp);
 		
 
 	// Get transform and set model matrix
@@ -434,7 +434,7 @@ void Render::DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader) {
 	}
 
 	// Draw the mesh
-	mesh->Render(&shader);
+	renderer->Render(&shader);
 }
 
 

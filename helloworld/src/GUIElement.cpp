@@ -513,7 +513,7 @@ void GUIElement::InspectorSetUp(bool* show)
 						//check if an object is selected
 						if (manager->selectedObject) {
 							std::string droppedPath((const char*)payload->Data);
-							ApplyTextureToSelection(droppedPath);
+							Application::GetInstance().input.get()->ProcessDroppedFile(droppedPath);
 						}
 					}
 					ImGui::EndDragDropTarget();
