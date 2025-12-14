@@ -260,12 +260,14 @@ void ResourceMesh::SaveBin() {
     uint indexCount = indices.size();
     uint textureCount = textures.size();
 
-
+    //calculate size of bounding box
+    size_t minMaxAABBSize = sizeof(glm::vec3) * 2;
 
     // Calculate buffer size
     size_t bufferSize = sizeof(uint) * 3; // header (3 counts)
     bufferSize += vertexCount * sizeof(Vertex);
     bufferSize += indexCount * sizeof(unsigned int);
+    bufferSize += minMaxAABBSize;
 
     // Add texture string sizes
     for (const auto& tex : textures) {
@@ -287,6 +289,12 @@ void ResourceMesh::SaveBin() {
     ptr += sizeof(uint);
     std::memcpy(ptr, &textureCount, sizeof(uint));
     ptr += sizeof(uint);
+
+    //write local aabb
+    std::memcpy(ptr, &minAABB, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
+    std::memcpy(ptr, &maxAABB, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
 
     // Write vertices
     std::memcpy(ptr, vertices.data(), vertexCount * sizeof(Vertex));
@@ -352,6 +360,12 @@ void ResourceMesh::LoadBin() {
     ptr += sizeof(uint);
     std::memcpy(&textureCount, ptr, sizeof(uint));
     ptr += sizeof(uint);
+
+    //read local aabb
+    std::memcpy(&minAABB, ptr, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
+    std::memcpy(&maxAABB, ptr, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
 
     // Read vertices
     vertices.resize(vertexCount);
