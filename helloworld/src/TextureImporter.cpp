@@ -99,8 +99,8 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
         texture->mapType = "texture_diffuse";  // Default
 
         // Generate OpenGL texture and upload to GPU
-        glGenTextures(1, &texture->gpu_id);
-        glBindTexture(GL_TEXTURE_2D, texture->gpu_id);
+        //glGenTextures(1, &texture->gpu_id);
+        //glBindTexture(GL_TEXTURE_2D, texture->gpu_id);
 
         texture->LoadToGPU();
 

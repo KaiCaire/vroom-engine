@@ -62,6 +62,396 @@
                     "6.children": []
                 }
             ]
+        },
+        {
+            "1.name": "Eren Colossal Titan",
+            "2.active": true,
+            "3.transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "6.children": [
+                {
+                    "1.name": "Eren Colossal Titan",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            0.7071067094802856,
+                            -0.7071068286895752,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "6.children": [
+                        {
+                            "1.name": "Eren Colossal Titan",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 2696795257847615377
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 2846581003531482676,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 56.25
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Eren Colossal Titan",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 9455621932094098189
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 9302251553660068205,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 25.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Eren Colossal Titan",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 12930318877165369703
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 4147287931290209261,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 36.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Eren Colossal Titan",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 13148191735884480772
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 13190501974493813442,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 36.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Eren Colossal Titan",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 425395092577989409
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 12462810059297702894,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 36.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Eren Colossal Titan",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 5458004491496135747
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 16491388619599562412,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 25.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Eren Colossal Titan",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 242258440275523285
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 11030705100395935989,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 25.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Eren Colossal Titan",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 2221497581593529214
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 11030705100395935989,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 25.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Eren Colossal Titan",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 18011610624153290464
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 8171489713605922376,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 25.0
+                            },
+                            "6.children": []
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

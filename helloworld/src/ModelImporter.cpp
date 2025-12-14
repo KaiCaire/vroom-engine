@@ -27,7 +27,7 @@
 using namespace std;
 
 
-std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
+std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path, bool addToScene) {
 
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -40,6 +40,10 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
     FileSystem* fs = Application::GetInstance().fileSystem.get();
     fullPath = fs->NormalizePath(path);
     fileName = fs->GetFileNameFromPath(path);
+    LOG("DEBUG: fileName extracted = '%s' from path = '%s'", fileName.c_str(), path);
+
+    modelRootGO = std::make_shared<GameObject>(fileName);  // <-- ADD THIS LINE
+    gameObjects.push_back(modelRootGO);  // <-- AND THIS
 
     // Try to load model meta for caching
     nlohmann::json* modelMeta = LoadModelMeta(path);
@@ -55,9 +59,13 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
     fileExtension = fs->GetExtensionFromPath(fullPath.c_str());
     stbi_set_flip_vertically_on_load(fileExtension == "obj");
 
-    modelRootGO = make_shared<GameObject>(std::string(fileName));
-    Application::GetInstance().sceneManager.get()->GetActiveScene()->AddGameObject(modelRootGO);
-    /*Application::GetInstance().guiManager.get()->sceneObjects.push_back(modelRootGO);*/
+    // Only add to scene if requested AND scene manager is ready
+    if (addToScene) {
+        auto sceneManager = Application::GetInstance().sceneManager.get();
+        if (sceneManager && sceneManager->GetActiveScene()) {
+            sceneManager->GetActiveScene()->AddGameObject(modelRootGO);
+        }
+    }
     modelRootGO->AddComponent(ComponentType::TRANSFORM);
 
     // Process scene - pass the meta pointer
@@ -130,12 +138,12 @@ ModelImporter::ModelImporter(std::shared_ptr<ResourceMesh> sharedMesh) {
 }
 
 ModelImporter::ModelImporter() {
-    //create root
-    modelRootGO = std::make_shared<GameObject>(std::string("EmptyObject"));
-    gameObjects.push_back(modelRootGO);
-    modelRootGO->AddComponent(ComponentType::TRANSFORM);
+    ////create root
+    //modelRootGO = std::make_shared<GameObject>(std::string("EmptyObject"));
+    //gameObjects.push_back(modelRootGO);
+    //modelRootGO->AddComponent(ComponentType::TRANSFORM);
 
-    LOG("Empty Object created successfully");
+    //LOG("Empty Object created successfully");
 }
 
 void ModelImporter::Draw(Shader& shader) {

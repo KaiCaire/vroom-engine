@@ -49,7 +49,7 @@ public:
     ~ModelImporter();
 
     // Import scene from file
-    std::shared_ptr<GameObject> ImportScene(const char* path);
+    std::shared_ptr<GameObject> ImportScene(const char* path, bool addToScene = true);
 
     // Rendering
     void Draw(Shader& shader);

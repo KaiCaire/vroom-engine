@@ -30,10 +30,16 @@ bool ResourceManager::Start() {
     fs->CreateDir(Paths::MESH_LIB_DIR);
     fs->CreateDir(Paths::TEXTURE_LIB_DIR);
 
-    DeleteUnusedLibraryFiles();
+    ReimportMissingFiles();
 
-    //scan assets
+    DeleteUnusedLibraryFiles();
+   
+    //scan assets for imgui hierarchy
     ScanAssetsFolder();
+
+
+
+    Application::GetInstance().sceneManager->LoadDefaultScene();
 
     return true;
 }
@@ -306,7 +312,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
     return resource;
 }
 
-VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type) {
+VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type, bool addToScene) {
     LOG("ResourceManager: Importing file '%s' (type: %d)", assetsPath.c_str(), (int)type);
 
     Importer* importer = Application::GetInstance().importer.get();
@@ -324,7 +330,7 @@ VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceTyp
     }
     case ResourceType::SCENE:
         /*auto mesh = Application::GetInstance().importer.get()->meshImporter->Import(assetsPath.c_str());*/
-        Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str());
+        Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str(), addToScene);
         
         break;
 
@@ -415,25 +421,117 @@ void ResourceManager::RemoveReference(VroomUUID uuid) {
 }
 
 
+void ResourceManager::ReimportMissingFiles() {
+    std::string assetsPath = Paths::ASSETS_DIR;
+    if (!fs->Exists(assetsPath.c_str())) {
+        LOG("Assets folder not found, creating...");
+        fs->CreateDir(assetsPath.c_str());
+        return;
+    }
+
+    int scanned = 0;
+    int generated = 0;
+    int reimported = 0;
+
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(assetsPath)) {
+        if (!entry.is_regular_file()) continue;
+        if (entry.path().extension() == ".meta") continue;
+
+        std::string assetPath = fs->NormalizePath(entry.path().string().c_str());
+        std::string extension = fs->GetExtensionFromPath(assetPath.c_str());
+
+        // Only process known asset types
+        if (extension != "png" && extension != "jpg" && extension != "tga" &&
+            extension != "dds" && extension != "fbx" && extension != "obj") {
+            continue;
+        }
+
+        scanned++;
+        std::string metaPath = assetPath + ".meta";
+        bool needsImport = false;
+
+        // Case 1: .meta doesn't exist
+        if (!fs->Exists(metaPath.c_str())) {
+            LOG("Missing .meta for: %s - will reimport to generate", assetPath.c_str());
+            needsImport = true;
+            generated++;
+        }
+        // Case 2: .meta is invalid/corrupted
+        else if (!fs->IsMetaValid(metaPath.c_str())) {
+            LOG("Invalid .meta for: %s - will reimport to regenerate", assetPath.c_str());
+            needsImport = true;
+            generated++;
+        }
+        // Case 3: Asset was modified (different timestamp)
+        else if (fs->NeedsReimport(metaPath.c_str(), assetPath.c_str())) {
+            LOG("Asset modified, needs reimport: %s", assetPath.c_str());
+            needsImport = true;
+            reimported++;
+
+            // Delete old Library files before reimporting
+            /*DeleteUnusedLibraryFiles((metaPath, extension);)*/
+        }
+
+        // Reimport if needed
+        if (needsImport) {
+            ResourceType type = DetermineResourceType(assetPath);
+
+            if (type == ResourceType::UNKNOWN) {
+                LOG("WARNING: Skipping unknown file type: %s", assetPath.c_str());
+                continue;
+            }
+
+            VroomUUID uuid = ImportFile(assetPath, type, false);
+
+            if (type == ResourceType::TEXTURE && uuid == 0) {
+                LOG("ERROR: Failed to import texture: %s", assetPath.c_str());
+            }
+            else if (type == ResourceType::MESH) {
+                LOG("Model imported successfully: %s", assetPath.c_str());
+            }
+        }
+        
+    }
+
+    LOG("========================================");
+    LOG("Asset scan complete:");
+    LOG("  - %d assets scanned", scanned);
+    LOG("  - %d .meta files generated", generated);
+    LOG("  - %d assets reimported", reimported);
+    LOG("========================================");
+}
+
 void ResourceManager::DeleteUnusedLibraryFiles() {
     LOG("Cleaning up orphaned library files...");
 
-    // Collect all UUIDs referenced in .meta files
     std::unordered_set<VroomUUID> validUUIDs;
-    
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::ASSETS_DIR))) {
-        if(!entry.is_regular_file()) continue;
-        std::string path = entry.path().string(); 
+        if (!entry.is_regular_file()) continue;
+
+        std::string path = entry.path().string();
         path = fs->NormalizePath(path.c_str());
-       
-        if (Application::GetInstance().fileSystem.get()->GetExtensionFromPath(path.c_str()) == "meta") {
+
+        if (fs->GetExtensionFromPath(path.c_str()) != "meta") continue;
+
+        // Add try-catch for JSON parsing
+        try {
+            LOG("Reading .meta file: %s", path.c_str());
             nlohmann::json meta = fs->LoadJSON(path.c_str());
+            LOG("Successfully parsed .meta");
+
+            if (meta.empty() || meta.is_null()) {
+                LOG("WARNING: Empty or null .meta file: %s", path.c_str());
+                continue;
+            }
+
+            // Collect UUIDs from MODEL metas
             if (meta.contains("meshes")) {
                 for (const auto& mesh : meta["meshes"]) {
                     if (mesh.contains("meshUUID")) {
                         validUUIDs.insert(mesh["meshUUID"].get<VroomUUID>());
                     }
+
                     if (mesh.contains("meshTextures")) {
                         for (const auto& tex : mesh["meshTextures"]) {
                             if (tex.contains("texUUID")) {
@@ -441,26 +539,63 @@ void ResourceManager::DeleteUnusedLibraryFiles() {
                             }
                         }
                     }
-                    
-                    
                 }
             }
+            // Collect UUIDs from STANDALONE RESOURCE metas
+            else if (meta.contains("uuid")) {
+                validUUIDs.insert(meta["uuid"].get<VroomUUID>());
+            }
+            else {
+                LOG("WARNING: .meta file has no recognizable structure: %s", path.c_str());
+            }
+
+        }
+        catch (const nlohmann::json::parse_error& e) {
+            LOG("ERROR: Failed to parse .meta file: %s", path.c_str());
+            LOG("Parse error: %s", e.what());
+            LOG("Skipping this file...");
+            continue;
+        }
+        catch (const std::exception& e) {
+            LOG("ERROR: Exception while processing .meta file: %s", path.c_str());
+            LOG("Error: %s", e.what());
+            continue;
         }
     }
 
+    LOG("Found %zu valid UUIDs in Assets metas", validUUIDs.size());
+
     int deletedFiles = 0;
-    // Delete library files not in the set
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::LIB_DIR))) {
 
-        if (!entry.is_regular_file()) continue;
-        std::string filename = entry.path().stem().string(); //gets filename without extension
-        VroomUUID uuid = std::stoull(filename); //converts to unsigned long
+    try {
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::LIB_DIR))) {
+            if (!entry.is_regular_file()) continue;
 
-        if (validUUIDs.find(uuid) == validUUIDs.end()) {
-            std::filesystem::remove(entry.path());
-            deletedFiles++;
-            LOG("Deleted orphaned library file: %s", entry.path().string().c_str());
+            std::string filename = entry.path().stem().string();
+
+            // Add validation for filename
+            if (filename.empty()) {
+                LOG("WARNING: Empty filename in Library, skipping");
+                continue;
+            }
+
+            try {
+                VroomUUID uuid = std::stoull(filename);
+
+                if (validUUIDs.find(uuid) == validUUIDs.end()) {
+                    std::filesystem::remove(entry.path());
+                    deletedFiles++;
+                    LOG("Deleted orphaned library file: %s", entry.path().string().c_str());
+                }
+            }
+            catch (const std::exception& e) {
+                LOG("WARNING: Invalid UUID filename in Library: %s", filename.c_str());
+                continue;
+            }
         }
+    }
+    catch (const std::exception& e) {
+        LOG("ERROR: Exception while cleaning Library: %s", e.what());
     }
 
     LOG("Unused Library Files Clean Up Complete: %d files deleted", deletedFiles);
@@ -636,7 +771,7 @@ void ResourceManager::ScanAssetsFolder() {
     LOG("Scanning Assets for unmanaged resources.");
 
     //start recursively search
-    std::vector<std::string> assetFiles = fs->IterateAssetsRecursive("Assets");
+    std::vector<std::string> assetFiles = fs->IterateAssetsRecursive(Paths::ASSETS_DIR);
 
     //iterate through files 
     for (const auto& assetPath : assetFiles) {
@@ -677,7 +812,7 @@ ResourceType ResourceManager::DetermineResourceType(const std::string& assetsPat
     }
 
     if (extension == "fbx" || extension == "obj") {
-        return ResourceType::MESH;
+        return ResourceType::SCENE;
     }
 
     return ResourceType::UNKNOWN;

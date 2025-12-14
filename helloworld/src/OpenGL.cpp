@@ -98,7 +98,7 @@ bool OpenGL::Start() {
 
 	//texCoordsShader->Use();
 	//viewMat = glm::mat4(1.0f);
-	Application::GetInstance().sceneManager->LoadDefaultScene();
+	
 
 	return true;
 }
