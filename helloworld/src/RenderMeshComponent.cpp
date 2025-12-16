@@ -33,15 +33,19 @@ void RenderMeshComponent::OnEditor() {
 }
 
 void RenderMeshComponent::SetMesh(std::shared_ptr<ResourceMesh> newMesh) {
-    if (mesh) {
-        mesh->RemoveReference();
+    if (mesh && meshUUID != 0) {
+        Application::GetInstance().resourceManager->RemoveReference(meshUUID);
     }
 
     mesh = newMesh;
     if (newMesh) {
         meshUUID = newMesh->GetUUID();
-        /*newMesh->AddReference();*/
-        LOG("RenderMeshComponent assigned Mesh UUID: %llu and added reference.", meshUUID);
+
+        if (meshUUID != 0) {
+            newMesh->AddReference();
+            LOG("RenderMeshComponent assigned Mesh UUID: %llu and added reference.", meshUUID);
+        }
+        
     }
     else meshUUID = 0;
 }
@@ -49,17 +53,15 @@ void RenderMeshComponent::SetMesh(std::shared_ptr<ResourceMesh> newMesh) {
 void RenderMeshComponent::Render(Shader* shader) {
     if (!mesh || !active || !shader) return;
     
-    auto sharedOwner = owner.lock();
-    if (!sharedOwner) return;
+    auto owner = GetOwner();
+    if (!owner) return;
     // Get transform component to apply transformations
     
-    auto transform = std::dynamic_pointer_cast<TransformComponent>(sharedOwner->GetComponent(ComponentType::TRANSFORM));
+    auto transform = std::dynamic_pointer_cast<TransformComponent>(owner->GetComponent(ComponentType::TRANSFORM));
     if (!transform)
         return;
-    
-    
-   
-    auto material = std::dynamic_pointer_cast<MaterialComponent>(sharedOwner->GetComponent(ComponentType::MATERIAL));
+
+    auto material = std::dynamic_pointer_cast<MaterialComponent>(owner->GetComponent(ComponentType::MATERIAL));
     if (!material)
         return;
     
@@ -73,6 +75,6 @@ void RenderMeshComponent::Render(Shader* shader) {
     // Set the model matrix in the shader
     shader->setMat4("model", modelMatrix);
 
-    mesh->Draw(*shader);
+    mesh->Draw(*shader, material.get());
 }
 

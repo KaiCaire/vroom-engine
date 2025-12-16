@@ -202,15 +202,12 @@ std::shared_ptr<GameObject> SceneManager::CreateCube() {
         // Render Component
         auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(cubeGO->AddComponent(ComponentType::MESH_RENDERER));
 
-       
-
-        
         if (renderComp) {
-            renderComp->SetMesh(cubeMesh);
+            renderComp->SetMesh(cubeMesh); //set mesh adds a reference!!
             VroomUUID meshUUID = cubeMesh->GetUUID();
             if (meshUUID == 0) UUIDGen::GenerateUUID();
-            /*renderComp->SetMeshUUID(meshUUID);*/
-            resourceManager->AddReference(meshUUID);
+            renderComp->SetMeshUUID(meshUUID);
+            /*resourceManager->AddReference(meshUUID);*/
 
             LOG("GameObject '%s' created and linked to cube mesh (UUID: %llu)", "Cube", meshUUID);
         }

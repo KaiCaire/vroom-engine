@@ -380,8 +380,10 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
         renderer->SetMeshUUID(meshUUID);
 
         // Request mesh from ResourceManager
-        auto mesh = Application::GetInstance().resourceManager.get()->RequestResource(meshUUID);
-        if (mesh == nullptr) {
+        auto resMesh = Application::GetInstance().resourceManager.get()->RequestResource(meshUUID);
+       
+
+        if (resMesh == nullptr) {
             if (reimportedModels.find(sourceModelName) == reimportedModels.end()) {
 
                 // Mark the model as reimported to avoid repeating
@@ -398,17 +400,12 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
                 Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath.c_str(), nullptr, false);
                 // Traverse importedRoot to find the mesh by UUID
 
-
-
                 // Try fetching the mesh again from the ResourceManager
-                mesh = Application::GetInstance().resourceManager->RequestResource(meshUUID);
+                resMesh = Application::GetInstance().resourceManager->RequestResource(meshUUID);
 
-                if (mesh != nullptr)
+                if (resMesh != nullptr)
                 {
                     // Update JSON with new UUID
-
-                   /* mr["meshUUID"] = meshUUIDstring.c_str();*/
-                    // scene saving can be done once after the loop (as you moved it)
                 }
                 else
                 {
@@ -422,70 +419,84 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
             }
         }
         
-        renderer->SetMesh(std::dynamic_pointer_cast<ResourceMesh>(mesh));
+        auto mesh = std::dynamic_pointer_cast<ResourceMesh>(resMesh);
+        renderer->SetMesh(mesh);
 
         if (mesh && !mesh->isLoadedToGPU) {
             Application::GetInstance().resourceManager.get()->LoadResourceToGPU(mesh);
         }
 
+        //checking for material entry only if mesh exists
+
+        if (goMeta.contains("5.material")) {
+            auto& m = goMeta["5.material"];
+            auto materialComp = go->AddComponent(ComponentType::MATERIAL);
+            auto material = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
+
+            // Diffuse color
+            if (m.contains("diffuseColor")) {
+                auto c = m["diffuseColor"];
+                material->SetDiffuseColor(glm::vec4(c[0], c[1], c[2], c[3]));
+            }
+
+            // PBR values
+            if (m.contains("shininess")) material->SetShininess(m["shininess"]);
+            if (m.contains("metallic"))  material->SetMetallic(m["metallic"]);
+            if (m.contains("roughness")) material->SetRoughness(m["roughness"]);
+
+            // Texture maps (UUIDs)
+            if (m.contains("diffuseMapUUID")) {
+                VroomUUID id = m["diffuseMapUUID"];
+                auto resTex = Application::GetInstance().resourceManager.get()->RequestResource(id);
+                auto tex = std::dynamic_pointer_cast<ResourceTexture>(resTex);
+
+                material->SetDiffuseMap(tex);
+                if (mesh->textures[0].get()->GetName() == "checkers.jpg") {
+                    mesh->textures.clear();
+                    mesh->textures.push_back(tex);
+                }
+               
+
+            }
+
+            if (m.contains("normalMapUUID")) {
+                VroomUUID id = m["normalMapUUID"];
+                auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
+                /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
+                material->SetNormalMap(std::static_pointer_cast<ResourceTexture>(tex));
+            }
+
+            if (m.contains("metallicMapUUID")) {
+                VroomUUID id = m["metallicMapUUID"];
+                auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
+                /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
+                material->SetMetallicMap(std::static_pointer_cast<ResourceTexture>(tex));
+            }
+
+            if (m.contains("roughnessMapUUID")) {
+                VroomUUID id = m["roughnessMapUUID"];
+                auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
+                /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
+                material->SetRoughnessMap(std::static_pointer_cast<ResourceTexture>(tex));
+            }
+
+            if (m.contains("AOMapUUID")) {
+                VroomUUID id = m["AOMapUUID"];
+                auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
+                /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
+                material->SetAOMap(std::static_pointer_cast<ResourceTexture>(tex));
+            }
+
+
+        }
+
+        
+
        
     }
 
 
-    if (goMeta.contains("5.material")) {
-        auto& m = goMeta["5.material"];
-        auto materialComp = go->AddComponent(ComponentType::MATERIAL);
-        auto material = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
-
-        // Diffuse color
-        if (m.contains("diffuseColor")) {
-            auto c = m["diffuseColor"];
-            material->SetDiffuseColor(glm::vec4(c[0], c[1], c[2], c[3]));
-        }
-
-        // PBR values
-        if (m.contains("shininess")) material->SetShininess(m["shininess"]);
-        if (m.contains("metallic"))  material->SetMetallic(m["metallic"]);
-        if (m.contains("roughness")) material->SetRoughness(m["roughness"]);
-
-        // Texture maps (UUIDs)
-        if (m.contains("diffuseMapUUID")) {
-            VroomUUID id = m["diffuseMapUUID"];
-            auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-            /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
-            material->SetDiffuseMap(std::static_pointer_cast<ResourceTexture>(tex));
-        }
-
-        if (m.contains("normalMapUUID")) {
-            VroomUUID id = m["normalMapUUID"];
-            auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-            /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
-            material->SetNormalMap(std::static_pointer_cast<ResourceTexture>(tex));
-        }
-
-        if (m.contains("metallicMapUUID")) {
-            VroomUUID id = m["metallicMapUUID"];
-            auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-            /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
-            material->SetMetallicMap(std::static_pointer_cast<ResourceTexture>(tex));
-        }
-
-        if (m.contains("roughnessMapUUID")) {
-            VroomUUID id = m["roughnessMapUUID"];
-            auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-            /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
-            material->SetRoughnessMap(std::static_pointer_cast<ResourceTexture>(tex));
-        }
-
-        if (m.contains("AOMapUUID")) {
-            VroomUUID id = m["AOMapUUID"];
-            auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-            /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
-            material->SetAOMap(std::static_pointer_cast<ResourceTexture>(tex));
-        }
-
-       
-    }
+    
 
 
     if (goMeta.contains("6.children")) {
@@ -498,6 +509,19 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
     }
 
     return go;
+}
+
+std::shared_ptr<GameObject> Scene::GetModelParentGameObject(std::shared_ptr<GameObject> go)
+{
+    if (!go) 
+        return nullptr;
+
+    auto parent = go->GetParent();
+
+    if (parent == GetRoot())
+        return go;
+
+    return GetModelParentGameObject(parent);
 }
 
 std::shared_ptr<GameObject> Scene::FindGameObjectByUUID(VroomUUID uuid) {

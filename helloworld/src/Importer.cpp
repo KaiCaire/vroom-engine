@@ -8,7 +8,9 @@
 #include <assimp/postprocess.h>
 
 Importer::Importer() {
-  
+    modelImporter = new ModelImporter();
+    meshImporter = new MeshImporter();
+    textureImporter = new TextureImporter();
 }
 
 Importer::~Importer() {}
@@ -16,14 +18,12 @@ Importer::~Importer() {}
 bool Importer::Start() {
 
     // Stream log messages to Log window
-    struct aiLogStream stream;
-    stream = aiGetPredefinedLogStream(aiDefaultLogStream_DEBUGGER, nullptr);
-    aiAttachLogStream(&stream);
+    //struct aiLogStream stream;
+    //stream = aiGetPredefinedLogStream(aiDefaultLogStream_DEBUGGER, nullptr);
+    //aiAttachLogStream(&stream);
 
     
-    modelImporter = new ModelImporter();
-    meshImporter = new MeshImporter();
-    textureImporter = new TextureImporter();
+    
     /* materialImporter = new MaterialImporter();*/
     return true;
 }
