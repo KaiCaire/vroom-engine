@@ -214,16 +214,13 @@ void ResourceMesh::Draw(Shader& shader, MaterialComponent* material) {
         // shader.setVec4("material.diffuseColor", material->GetDiffuseColor());
     }
     else {
-        // Fallback: Use the Mesh's internal textures if no material is present
-        for (unsigned int i = 0; i < textures.size(); i++) {
-            if (textures[i]) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                // Map the internal mapType (e.g. "texture_diffuse") to the shader naming
-                std::string uniformName = "material." + textures[i]->mapType + "1";
-                shader.setInt(uniformName.c_str(), i);
-                glBindTexture(GL_TEXTURE_2D, textures[i]->gpu_id);
-            }
-        }
+        //USE CHECKERS AS FALLBACK
+        std::string defaultPath = Application::GetInstance().importer.get()->defaultTexDir;
+        std::shared_ptr<Resource> defaultResource = Application::GetInstance().resourceManager->RequestResource(defaultPath);
+        std::shared_ptr<ResourceTexture> defaultTex = std::dynamic_pointer_cast<ResourceTexture>(defaultResource);
+
+        //binds the default texture to the diffuse slot
+        bindTex(defaultTex, "texture_diffuse1");
     }
 
     // 2. DRAW FACE NORMALS (DEBUG)

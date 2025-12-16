@@ -180,7 +180,7 @@ void ModelImporter::Draw(Shader& shader) {
         if (!materialComp)
             continue;
 
-        auto material = std::dynamic_pointer_cast<MaterialComponent>(rendererComp);
+        auto material = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
         if (!material) continue;
 
       
@@ -385,14 +385,14 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         //assign
         if (textureFoundInModel) {
             //set mesh textures
-            currentMesh->textures.push_back(loadedTexture);
+            /*currentMesh->textures.push_back(loadedTexture);*/
             //set material component
             matComponent->SetDiffuseMap(loadedTexture);
         }
         //texture loading failed 
         else {
             //assign the checkers
-            AssignDefaultTexture(currentMesh->textures);
+           /* AssignDefaultTexture(currentMesh->textures);*/
 
             std::string defaultPath = Application::GetInstance().importer.get()->defaultTexDir;
             std::string defaultName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(defaultPath.c_str());
@@ -420,6 +420,7 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         auto defaultTex = GetOrLoadTexture(defaultPath, defaultName, "texture_diffuse");
         if (defaultTex) {
             matComponent->SetDiffuseMap(defaultTex);
+            
         }
     }
 
@@ -428,7 +429,16 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 
 
 ModelImporter::~ModelImporter() {
-    // shared_ptr automatically cleans up
+    /*for (auto& mesh : meshes) {
+        if (mesh) mesh->RemoveReference();
+    }
+    meshes.clear();
+
+    
+    auto& textures_loaded = Application::GetInstance().importer.get()->textures_loaded;
+    for (auto& tex : textures_loaded) {
+        if (tex) tex->RemoveReference();
+    }*/
 }
 
 
@@ -462,8 +472,7 @@ std::shared_ptr<ResourceTexture> ModelImporter::GetOrLoadTexture(const std::stri
 
 void ModelImporter::AssignDefaultTexture(std::vector<std::shared_ptr<ResourceTexture>>& textures) {
     string fullPath = Application::GetInstance().importer.get()->defaultTexDir;
-    /*string fileName = fullPath.substr(fullPath.find_last_of('/') + 1);
-    string directory = fullPath.substr(0, fullPath.find_last_of('/') + 1);*/
+    
     string fileName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(fullPath.c_str());
     string directory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());
 
@@ -472,7 +481,7 @@ void ModelImporter::AssignDefaultTexture(std::vector<std::shared_ptr<ResourceTex
     std::shared_ptr<ResourceTexture> defaultTex = GetOrLoadTexture(fullPath, fileName, "texture_diffuse");
 
     if (defaultTex && defaultTex->GetUUID() != 0) {
-        textures.push_back(defaultTex);
+       /* textures.push_back(defaultTex);*/
         LOG("  -> Default texture assigned (UUID: %llu), (GPU_ID: %u)", defaultTex.get()->GetUUID(), defaultTex->gpu_id);
     }
     else {

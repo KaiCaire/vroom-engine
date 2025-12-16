@@ -448,15 +448,20 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
             if (m.contains("diffuseMapUUID")) {
                 VroomUUID id = m["diffuseMapUUID"];
                 auto resTex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-                auto tex = std::dynamic_pointer_cast<ResourceTexture>(resTex);
+                std::shared_ptr<Resource> textureToAssign = resTex;
 
-                material->SetDiffuseMap(tex);
-                if (mesh->textures[0].get()->GetName() == "checkers.jpg") {
-                    mesh->textures.clear();
-                    mesh->textures.push_back(tex);
+                if (!textureToAssign) {
+                    std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
+                    textureToAssign = Application::GetInstance().resourceManager.get()->RequestResource(checkerPath);
+                    LOG("WARNING: Diffuse texture UUID %llu missing. Falling back to checker.", id);
                 }
-               
 
+                
+                if (textureToAssign) {
+                    material->SetDiffuseMap(std::dynamic_pointer_cast<ResourceTexture>(textureToAssign));
+                }
+                
+               
             }
 
             if (m.contains("normalMapUUID")) {

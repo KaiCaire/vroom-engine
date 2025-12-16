@@ -30,7 +30,7 @@ bool ResourceManager::Start() {
     fs->CreateDir(Paths::MESH_LIB_DIR);
     fs->CreateDir(Paths::TEXTURE_LIB_DIR);
 
- /*   ReimportMissingFiles();*/
+    ReimportMissingFiles();
 
     DeleteUnusedLibraryFiles();
    
@@ -55,7 +55,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
     auto it = resources.find(uuid);
     if (it != resources.end()) {
         LOG("Resource %llu already loaded (refCount: %d)", uuid, it->second->GetReferenceCount());
-        it->second->AddReference();
+        /*it->second->AddReference();*/
         return it->second;
     }
 
@@ -90,8 +90,8 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
     if (resource) {
         LoadResourceFromLibrary(resource);
         RegisterResource(resource);
-        //we always add reference when we load from library
-        resource->AddReference();
+        
+        //resource->AddReference();
 
         return resource;
     }
@@ -218,95 +218,35 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
 }
 
 std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& assetsPath) {
-   
+
     std::string normalizedPath = fs->NormalizePath(assetsPath.c_str());
-    std::string extension = fs->GetExtensionFromPath(assetsPath.c_str());
-
-
-    ResourceType type = ResourceType::UNKNOWN;
-    if (extension == "png" || extension == "jpg" || extension == "tga" || extension == "dds") {
-        type = ResourceType::TEXTURE;
-    }
-    else if (extension == "fbx" || extension == "FBX" || extension == "obj") { //method already converts to lower, but just in case...
-        type = ResourceType::SCENE;
-    }
-
+    std::string metaPath = normalizedPath + ".meta";
     VroomUUID resUUID = 0;
 
-    // Check if .meta exists
-    std::string metaPath = normalizedPath + ".meta";
-
+    // --- 1. GET UUID (from meta or by fresh import) ---
     if (fs->Exists(metaPath.c_str())) {
-
-        LOG(".meta file found for %s, importing from library.", normalizedPath.c_str());
-        resUUID = fs->GetUUIDFromMeta(metaPath.c_str()); // Load UUID from .meta
-
-
-        // Check if already loaded
-        auto it = resources.find(resUUID);
-        if (it != resources.end()) {
-            LOG("Resource '%s' (UUID: %llu) already loaded in memory");
-            it->second->AddReference();
-
-
-            // Set asset path if missing
-            if (it->second->GetAssetFilePath() == "") {
-                it->second->SetAssetFilePath(normalizedPath);
-            }
-            
-            if (!it->second->IsLoadedToRAM()) {
-                LOG("Resource data is NULL, reloading from library...");
-                it->second->LoadBin();
-            }
-
-            if (LoadResourceToGPU(it->second)) {
-                it->second->AddReference(); //Caller now owns resource
-                return it->second;
-            }
-
-        }
-        else {
-            std::string libraryPath = Paths::TEXTURE_LIB_DIR + std::to_string(resUUID) + ".vroomtex";
-
-            if (fs->Exists(libraryPath.c_str())) {
-                auto res = CreateResource(type, resUUID);
-                res->SetLibraryFilePath(libraryPath);
-                res->SetAssetFilePath(normalizedPath);
-
-                if (LoadResourceFromLibrary(res)) {
-                    RegisterResource(res);
-
-                    //we always add reference when we load from library
-                    res->AddReference();
-                    LoadResourceToGPU(res);
-                    return res;
-                }
-                else {
-                    LOG("Failed to load from Library, reimporting from source");
-                }
-                
-                
-            }
-            else {
-                LOG("Library file missing, reimporting from source");
-                //handle reimporting from source below
-            }
-
-        }
-
+        LOG(".meta file found for %s, loading via UUID.", normalizedPath.c_str());
+        resUUID = fs->GetUUIDFromMeta(metaPath.c_str());
     }
     else {
-        LOG("No .meta file found for %s, importing fresh", normalizedPath.c_str());
+        // If meta is missing, import fresh to generate UUID/library file
+        LOG("No .meta file found for %s, importing fresh.", normalizedPath.c_str());
 
+        ResourceType type = DetermineResourceType(normalizedPath);
+        resUUID = ImportFile(normalizedPath, type); // ImportFile returns the new UUID
     }
 
-    // Import fresh
-    LOG("Importing fresh from: %s", normalizedPath.c_str());
-    resUUID = ImportFile(normalizedPath, type);
+    // Handle import failure
+    if (resUUID == 0) {
+        LOG("ERROR: Failed to obtain UUID for path: %s", normalizedPath.c_str());
+        return nullptr;
+    }
 
-    auto resource = GetResourceByUUID(resUUID);
+   
+    auto resource = RequestResource(resUUID);
+
     if (resource) {
-        resource->AddReference();  
+        resource->AddReference();
     }
 
     return resource;

@@ -452,6 +452,19 @@ void GUIElement::InspectorSetUp(bool* show)
 	//check if a game object is selected
 	auto selected = manager->selectedObject;
 
+	if (auto prev = manager->previousSelectedObject.lock()) {
+		// Check if the selection has changed AND the previous object was showing the checker
+		if (selected != prev) {
+			// Assuming IsShowingCheckerTexture returns true if the object is in the originalTextures map.
+			if (manager->originalTextures.count(prev) > 0) {
+				manager->RestoreOGTexture(prev);
+				LOG("Auto-restored texture for previous selection '%s'.", prev->GetName().c_str());
+			}
+		}
+	}
+
+	manager->previousSelectedObject = selected;
+
 	if (selected) {
 		//show game object name
 		char buffer[128];
@@ -513,7 +526,7 @@ void GUIElement::InspectorSetUp(bool* show)
 						//check if an object is selected
 						if (manager->selectedObject) {
 							std::string droppedPath((const char*)payload->Data);
-							Application::GetInstance().input.get()->ProcessDroppedFile(droppedPath);
+							ApplyTextureToSelection(droppedPath);
 						}
 					}
 					ImGui::EndDragDropTarget();
@@ -559,6 +572,18 @@ void GUIElement::InspectorSetUp(bool* show)
 	}
 
 	ImGui::End();
+}
+
+bool GUIManager::IsShowingCheckerTexture(std::shared_ptr<GameObject> go) {
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
+	if (!materialComp) return false;
+
+	std::shared_ptr<ResourceTexture> currentTex = materialComp->GetDiffuseMap();
+	if (!currentTex) return false;
+
+	VroomUUID checkerUUID = GetCheckerTextureUUID(); // Use the helper
+
+	return currentTex->GetUUID() == checkerUUID;
 }
 
 void GUIElement::AssetsViewerSetUp(bool* show) {
@@ -641,7 +666,7 @@ void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
 					std::shared_ptr<Resource> managedResource = Application::GetInstance().resourceManager->GetResourceByUUID(uuid);
 
 					if (managedResource) {
-						displayName = entry.name + " (Refs: " + std::to_string(managedResource->GetReferenceCount()) + ")";
+						displayName = entry.name + " (Refs: " + std::to_string(managedResource.get()->GetReferenceCount()) + ")";
 					}
 				}
 			}
@@ -748,18 +773,18 @@ void GUIElement::ApplyTextureToSelection(const std::string& assetPath) {
 		//apply to MaterialComponent for inspector
 		materialComp->SetDiffuseMap(newTex);
 
-		//apply to ResourceMesh for rendering
-		if (mesh->textures.empty()) {
-			mesh->textures.push_back(newTex);
-		}
-		else {
-			mesh->textures[0] = newTex;
-		}
+		////apply to ResourceMesh for rendering
+		//if (mesh->textures.empty()) {
+		//	mesh->textures.push_back(newTex);
+		//}
+		//else {
+		//	mesh->textures[0] = newTex;
+		//}
 
-		auto it = manager->originalTextures.find(go);
-		if (it != manager->originalTextures.end()) {
-			manager->originalTextures.erase(it);
-		}
+		//auto it = manager->originalTextures.find(go);
+		//if (it != manager->originalTextures.end()) {
+		//	manager->originalTextures.erase(it);
+		//}
 
 		LOG("SUCCESS: Applied texture '%s' to GameObject '%s'.", newTex->GetName().c_str(), go->GetName().c_str());
 	}

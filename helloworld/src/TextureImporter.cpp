@@ -115,7 +115,7 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
         texture->SaveMeta();
 
         Application::GetInstance().resourceManager->RegisterResource(texture);
-        texture->AddReference();
+       /* texture->AddReference();*/
 
         LOG("Imported new texture with uuid %llu, adding reference (Reference Count: %d)", texture->GetUUID(), texture->GetReferenceCount());
 
