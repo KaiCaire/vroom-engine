@@ -15,6 +15,7 @@
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
 #include "MaterialComponent.h"
+#include "CameraComponent.h"
 #include "ResourceTexture.h"
 #include "Render.h"
 #include "TextureImporter.h"
@@ -73,6 +74,9 @@ void GUIElement::ElementSetUp()
 	case ElementType::SceneViewport:
 		if (Application::GetInstance().guiManager.get()->showSceneViewport) SceneViewportSetUp(&Application::GetInstance().guiManager.get()->showSceneViewport);
 		break;
+	case ElementType::GameViewport: 
+		if (Application::GetInstance().guiManager.get()->showGameViewport) GameViewportSetUp(&Application::GetInstance().guiManager.get()->showGameViewport);
+		break;
 	default:
 		LOG("No GUIType detected.");
 		break;
@@ -115,6 +119,10 @@ void GUIElement::MenuBarSetUp()
 				bool set = !Application::GetInstance().guiManager.get()->showConfig;
 				Application::GetInstance().guiManager.get()->showConfig = set;
 			}
+			if (ImGui::MenuItem("Game View", nullptr, Application::GetInstance().guiManager.get()->showGameViewport)) {
+				bool set = !Application::GetInstance().guiManager.get()->showGameViewport;
+				Application::GetInstance().guiManager.get()->showGameViewport = set;
+			}
 			if (ImGui::MenuItem("Hierarchy", nullptr, Application::GetInstance().guiManager.get()->showHierarchy)) {
 				bool set = !Application::GetInstance().guiManager.get()->showHierarchy;
 				Application::GetInstance().guiManager.get()->showHierarchy = set;
@@ -128,6 +136,39 @@ void GUIElement::MenuBarSetUp()
 				Application::GetInstance().guiManager.get()->showSceneViewport = set;
 			}
 
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Game")) {
+			if (ImGui::MenuItem(manager->isPlaying ? "Pause" : "Play")) {
+				manager->isPlaying = !manager->isPlaying;
+				Application::GetInstance().currentGameState = manager->isPlaying ?
+					Application::GameState::PLAY_MODE : Application::GameState::EDIT_MODE;
+
+				if (manager->isPlaying) {
+					manager->showGameViewport = true;
+					// Find and cache the main camera
+					std::shared_ptr<CameraComponent> mainCamera = nullptr;
+					for (const auto& go : Application::GetInstance().sceneManager->GetActiveScene()->GetAllGameObjects()) {
+						auto comp = go->GetComponent(ComponentType::CAMERA);
+						if (comp) {
+							mainCamera = std::dynamic_pointer_cast<CameraComponent>(comp);
+							if (mainCamera && mainCamera->isMainCamera) {
+								manager->activeGameCamera = mainCamera;
+								break;
+							}
+						}
+					}
+					if (!mainCamera) {
+						LOG("WARNING: No main CameraComponent found to use for Play mode.");
+					}
+
+				}
+				else {
+					manager->activeGameCamera.reset();
+				}
+				LOG("Game toggled to %s", manager->isPlaying ? "PLAY_MODE" : "EDIT_MODE");
+			}
 			ImGui::EndMenu();
 		}
 
@@ -353,6 +394,12 @@ void GUIElement::HierarchySetUp(bool* show)
 			auto empty = std::make_shared<GameObject>();
 			Application::GetInstance().sceneManager->GetActiveScene()->AddGameObject(empty);
 			
+		}
+		if (ImGui::MenuItem("Camera")) {
+			auto newCamera = Application::GetInstance().sceneManager->CreateGameObject("Camera");
+			newCamera->AddComponent(ComponentType::CAMERA);
+			Application::GetInstance().guiManager->selectedObject = newCamera;
+			LOG("Created Camera GameObject");
 		}
 		if (ImGui::MenuItem("Cube")) {
 			auto defaultCube = Application::GetInstance().sceneManager->CreateCube();
@@ -806,6 +853,42 @@ void GUIElement::SceneViewportSetUp(bool* show) {
 		}
 		else {
 			manager->sceneViewportIsHovered = false;
+		}
+
+		ImGui::End();
+	}
+}
+
+void GUIElement::GameViewportSetUp(bool* show) {
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+
+	if (ImGui::Begin("Game", show, window_flags)) {
+		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+		Render* render = Application::GetInstance().render.get();
+
+		int textureWidth = 0;
+		int textureHeight = 0;
+
+		// Get actual FBO size from the texture ID
+		if (render->gameViewportTextureID != 0) {
+			glBindTexture(GL_TEXTURE_2D, render->gameViewportTextureID);
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &textureWidth);
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &textureHeight);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+
+		bool needsResize = (textureWidth != (int)viewportSize.x || textureHeight != (int)viewportSize.y);
+
+		if (needsResize) {
+			if (viewportSize.x > 0 && viewportSize.y > 0) {
+				render->InitGameFBO((int)viewportSize.x, (int)viewportSize.y);
+			}
+		}
+
+		unsigned int gameTextureID = render->gameViewportTextureID;
+
+		if (gameTextureID != 0) {
+			ImGui::Image((ImTextureID)(intptr_t)gameTextureID, viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
 		}
 
 		ImGui::End();

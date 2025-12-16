@@ -56,6 +56,16 @@ bool Camera::Start()
 
 bool Camera::Update(float dt)
 {
+	//check if in game mode
+	if (Application::GetInstance().currentGameState == Application::GameState::PLAY_MODE) {
+		//update matrices for the editor viewport resize handling
+		int windowW, windowH;
+		Application::GetInstance().window->GetSize(windowW, windowH);
+		RecalculateMatrices(windowW, windowH);
+		ExtractFrustumPlanes();
+		return true;
+	}
+	
 	//camera controls
 	float cameraSpeed;
 

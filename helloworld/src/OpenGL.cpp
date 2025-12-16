@@ -110,6 +110,7 @@ bool OpenGL::Update(float dt) {
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
 	activeShader = nullptr;
+	auto camera = Application::GetInstance().camera.get();
 
 	if (drawZbuffer) {
 		activeShader = depthBufferShader;
@@ -125,7 +126,7 @@ bool OpenGL::Update(float dt) {
 		glUniform1f(glad_glGetUniformLocation(activeShader->ID, "far"), Application::GetInstance().camera->farPlane);*/
 	}
 	// Render everything
-	Application::GetInstance().render.get()->RenderFrame(*activeShader);
+	Application::GetInstance().render.get()->RenderFrame(*activeShader, camera->viewMat, camera->projectionMat, camera->frustum);
 
 	return true;
 

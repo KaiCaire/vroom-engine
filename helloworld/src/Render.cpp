@@ -7,6 +7,7 @@
 #include "SceneManager.h"
 #include "RenderMeshComponent.h"
 #include "ResourceManager.h"
+#include "CameraComponent.h"
 #include "Camera.h"
 #include "OpenGL.h"
 #include "Octree.h"
@@ -109,6 +110,9 @@ bool Render::Update(float dt)
 
 bool Render::PostUpdate()
 {
+	auto guiManager = Application::GetInstance().guiManager.get();
+	auto camera = Application::GetInstance().camera.get();
+
 	//scene rendering to fbo
 	glBindFramebuffer(GL_FRAMEBUFFER, sceneFBO);
 	glViewport(0, 0, Application::GetInstance().window->width, Application::GetInstance().window->height);
@@ -118,9 +122,49 @@ bool Render::PostUpdate()
 
 	//render scene content
 	Shader* renderShader = Application::GetInstance().openGL.get()->GetActiveShader();
-	if (renderShader) RenderFrame(*renderShader);
+	if (renderShader) RenderFrame(*renderShader, camera->viewMat, camera->projectionMat, camera->frustum);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	if (Application::GetInstance().currentGameState == Application::GameState::PLAY_MODE && guiManager->showGameViewport) {
+
+		std::shared_ptr<CameraComponent> gameCamera = guiManager->activeGameCamera.lock();
+
+		if (gameCamera) {
+			int w = Application::GetInstance().window->width;
+			int h = Application::GetInstance().window->height;
+
+			if (gameViewportTextureID != 0) {
+				glBindTexture(GL_TEXTURE_2D, gameViewportTextureID);
+				glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+				glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
+
+			gameCamera->aspectRatio = (float)w / (float)h;
+			glm::mat4 gameView = gameCamera->GetViewMatrix();
+			glm::mat4 gameProjection = gameCamera->GetProjectionMatrix();
+			gameCamera->ExtractFrustumPlanes(gameProjection, gameView);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, gameFBO);
+			glViewport(0, 0, w, h);
+			glClearColor(background.r / 255.0f, background.g / 255.0f, background.b / 255.0f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+			if (renderShader) RenderFrame(*renderShader, gameView, gameProjection, gameCamera->frustum);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
+		else if (gameFBO != 0) {
+			// No camera found. Render gray background.
+			glBindFramebuffer(GL_FRAMEBUFFER, gameFBO);
+			glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
+	}
+
+
 	glViewport(0, 0, Application::GetInstance().window->width, Application::GetInstance().window->height);
 
 	//clear screen
@@ -140,6 +184,10 @@ bool Render::CleanUp()
 	if (sceneFBO) glDeleteFramebuffers(1, &sceneFBO);
 	if (sceneTextureID) glDeleteTextures(1, &sceneTextureID);
 	if (sceneRBO) glDeleteRenderbuffers(1, &sceneRBO);
+
+	if (gameFBO) glDeleteFramebuffers(1, &gameFBO);
+	if (gameViewportTextureID) glDeleteTextures(1, &gameViewportTextureID);
+	if (gameRBO) glDeleteRenderbuffers(1, &gameRBO);
 	
 	LOG("Destroying SDL render");
 	SDL_DestroyRenderer(renderer);
@@ -176,6 +224,32 @@ void Render::InitSceneFBO(int w, int h) {
 	LOG("Scene FBO initialized/resized to %dx%d.", w, h);
 }
 
+void Render::InitGameFBO(int w, int h) {
+	if (gameFBO) glDeleteFramebuffers(1, &gameFBO);
+	glGenFramebuffers(1, &gameFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, gameFBO);
+
+	if (gameViewportTextureID) glDeleteTextures(1, &gameViewportTextureID);
+	glGenTextures(1, &gameViewportTextureID);
+	glBindTexture(GL_TEXTURE_2D, gameViewportTextureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gameViewportTextureID, 0);
+
+	if (gameRBO) glDeleteRenderbuffers(1, &gameRBO);
+	glGenRenderbuffers(1, &gameRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, gameRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gameRBO);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		LOG("ERROR: Game Viewport Framebuffer is not complete!");
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	LOG("Game Viewport FBO initialized/resized to %dx%d.", w, h);
+}
+
 void Render::SetBackgroundColor(SDL_Color color)
 {
 	background = color;
@@ -183,14 +257,14 @@ void Render::SetBackgroundColor(SDL_Color color)
 
 
 
-void Render::DrawGrid() {
+void Render::DrawGrid(const glm::mat4& viewMat, const glm::mat4& projectionMat) {
 
 	Shader* gridShader = Application::GetInstance().openGL.get()->texCoordsShader;
 	gridShader->Use();
 
 	auto camera = Application::GetInstance().camera.get();
-	gridShader->setMat4("view", camera->viewMat);
-	gridShader->setMat4("projection", camera->projectionMat);
+	gridShader->setMat4("view", viewMat);
+	gridShader->setMat4("projection", projectionMat);
 
 	glm::mat4 identityMat = glm::mat4(1.0f);
 	gridShader->setMat4("model", identityMat);
@@ -230,16 +304,15 @@ void Render::DrawGrid() {
 	glUniform1i(glGetUniformLocation(gridShader->ID, "useLineColor"), false);
 }
 
-void Render::DrawAABB(const AABB& bounds, const glm::vec4& color) {
+void Render::DrawAABB(const AABB& bounds, const glm::vec4& color, const glm::mat4& viewMat, const glm::mat4& projectionMat) {
 	Shader* debugShader = Application::GetInstance().openGL.get()->texCoordsShader;
 	if (!debugShader) return;
 
 	debugShader->Use();
 
 	//set matrices
-	auto camera = Application::GetInstance().camera.get();
-	debugShader->setMat4("view", camera->viewMat);
-	debugShader->setMat4("projection", camera->projectionMat);
+	debugShader->setMat4("view", viewMat);
+	debugShader->setMat4("projection", projectionMat);
 
 	glm::mat4 identityMat = glm::mat4(1.0f);
 	debugShader->setMat4("model", identityMat); 
@@ -321,24 +394,20 @@ void Render::DrawRay(const glm::vec3& origin, const glm::vec3& direction, const 
 	glEnable(GL_DEPTH_TEST);
 }
 
-void Render::UpdateShaderMatrices(Shader& shader) {
-	auto camera = Application::GetInstance().camera.get();
-
+void Render::UpdateShaderMatrices(Shader& shader, const glm::mat4& viewMat, const glm::mat4& projectionMat) {
 	shader.Use();
-	//All objects share the SAME camera(view + projection)
-	shader.setMat4("view", camera->viewMat); 
-	shader.setMat4("projection", camera->projectionMat);
-	// Model matrix is set per object in DrawActiveScene
-
-
+	shader.setMat4("view", viewMat);
+	shader.setMat4("projection", projectionMat);
 }
 
-void Render::RenderFrame(Shader& shader) {
+void Render::RenderFrame(Shader& shader, const glm::mat4& viewMat, const glm::mat4& projectionMat, const Frustum& frustum) {
 	// Setup shader matrices
-	UpdateShaderMatrices(shader);
+	UpdateShaderMatrices(shader, viewMat, projectionMat);
 
-	// Draw grid
-	DrawGrid();
+	// Draw grid (in edit mode)
+	if (Application::GetInstance().currentGameState == Application::GameState::EDIT_MODE) {
+		DrawGrid(viewMat, projectionMat);
+	}
 
 	//draw raycast
 	auto camera = Application::GetInstance().camera.get();
@@ -357,14 +426,13 @@ void Render::RenderFrame(Shader& shader) {
 	shader.Use();
 
 	// Draw scene
-	DrawActiveScene(shader);
+	DrawActiveScene(shader, frustum);
 }
 
-void Render::DrawActiveScene(Shader& shader) {
+void Render::DrawActiveScene(Shader& shader, const Frustum& frustum) {
 	auto sceneManager = Application::GetInstance().sceneManager.get();
 	auto scene = sceneManager->GetActiveScene();
 	auto guiManager = Application::GetInstance().guiManager.get();
-	auto camera = Application::GetInstance().camera.get();
 
 	if (!scene) {
 		LOG("WARNING: No active scene to render");
@@ -372,27 +440,14 @@ void Render::DrawActiveScene(Shader& shader) {
 	}
 
 	std::vector<std::shared_ptr<GameObject>> visibleObjects;
-	//get total object count in order to log rendered objects (to test frustum culling)
-	int totalObjects = (int)scene->GetAllGameObjects().size();
 
 	if (scene->GetOctree()) {
-		// Query the Octree using the camera's pre-calculated frustum
-		scene->GetOctree()->Query(camera->frustum, visibleObjects);
+		scene->GetOctree()->Query(frustum, visibleObjects);
 	}
 	else {
-		// Fallback: If no Octree, render all objects
 		visibleObjects = scene->GetAllGameObjects();
-		LOG("WARNING: Octree not active. Rendering all %d GameObjects.", (int)visibleObjects.size());
 	}
 
-	int drawnObjects = (int)visibleObjects.size();
-
-	//log culling to check (commented to not flood the console)
-	/*if (totalObjects > 1) {
-		LOG("Culling Stats: Drawn/Total = %d / %d. Culled: %d", drawnObjects, totalObjects, totalObjects - drawnObjects);
-	}*/
-
-	// Iterate through all GameObjects in the scene
 	for (auto& gameObject : visibleObjects) {
 		if (!gameObject || !gameObject->IsActive() || gameObject->IsMarkedForDestroy()) {
 			continue;
@@ -400,10 +455,12 @@ void Render::DrawActiveScene(Shader& shader) {
 
 		DrawGameObject(gameObject, shader);
 
-		if (guiManager->drawAABBs) {
+		// Draw AABBs only in Editor Mode for Scene Viewport
+		if (Application::GetInstance().currentGameState == Application::GameState::EDIT_MODE && guiManager->drawAABBs) {
+			// Must pass the view/proj matrices used for rendering this frame
 			AABB bounds = GetGameObjectAABB(gameObject);
 			if (bounds.min != bounds.max) {
-				DrawAABB(bounds, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+				DrawAABB(bounds, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), Application::GetInstance().camera->viewMat, Application::GetInstance().camera->projectionMat);
 			}
 		}
 	}

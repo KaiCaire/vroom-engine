@@ -4,6 +4,7 @@
 #include <SDL3/SDL.h>
 #include <glm/glm.hpp>
 #include <memory>
+#include "Camera.h"
 
 class GameObject;
 class Shader;
@@ -22,24 +23,26 @@ public:
     bool CleanUp() override;
 
     void InitSceneFBO(int w, int h);
+    void InitGameFBO(int w, int h);
 
     // 3D Rendering
-    void RenderFrame(Shader& shader);
-    void DrawActiveScene(Shader& shader);
+    void RenderFrame(Shader& shader, const glm::mat4& viewMat, const glm::mat4& projectionMat, const Frustum& frustum);
+    void DrawActiveScene(Shader& shader, const Frustum& frustum);
     void DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader);
-    void DrawGrid();
+    void DrawGrid(const glm::mat4& viewMat, const glm::mat4& projectionMat);
 
     //aabb drawing
-    void DrawAABB(const AABB& bounds, const glm::vec4& color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    void DrawAABB(const AABB& bounds, const glm::vec4& color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f), const glm::mat4& viewMat = glm::mat4(1.0f), const glm::mat4& projectionMat = glm::mat4(1.0f));
     void DrawRay(const glm::vec3& origin, const glm::vec3& direction, const glm::vec4& color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
     // Shader utilities
-    void UpdateShaderMatrices(Shader& shader);
+    void UpdateShaderMatrices(Shader& shader, const glm::mat4& viewMat, const glm::mat4& projectionMat);
 
     // Background color
     void SetBackgroundColor(SDL_Color color);
 
     unsigned int sceneTextureID = 0;
+    unsigned int gameViewportTextureID = 0;
 
 private:
     SDL_Renderer* renderer = nullptr;
@@ -55,4 +58,7 @@ private:
 
     unsigned int sceneFBO = 0;
     unsigned int sceneRBO = 0;
+
+    unsigned int gameFBO = 0; 
+    unsigned int gameRBO = 0;
 };

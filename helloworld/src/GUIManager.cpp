@@ -77,6 +77,7 @@ std::vector<GUIElement> GUIManager::LoadElements()
 	elements.push_back(GUIElement(ElementType::Inspector, this));
 	elements.push_back(GUIElement(ElementType::AssetsViewer, this));
 	elements.push_back(GUIElement(ElementType::SceneViewport, this));
+	elements.push_back(GUIElement(ElementType::GameViewport, this));
 
 	return elements;
 }
@@ -299,8 +300,9 @@ void GUIManager::InitDock() {
 	ImGui::DockBuilderDockWindow("Inspector", dockRightID);
 	ImGui::DockBuilderDockWindow("Assets Viewer", dockRightDownID);
 
-	//dock scene in the middle
+	//dock scene in the middle and game windowed with it
 	ImGui::DockBuilderDockWindow("Scene", dockMainID);
+	ImGui::DockBuilderDockWindow("Game", dockMainID);
 
 	ImGui::DockBuilderFinish(dockspaceID);
 	//only do this once

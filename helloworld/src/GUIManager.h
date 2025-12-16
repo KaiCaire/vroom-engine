@@ -12,6 +12,7 @@
 #include <vector>
 #include "FileSystem.h"
 #include "GUIElement.h"
+#include "CameraComponent.h"
 
 //class GUIElement;
 
@@ -84,6 +85,7 @@ public:
 	bool showInspector = true;
 	bool showAssetsViewer = true;
 	bool showSceneViewport = true;
+	bool showGameViewport = false;
 
 	std::shared_ptr<GameObject> selectedObject;
 
@@ -107,4 +109,8 @@ public:
 
 	bool drawAABBs = false;
 	bool drawRaycast = false;
+
+	//camara component (game or edit mode)
+	bool isPlaying = false; 
+	std::weak_ptr<CameraComponent> activeGameCamera;
 };

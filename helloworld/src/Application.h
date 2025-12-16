@@ -93,6 +93,13 @@ public:
 		EXIT
 	};
 
+	enum GameState 
+	{
+		EDIT_MODE,
+		PLAY_MODE,
+	};
+	GameState currentGameState = EDIT_MODE;
+
 	// Modules
 	std::shared_ptr<Window> window;
 	std::shared_ptr<GUIManager> guiManager;

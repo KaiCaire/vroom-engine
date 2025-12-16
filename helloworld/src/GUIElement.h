@@ -10,7 +10,7 @@
 #include "FileSystem.h"
 #include "GameObject.h"
 
-enum ElementType{ Additional, MenuBar, Console, Config, Hierarchy, Inspector, AssetsViewer, SceneViewport};
+enum ElementType{ Additional, MenuBar, Console, Config, Hierarchy, Inspector, AssetsViewer, SceneViewport, GameViewport};
 
 class ResourceTexture;
 
@@ -30,6 +30,7 @@ public:
 	void InspectorSetUp(bool* show);
 	void AssetsViewerSetUp(bool* show);
 	void SceneViewportSetUp(bool* show);
+	void GameViewportSetUp(bool* show);
 
 	//other
 	void DrawNode(const std::shared_ptr<GameObject>& obj, std::shared_ptr<GameObject>& selected);
