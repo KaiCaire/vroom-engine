@@ -30,7 +30,7 @@ bool ResourceManager::Start() {
     fs->CreateDir(Paths::MESH_LIB_DIR);
     fs->CreateDir(Paths::TEXTURE_LIB_DIR);
 
-    ReimportMissingFiles();
+ /*   ReimportMissingFiles();*/
 
     DeleteUnusedLibraryFiles();
    

@@ -31,11 +31,17 @@ public:
 
     void SetDiffuseMap(std::shared_ptr<ResourceTexture> tex) 
     { 
-        if (tex->mapType.empty()) {
-            tex->mapType = "texture_diffuse";
+        if (tex) {
+            if (tex->mapType.empty()) {
+                tex->mapType = "texture_diffuse";
+            }
+
+            diffuseMap = tex;
         }
-            
-        diffuseMap = tex; 
+        else {
+            LOG("ERROR: Received empty texture");
+        }
+        
         
     }
     std::shared_ptr<ResourceTexture> GetDiffuseMap() const { return diffuseMap; }
