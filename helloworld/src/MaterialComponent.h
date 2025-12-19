@@ -30,13 +30,13 @@ public:
     float GetRoughness() const { return roughness; }
 
     void SetDiffuseMap(std::shared_ptr<ResourceTexture> tex) 
-    { 
-        if (tex->mapType.empty()) {
-            tex->mapType = "texture_diffuse";
+    {
+        if (!tex) {
+            LOG("Warning: SetDiffuseMap called with null texture");
+            return;
         }
-            
-        diffuseMap = tex; 
-        
+        if (tex->mapType.empty()) tex->mapType = "texture_diffuse";
+        diffuseMap = tex;
     }
     std::shared_ptr<ResourceTexture> GetDiffuseMap() const { return diffuseMap; }
 

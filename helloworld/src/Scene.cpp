@@ -98,9 +98,6 @@ void Scene::LogGameObjectHierarchy(std::shared_ptr<GameObject> go, int depth) {
         LogGameObjectHierarchy(child, depth + 1);
 }
 
-
-
-
 void Scene::CleanUpDestroyedObjects() {
     size_t beforeCount = allGameObjects.size();
 
@@ -449,14 +446,12 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
                 VroomUUID id = m["diffuseMapUUID"];
                 auto resTex = Application::GetInstance().resourceManager.get()->RequestResource(id);
                 auto tex = std::dynamic_pointer_cast<ResourceTexture>(resTex);
-
-                material->SetDiffuseMap(tex);
-                if (mesh->textures[0].get()->GetName() == "checkers.jpg") {
-                    mesh->textures.clear();
-                    mesh->textures.push_back(tex);
+                if (tex) {
+                    material->SetDiffuseMap(tex);
+                } else {
+                    LOG("ERROR: Texture UUID %llu not found for GameObject '%s'", id, go->GetName().c_str());
+                    // fallback: asignar textura por defecto o dejarlo vacío
                 }
-               
-
             }
 
             if (m.contains("normalMapUUID")) {

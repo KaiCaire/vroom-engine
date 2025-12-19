@@ -14,6 +14,7 @@
 
 #include "RenderMeshComponent.h"
 #include "TransformComponent.h"
+#include "MaterialComponent.h"
 
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
@@ -130,6 +131,10 @@ void OpenGL::RenderOutline(std::shared_ptr<GameObject> selectedObj, const glm::v
 	auto transformComp = std::dynamic_pointer_cast<TransformComponent>(selectedObj->GetComponent(ComponentType::TRANSFORM));
 	if (!transformComp) return;
 
+	// Obtain material for drawing
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(selectedObj->GetComponent(ComponentType::MATERIAL));
+	MaterialComponent* materialPtr = materialComp ? materialComp.get() : nullptr;
+
 	auto camera = Application::GetInstance().camera.get();
 	if (!camera) return;
 
@@ -160,8 +165,8 @@ void OpenGL::RenderOutline(std::shared_ptr<GameObject> selectedObj, const glm::v
 	if (colorLoc >= 0) {
 		glUniform3f(colorLoc, color.r, color.g, color.b);
 	}
-
-	mesh->Draw(*outlineShader);
+	
+	mesh->Draw(*outlineShader, materialPtr);
 
 	glDepthMask(GL_TRUE);
 
@@ -171,7 +176,7 @@ void OpenGL::RenderOutline(std::shared_ptr<GameObject> selectedObj, const glm::v
 	texCoordsShader->setMat4("projection", camera->projectionMat);
 	texCoordsShader->setMat4("model", model);
 
-	mesh->Draw(*texCoordsShader);
+	mesh->Draw(*texCoordsShader, materialPtr);
 
 	// restore previous GL states
 	glCullFace(prevCullFaceMode);
