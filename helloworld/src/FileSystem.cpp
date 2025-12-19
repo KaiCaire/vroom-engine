@@ -190,20 +190,23 @@ uint64_t FileSystem::GetFileModTime(const std::string& path) {
 
 }
 
-nlohmann::json FileSystem::LoadJSON(const char* path) { //Whisp's "openFile"!
-
+nlohmann::json FileSystem::LoadJSON(const char* path) {
 	std::ifstream inputFile(path);
 
 	if (!inputFile) {
 		LOG("Failed to open json file at %s", path);
-		return nlohmann::json(); //return empty json file
+		return nlohmann::json();  // Return empty JSON
 	}
 
-	nlohmann::json jsonFile;
-	inputFile >> jsonFile;
-	//inputFile automatically closes when out of scope
-
-	return jsonFile;
+	try {
+		nlohmann::json jsonFile;
+		inputFile >> jsonFile;
+		return jsonFile;
+	}
+	catch (const nlohmann::json::parse_error& e) {
+		LOG("ERROR: JSON parse error in %s: %s", path, e.what());
+		return nlohmann::json();  // Return empty JSON on error
+	}
 }
 
 bool FileSystem::Exists(const char* path) {
@@ -243,20 +246,18 @@ bool FileSystem::CreateDir(const char* path) {
 void FileSystem::CreateMeta(const char* filePath, const VroomUUID uuid, uint size) {
 	nlohmann::json jsonFile;
 	std::string metaExt = ".meta";
+	const char* metaDir = (filePath + metaExt).c_str();
 
-	std::string metaFilePath = filePath; 
-	metaFilePath += metaExt;             
-	const char* metaPath = metaFilePath.c_str(); 
-
-	//if (!Exists(metaPath)) CreateDir(metaPath);
+	// Make sure directory exists
+	std::string dir = GetDirFromPath(metaDir);
+	if (!Exists(dir.c_str())) {
+		CreateDir(dir.c_str());
+	}
 
 	jsonFile["uuid"] = uuid;
 	jsonFile["modTime"] = GetFileModTime(filePath);
-	jsonFile["fileSize"] = size;
 
-
-	SaveJSON(metaPath, jsonFile);
-
+	SaveJSON(metaDir, jsonFile);  
 }
 
 bool FileSystem::IsMetaValid(const char* metaPath) {
@@ -276,7 +277,8 @@ bool FileSystem::NeedsReimport(const char* metaPath, const char* sourceFilePath)
 	uint64_t savedModTime = meta["modTime"]; //checks meta
 	uint64_t currentModTime = GetFileModTime(sourceFilePath); //checks source file (fbx)
 
-	return currentModTime != savedModTime;
+	if (currentModTime != savedModTime) return true;
+	else return false;
 }
 
 bool FileSystem::ExistsInDirectory(const char* directory, const char* file) {
@@ -441,3 +443,23 @@ bool FileSystem::MoveFileToNewPath(const char* oldPath, const char* newPath) {
 	LOG("Successfully moved file from %s to %s", oldPath, newPath);
 	return true;
 }
+
+
+bool FileSystem::IsFolderEmpty(const char* path) {
+
+	std::string folderPath = NormalizePath(path);
+
+	if (!std::filesystem::exists(path)) {
+		LOG("ERROR: Path does not exist: %s", path);
+		return true;
+	}
+
+	if (!std::filesystem::is_directory(path)) {
+		LOG("ERROR: Path is not a directory: %s", path);
+		return true;
+	}
+
+	return std::filesystem::is_empty(folderPath);
+
+}
+

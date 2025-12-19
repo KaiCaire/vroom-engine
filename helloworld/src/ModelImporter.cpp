@@ -27,7 +27,7 @@
 using namespace std;
 
 
-std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
+std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path, bool addToScene) {
 
     Assimp::Importer import;
     const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
@@ -40,6 +40,10 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
     FileSystem* fs = Application::GetInstance().fileSystem.get();
     fullPath = fs->NormalizePath(path);
     fileName = fs->GetFileNameFromPath(path);
+    LOG("DEBUG: fileName extracted = '%s' from path = '%s'", fileName.c_str(), path);
+
+    modelRootGO = std::make_shared<GameObject>(fileName);  // <-- ADD THIS LINE
+    gameObjects.push_back(modelRootGO);  // <-- AND THIS
 
     // Try to load model meta for caching
     nlohmann::json* modelMeta = LoadModelMeta(path);
@@ -55,9 +59,13 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path) {
     fileExtension = fs->GetExtensionFromPath(fullPath.c_str());
     stbi_set_flip_vertically_on_load(fileExtension == "obj");
 
-    modelRootGO = make_shared<GameObject>(std::string(fileName));
-    Application::GetInstance().sceneManager.get()->GetActiveScene()->AddGameObject(modelRootGO);
-    /*Application::GetInstance().guiManager.get()->sceneObjects.push_back(modelRootGO);*/
+    // Only add to scene if requested AND scene manager is ready
+    if (addToScene) {
+        auto sceneManager = Application::GetInstance().sceneManager.get();
+        if (sceneManager && sceneManager->GetActiveScene()) {
+            sceneManager->GetActiveScene()->AddGameObject(modelRootGO);
+        }
+    }
     modelRootGO->AddComponent(ComponentType::TRANSFORM);
 
     // Process scene - pass the meta pointer
@@ -130,12 +138,12 @@ ModelImporter::ModelImporter(std::shared_ptr<ResourceMesh> sharedMesh) {
 }
 
 ModelImporter::ModelImporter() {
-    //create root
-    modelRootGO = std::make_shared<GameObject>(std::string("EmptyObject"));
-    gameObjects.push_back(modelRootGO);
-    modelRootGO->AddComponent(ComponentType::TRANSFORM);
+    ////create root
+    //modelRootGO = std::make_shared<GameObject>(std::string("EmptyObject"));
+    //gameObjects.push_back(modelRootGO);
+    //modelRootGO->AddComponent(ComponentType::TRANSFORM);
 
-    LOG("Empty Object created successfully");
+    //LOG("Empty Object created successfully");
 }
 
 void ModelImporter::Draw(Shader& shader) {
@@ -168,7 +176,16 @@ void ModelImporter::Draw(Shader& shader) {
         auto mesh = renderer->GetMesh();
         if (!mesh) continue;
 
-        renderer->GetMesh()->Draw(shader);
+        auto materialComp = gameObject->GetComponent(ComponentType::MATERIAL);
+        if (!materialComp)
+            continue;
+
+        auto material = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
+        if (!material) continue;
+
+      
+
+        renderer->GetMesh()->Draw(shader, material.get());
     }
 }
 
@@ -289,11 +306,18 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         return;
     }
 
+    std::vector<TexMetaInfo> texMetaInfo;
+
+    for (auto tex : mesh->textures) {
+        texMetaInfo.push_back({ tex->GetName(), tex->GetUUID(), tex->mapType });
+    }
+
     //register resource
     /*Application::GetInstance().resourceManager->RegisterResource(mesh);*/
 
     // Store mesh info for model meta
-    meshMetaInfo.push_back({aiMesh->mName.C_Str(), mesh->GetUUID(), mesh->vertices.size(), mesh->indices.size() });
+    meshMetaInfo.push_back({aiMesh->mName.C_Str(), mesh->GetUUID(), texMetaInfo});
+
 
     // Store the mesh in the model
     meshes.push_back(mesh);
@@ -344,42 +368,13 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
             aiString str;
             aiMat->GetTexture(type, 0, &str);
 
-            std::string relativePath = str.C_Str();
-
-            
-
-            std::string modelDirectory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());
-            
+            std::string relativePath = Application::GetInstance().fileSystem.get()->GetFileFromPath(str.C_Str());
+            std::string modelDirectory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());    
 
             std::string filenameOnly = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(relativePath.c_str());
-
-
-            
-            //clean file name
-            //size_t lastDot = filenameOnly.find_last_of('.');
-            //if (lastDot != std::string::npos) {
-            //    filenameOnly = filenameOnly.substr(0, lastDot);
-            //}
-
-            //png test
             std::string rawAbsolutePath = modelDirectory + "/" + relativePath;
             std::string absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
             loadedTexture = GetOrLoadTexture(absolutePath, relativePath, "texture_diffuse");
-
-            ////tga test
-            //if (!loadedTexture) {
-            //    rawAbsolutePath = modelDirectory + "/" + filenameOnly + ".tga";
-            //    absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
-            //    loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".tga", "texture_diffuse");
-            //}
-
-
-            ////jpg test
-            //if (!loadedTexture) {
-            //    rawAbsolutePath = modelDirectory + "/" + filenameOnly + ".jpg";
-            //    absolutePath = Application::GetInstance().fileSystem.get()->NormalizePath(rawAbsolutePath.c_str());
-            //    loadedTexture = GetOrLoadTexture(absolutePath, filenameOnly + ".jpg", "texture_diffuse");
-            //}
 
 
             if (loadedTexture) {
@@ -390,17 +385,14 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         //assign
         if (textureFoundInModel) {
             //set mesh textures
-            currentMesh->textures.push_back(loadedTexture);
-
-
-
+            /*currentMesh->textures.push_back(loadedTexture);*/
             //set material component
             matComponent->SetDiffuseMap(loadedTexture);
         }
         //texture loading failed 
         else {
             //assign the checkers
-            AssignDefaultTexture(currentMesh->textures);
+           /* AssignDefaultTexture(currentMesh->textures);*/
 
             std::string defaultPath = Application::GetInstance().importer.get()->defaultTexDir;
             std::string defaultName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(defaultPath.c_str());
@@ -428,6 +420,7 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         auto defaultTex = GetOrLoadTexture(defaultPath, defaultName, "texture_diffuse");
         if (defaultTex) {
             matComponent->SetDiffuseMap(defaultTex);
+            
         }
     }
 
@@ -436,7 +429,16 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 
 
 ModelImporter::~ModelImporter() {
-    // shared_ptr automatically cleans up
+    /*for (auto& mesh : meshes) {
+        if (mesh) mesh->RemoveReference();
+    }
+    meshes.clear();
+
+    
+    auto& textures_loaded = Application::GetInstance().importer.get()->textures_loaded;
+    for (auto& tex : textures_loaded) {
+        if (tex) tex->RemoveReference();
+    }*/
 }
 
 
@@ -446,7 +448,7 @@ std::shared_ptr<ResourceTexture> ModelImporter::GetOrLoadTexture(const std::stri
     auto& textures_loaded = Application::GetInstance().importer.get()->textures_loaded;
     // Check if already loaded
     for (auto& loadedTex : textures_loaded) {
-        if (loadedTex.get()->path == fullPath) {
+        if (loadedTex.get()->GetAssetFilePath() == fullPath) {
             return loadedTex; // Return the cached texture
         }
     }
@@ -461,7 +463,8 @@ std::shared_ptr<ResourceTexture> ModelImporter::GetOrLoadTexture(const std::stri
     }
     
     texture.get()->mapType = typeName;
-    texture.get()->path = fullPath;
+    texture.get()->SetAssetFilePath(fullPath);
+    texture.get()->SetName(fileName);
     textures_loaded.push_back(texture);
 
     return texture;
@@ -469,8 +472,7 @@ std::shared_ptr<ResourceTexture> ModelImporter::GetOrLoadTexture(const std::stri
 
 void ModelImporter::AssignDefaultTexture(std::vector<std::shared_ptr<ResourceTexture>>& textures) {
     string fullPath = Application::GetInstance().importer.get()->defaultTexDir;
-    /*string fileName = fullPath.substr(fullPath.find_last_of('/') + 1);
-    string directory = fullPath.substr(0, fullPath.find_last_of('/') + 1);*/
+    
     string fileName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(fullPath.c_str());
     string directory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());
 
@@ -479,7 +481,7 @@ void ModelImporter::AssignDefaultTexture(std::vector<std::shared_ptr<ResourceTex
     std::shared_ptr<ResourceTexture> defaultTex = GetOrLoadTexture(fullPath, fileName, "texture_diffuse");
 
     if (defaultTex && defaultTex->GetUUID() != 0) {
-        textures.push_back(defaultTex);
+       /* textures.push_back(defaultTex);*/
         LOG("  -> Default texture assigned (UUID: %llu), (GPU_ID: %u)", defaultTex.get()->GetUUID(), defaultTex->gpu_id);
     }
     else {
@@ -497,9 +499,10 @@ void ModelImporter::SaveModelMeta(const char* modelPath) {
     VroomUUID modelUUID = 0;
 
     if (fs->Exists(metaPath.c_str())) {
-        nlohmann::json existingMeta = fs->LoadJSON(metaPath.c_str());
-        if (existingMeta.contains("uuid")) {
-            modelUUID = existingMeta["uuid"];
+        meta = fs->LoadJSON(metaPath.c_str());
+       
+        if (meta.contains("uuid")) {
+            modelUUID = meta["uuid"];
         }
     }
 
@@ -513,12 +516,25 @@ void ModelImporter::SaveModelMeta(const char* modelPath) {
 
     // Add all mesh info
     nlohmann::json meshesArray = nlohmann::json::array();
+
     for (const auto& meshInfo : meshMetaInfo) {
         nlohmann::json meshEntry;
-        meshEntry["name"] = meshInfo.name;
-        meshEntry["uuid"] = meshInfo.uuid;
+        meshEntry["meshName"] = meshInfo.name;
+        meshEntry["meshUUID"] = meshInfo.uuid;
+
+        nlohmann::json texturesArray = nlohmann::json::array();
+        for (const auto & texInfo : meshInfo.textures) {
+            nlohmann::json texEntry;
+            texEntry["texName"] = texInfo.name;
+            texEntry["texUUID"] = texInfo.uuid;
+            texEntry["texType"] = texInfo.texType;
+
+            texturesArray.push_back(texEntry);
+        }
+        meshEntry["meshTextures"] = texturesArray;
         meshesArray.push_back(meshEntry);
     }
+    
     meta["meshes"] = meshesArray;
 
     fs->SaveJSON(metaPath.c_str(), meta);

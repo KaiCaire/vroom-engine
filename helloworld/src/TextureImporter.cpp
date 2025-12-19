@@ -28,7 +28,7 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     }
 
     // Create Texture resource
-    auto texture = std::make_shared<ResourceTexture>();
+    std::shared_ptr<ResourceTexture> texture = std::make_shared<ResourceTexture>();
 
     // Set paths
     texture->SetAssetFilePath(normalizedPath);
@@ -48,7 +48,7 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     //    std::string libraryPath = std::string(Paths::TEXTURE_LIB_DIR) + std::to_string(uuid) + ".vroomtex";
 
     //    // Check if reimport needed (newer modTime)
-    //    if (!fs->NeedsReimport(metaPath.c_str(), normalizedPath.c_str())) {
+    //    if (fs->NeedsReimport(metaPath.c_str(), normalizedPath.c_str())) {
     //        //read from library file
     //        texture->SetLibraryFilePath(libraryPath);
     //        needsSourceImport = true;
@@ -68,9 +68,6 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     //}
     //else {
     //    // no meta (needs new UUID)
-    //    uuid = UUIDGen::GenerateUUID();
-    //    texture->SetUUID(uuid);
-    //    LOG("Generated new UUID for texture: %llu", uuid);
     //    needsSourceImport = true;
     //}
     
@@ -102,8 +99,8 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
         texture->mapType = "texture_diffuse";  // Default
 
         // Generate OpenGL texture and upload to GPU
-        glGenTextures(1, &texture->gpu_id);
-        glBindTexture(GL_TEXTURE_2D, texture->gpu_id);
+        //glGenTextures(1, &texture->gpu_id);
+        //glBindTexture(GL_TEXTURE_2D, texture->gpu_id);
 
         texture->LoadToGPU();
 
@@ -118,6 +115,9 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
         texture->SaveMeta();
 
         Application::GetInstance().resourceManager->RegisterResource(texture);
+       /* texture->AddReference();*/
+
+        LOG("Imported new texture with uuid %llu, adding reference (Reference Count: %d)", texture->GetUUID(), texture->GetReferenceCount());
 
         // Now free the data (already uploaded to GPU and saved to disk)
         if (texture->data) {
@@ -131,6 +131,9 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
         LOG("TextureImporter: Successfully imported '%s' (UUID: %llu, GPU ID: %u, %dx%d)",
             texture->GetName().c_str(), texture->GetUUID(), texture->gpu_id,
             texture->texW, texture->texH);
+
+
+        LOG("Successfully set assetPath '%s', libraryPath '%s'", texture->GetAssetFilePath(), texture->GetLibraryFilePath());
 
         return texture;
     }

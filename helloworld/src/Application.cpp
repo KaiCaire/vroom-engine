@@ -38,19 +38,16 @@ Application::Application() {
     // Ordered for awake / Start / Update
     // Reverse order of CleanUp
     AddModule(std::static_pointer_cast<Module>(window));
-    AddModule(std::static_pointer_cast<Module>(guiManager));
-    AddModule(std::static_pointer_cast<Module>(input));
-
-    AddModule(std::static_pointer_cast<Module>(camera));
-    AddModule(std::static_pointer_cast<Module>(resourceManager));
-    AddModule(std::static_pointer_cast<Module>(importer));
-    AddModule(std::static_pointer_cast<Module>(sceneManager));
-
-    // Render last 
     AddModule(std::static_pointer_cast<Module>(openGL));
     AddModule(std::static_pointer_cast<Module>(fileSystem));
-    AddModule(std::static_pointer_cast<Module>(render));
+    AddModule(std::static_pointer_cast<Module>(resourceManager));
+    AddModule(std::static_pointer_cast<Module>(importer));
+    AddModule(std::static_pointer_cast<Module>(camera));
+    AddModule(std::static_pointer_cast<Module>(input));
+    AddModule(std::static_pointer_cast<Module>(guiManager));
+    AddModule(std::static_pointer_cast<Module>(sceneManager));
 
+    AddModule(std::static_pointer_cast<Module>(render));
 }
 
 // Static method to get the instance of the Application class, following the singletn pattern

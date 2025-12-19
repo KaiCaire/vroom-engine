@@ -2,6 +2,7 @@
 #include "ResourceManager.h"
 #include "Application.h"
 #include "RenderMeshComponent.h"
+#include "GUIManager.h"
 #include "Input.h"
 
 
@@ -17,17 +18,18 @@ SceneManager::~SceneManager() {
 
 bool SceneManager::Start() {
     return true;
+    fs = Application::GetInstance().fileSystem.get();
 }
 
 bool SceneManager::Update(float dt) {
-    /*currentScene->DebugDrawTree();*/
+
 
     currentScene->Update(static_cast<float>(dt));
 
     bool ctrl = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LCTRL) || Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_RCTRL);
     bool s = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_S);
     bool l = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_L);
-    std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + GetActiveScene()->GetName() + ".vroomscene";
+    std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/SampleScene.vroomscene";
 
     if (ctrl && s) GetActiveScene()->SaveScene(scenesPath);
 
@@ -43,25 +45,38 @@ bool SceneManager::CleanUp() {
 
 
 // In SceneManager.cpp
+
 void SceneManager::LoadDefaultScene() {
-    LOG("SceneManager: Loading default scene");
+    LOG("SceneManager: Loading scenes");
 
-    // Create a new scene
-    const std::string sceneName = "DefaultScene";
-    auto defaultScene = std::make_shared<Scene>(sceneName);
+    // Load the default scene
+    auto defaultScene = std::make_shared<Scene>("DefaultScene");
+
     scenes.push_back(defaultScene);
-    SetActiveScene(sceneName);
+    SetActiveScene("DefaultScene");
 
-    // Import the model through ResourceManager
-    std::string modelPath = "../Assets/Models/Street/Street environment_V01.FBX";
-    auto ourScene = currentScene->ImportModel(modelPath);
+    std::string defaultSceneDir = std::string(Paths::SCENE_ASSETS_DIR) + "/DefaultScene.vroomscene";
+    std::string sampleSceneDir = std::string(Paths::SCENE_ASSETS_DIR) + "/SampleScene.vroomscene";
 
-    if (ourScene) {
-        LOG("Default scene loaded successfully");
+    if (!fs->Exists(Paths::LIB_DIR)
+        || (fs->IsFolderEmpty(Paths::MESH_LIB_DIR) && fs->IsFolderEmpty(Paths::TEXTURE_LIB_DIR))
+        || !fs->Exists(defaultSceneDir.c_str())) {
+
+        LOG("Importing Default Scene from scratch");
+
+        GetActiveScene()->ImportModel("../Assets/Models/Street/Street environment_V01.FBX");
+        GetActiveScene()->SaveScene(defaultSceneDir);
+        GetActiveScene()->SaveScene(sampleSceneDir);
+
     }
-    
-}
+    else {
+        LOG("Loading Scene from Scene Assets file");
+        defaultScene->LoadScene(defaultSceneDir);
+    }
 
+    LOG("Successfully created DefaultScene");
+
+}
 
 
 void SceneManager::SetActiveScene(const std::string& name)
@@ -114,8 +129,7 @@ std::shared_ptr<GameObject> SceneManager::CreateEmptyGameObject(const std::strin
         LOG("  - Parent set to root");
     }
 
-    // Añadir a la lista
-    /*allGameObjects.push_back(newGameObject);*/
+
     currentScene->AddGameObject(newGameObject);
 
     int gameObjectsSize = currentScene->GetAllGameObjects().size();
@@ -126,6 +140,44 @@ std::shared_ptr<GameObject> SceneManager::CreateEmptyGameObject(const std::strin
 }
 
 
+
+void ManualResourceCleanup(const std::shared_ptr<GameObject>& go) {
+    
+    if (auto rmc = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER))) {
+        // The RMC destructor should do this, but we force it here for synchronous cleanup
+        if (auto mesh = rmc->GetMesh()) {
+            mesh->RemoveReference();
+            rmc->SetMesh(nullptr);
+            LOG("  - Mesh ref removed for '%s'", go->GetName().c_str());
+        }
+    }
+
+   
+    if (auto mc = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL))) {
+
+        if (auto tex = mc->GetDiffuseMap()) {
+            LOG("Texture Reference Count before deletion: %d", tex->GetReferenceCount());
+            tex->RemoveReference();
+            LOG("Reference to texture %s removed, reference count is now: %d", tex->GetAssetFilePath(), tex->GetReferenceCount());
+        }
+            
+            
+        if (auto tex = mc->GetNormalMap()) 
+            tex->RemoveReference();
+        if (auto tex = mc->GetMetallicMap()) 
+            tex->RemoveReference();
+        if (auto tex = mc->GetRoughnessMap()) 
+            tex->RemoveReference();
+        if (auto tex = mc->GetAOMap()) 
+            tex->RemoveReference();
+
+        
+        mc->SetDiffuseMap(nullptr); 
+
+        LOG("  - Material refs removed for '%s'", go->GetName().c_str());
+    }
+}
+
 void SceneManager::DestroyGameObject(std::shared_ptr<GameObject> gameObject) {
     if (!gameObject) {
         LOG("WARNING: Attempted to destroy null GameObject");
@@ -134,6 +186,7 @@ void SceneManager::DestroyGameObject(std::shared_ptr<GameObject> gameObject) {
 
     LOG("Destroying GameObject '%s'", gameObject->GetName().c_str());
 
+    ManualResourceCleanup(gameObject);
     // Marcar este GameObject
     gameObject->MarkForDestroy();
 
@@ -141,6 +194,7 @@ void SceneManager::DestroyGameObject(std::shared_ptr<GameObject> gameObject) {
     auto markChildren = [&](auto&& self, std::shared_ptr<GameObject> go) -> void {
         for (auto& child : go->GetChildren()) {
             if (child && !child->IsMarkedForDestroy()) {
+                ManualResourceCleanup(child);
                 LOG("  - Marking child '%s' for destruction", child->GetName().c_str());
                 child->MarkForDestroy();
                 self(self, child);  // recursi�n
@@ -188,15 +242,12 @@ std::shared_ptr<GameObject> SceneManager::CreateCube() {
         // Render Component
         auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(cubeGO->AddComponent(ComponentType::MESH_RENDERER));
 
-       
-
-        
         if (renderComp) {
-            renderComp->SetMesh(cubeMesh);
+            renderComp->SetMesh(cubeMesh); //set mesh adds a reference!!
             VroomUUID meshUUID = cubeMesh->GetUUID();
             if (meshUUID == 0) UUIDGen::GenerateUUID();
-            /*renderComp->SetMeshUUID(meshUUID);*/
-            resourceManager->AddReference(meshUUID);
+            renderComp->SetMeshUUID(meshUUID);
+            /*resourceManager->AddReference(meshUUID);*/
 
             LOG("GameObject '%s' created and linked to cube mesh (UUID: %llu)", "Cube", meshUUID);
         }

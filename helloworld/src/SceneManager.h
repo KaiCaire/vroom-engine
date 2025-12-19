@@ -38,4 +38,5 @@ public:
 private:
 	std::shared_ptr<Scene> currentScene = nullptr;
 	std::vector<std::shared_ptr<Scene>> scenes;
+	FileSystem* fs;
 };

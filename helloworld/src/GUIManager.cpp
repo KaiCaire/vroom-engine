@@ -77,6 +77,7 @@ std::vector<GUIElement> GUIManager::LoadElements()
 	elements.push_back(GUIElement(ElementType::Hierarchy, this));
 	elements.push_back(GUIElement(ElementType::Inspector, this));
 	elements.push_back(GUIElement(ElementType::AssetsViewer, this));
+	elements.push_back(GUIElement(ElementType::SceneViewport, this));
 
 	return elements;
 }
@@ -180,110 +181,88 @@ bool GUIManager::Update(float dt)
 	return true;
 }
 
-
-// CHECKER TEXTURE HANDLING
-void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
-	if (!go) return;
-
-	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
-	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER)); 
-
-	/*auto mesh = renderComp ? renderComp->GetMesh() : nullptr;*/
-
-	
-	auto mesh = renderComp->GetMesh();
-	
-
-
-	if (!materialComp || !renderComp) {
-		LOG("GameObject '%s' has no Material or RenderMesh Component", go->GetName().c_str());
-		return;
-	}
-
-	// Save the current texture (if not already saved)
-	if (originalTextures.find(go) == originalTextures.end()) {
-		auto currentTex = materialComp->GetDiffuseMap();
-		if (currentTex) {
-			originalTextures[go] = currentTex;
-			LOG("Saved original texture for '%s' (UUID: %llu)",
-				go->GetName().c_str(), currentTex->GetUUID());
-		}
-	}
-
-	// Load checker texture
+VroomUUID GUIManager::GetCheckerTextureUUID() {
 	std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
-	auto checkerTex = std::dynamic_pointer_cast<ResourceTexture>(Application::GetInstance().resourceManager.get()->RequestResource(checkerPath.c_str()));
-	/*auto checkerTex = Application::GetInstance().importer.get()->textureImporter->Import(checkerPath);*/ 
-	//imagine reimporting every time we wanna switch texture lol
+	std::string checkerMetaPath = checkerPath + ".meta";
+
+	// Attempt to load the meta file to get the UUID
+	if (Application::GetInstance().fileSystem->Exists(checkerMetaPath.c_str())) {
+		return Application::GetInstance().fileSystem->GetUUIDFromMeta(checkerMetaPath.c_str());
+	}
+	return 0; // Return 0 if the UUID cannot be determined
+}
+
+// src/GUIManager.cpp (Actual implementation)
+
+
+
+
+void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
+	
+
+	if (!go) return;
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
+	if (!materialComp) return;
+
+
+
+	// 1. Save OG
+	if (originalTextures.find(go) == originalTextures.end()) {
+		originalTextures[go] = materialComp->GetDiffuseMap();
+	}
+
+	// 2. Request Checker
+	std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
+	auto checkerTex = std::static_pointer_cast<ResourceTexture>(
+		Application::GetInstance().resourceManager->RequestResource(checkerPath.c_str())
+	);
 
 	if (checkerTex) {
-		materialComp->SetDiffuseMap(checkerTex);  // Store UUID, not pointer
-
-		if (mesh->textures.empty()) {
-			mesh->textures.push_back(checkerTex); 
-		}
-		else {
-			mesh->textures[0] = checkerTex; 
-		}
-		LOG("Applied checker texture to '%s'", go->GetName().c_str());
-	}
-	else {
-		LOG("ERROR: Failed to load checker texture");
+		// ONLY change the component, NOT the mesh textures
+		materialComp->SetDiffuseMap(checkerTex);
 	}
 }
 
 void GUIManager::RestoreOGTexture(std::shared_ptr<GameObject> go) {
 	if (!go) return;
 
+	// 1. Get the Material Component
 	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
+	if (!materialComp) {
+		LOG("GameObject '%s' has no Material Component to restore.", go->GetName().c_str());
+		return;
+	}
 
-	auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER));
-	auto mesh = renderComp ? renderComp->GetMesh() : nullptr;
-
-	if (!materialComp || !mesh) return;
-
-	// Find saved texture
+	// 2. Find the saved original texture for THIS specific GameObject
 	auto it = originalTextures.find(go);
 	if (it != originalTextures.end()) {
 		auto originalTex = it->second;
-		
+
+		// ... (omitted existing LoadBin/LoadToGPU logic for brevity)
+
 		if (originalTex) {
-
-			if (!originalTex->isLoadedToGPU) {
-				LOG("WARNING: Original texture not loaded to GPU, loading now...");
-				originalTex->LoadToGPU();
-			}
-			
-
-			if (originalTex->isLoadedToGPU) {
-				materialComp->SetDiffuseMap(originalTex);  // Restore by UUID
-				if (!mesh->textures.empty()) {
-					mesh->textures[0] = originalTex;
-				}
-				LOG("Restored original texture for '%s' (UUID: %llu)", go->GetName().c_str(), originalTex->GetUUID());
-			}
-			
+			materialComp->SetDiffuseMap(originalTex);
+			LOG("Restored original texture for '%s' (UUID: %llu)",
+				go->GetName().c_str(), originalTex->GetUUID());
 		}
 
-		// Remove from map
+		// 3. Remove from map (MUST HAPPEN)
 		originalTextures.erase(it);
 	}
+	else if (materialComp->GetDiffuseMap() && materialComp->GetDiffuseMap()->GetUUID() == GetCheckerTextureUUID()) {
+		// 4. FIX: Handle the "stuck" state (e.g., Titan imported with checker)
+		// If we are NOT tracking an original texture, but the current texture IS the checker texture,
+		// the user's action to UNCHECK the box means they want to remove the checker texture.
+
+		// Assign nullptr to clear the map. The user can now drag/drop a new texture.
+		materialComp->SetDiffuseMap(nullptr);
+		LOG("WARNING: Cleared material on '%s' because no original texture was found to restore.", go->GetName().c_str());
+	}
 	else {
-		LOG("No saved texture found for '%s'", go->GetName().c_str());
+		LOG("No saved texture found for '%s'. It might not have had one or was already restored.",
+			go->GetName().c_str());
 	}
 }
-
-//void GUIManager::RefreshGUIHierarchy() {
-//	sceneObjects.clear();
-//
-//	auto sceneManager = Application::GetInstance().sceneManager.get();
-//	auto scene = sceneManager->GetActiveScene();
-//
-//	if (scene) {
-//		// Get all GameObjects from the active scene
-//		sceneObjects = scene->GetAllGameObjects();
-//	}
-//}
 
 void GUIManager::AddToDeleteQueue(const std::shared_ptr<GameObject>& obj) {
 	if (!obj) {
@@ -300,20 +279,12 @@ void GUIManager::AddToDeleteQueue(const std::shared_ptr<GameObject>& obj) {
 		return;
 	}
 
+
+
 	// Queue object for deletion in the scene
 	sceneManager->DestroyGameObject(obj);
 	LOG("Queued object '%s' for deletion.", obj->GetName().c_str());
 
-	//std::find returns:
-	//Iterator to the found element if it exists
-	//sceneObjects.end() if NOT found
-
-	//auto it = std::find(sceneObjects.begin(), sceneObjects.end(), obj);
-	//if (it != sceneObjects.end()) {
-	//	sceneObjects.erase(it);
-	//}
-
-	// Clear selection if deleting the selected object
 	if (selectedObject == obj) {
 		selectedObject = nullptr;
 	}
@@ -331,11 +302,16 @@ void GUIManager::InitDock() {
 	ImGuiID dockBottomID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Down, 0.25f, nullptr, &dockMainID);
 	ImGuiID dockLeftID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Left, 0.25f, nullptr, &dockMainID);
 	ImGuiID dockRightID = ImGui::DockBuilderSplitNode(dockMainID, ImGuiDir_Right, 0.35f, nullptr, &dockMainID);
+	ImGuiID dockRightDownID = ImGui::DockBuilderSplitNode(dockRightID, ImGuiDir_Down, 0.50f, nullptr, &dockRightID);
 
 	//assign windows to dock spaces
 	ImGui::DockBuilderDockWindow("Console", dockBottomID);
 	ImGui::DockBuilderDockWindow("Hierarchy", dockLeftID);
 	ImGui::DockBuilderDockWindow("Inspector", dockRightID);
+	ImGui::DockBuilderDockWindow("Assets Viewer", dockRightDownID);
+
+	//dock scene in the middle
+	ImGui::DockBuilderDockWindow("Scene", dockMainID);
 
 	ImGui::DockBuilderFinish(dockspaceID);
 	//only do this once

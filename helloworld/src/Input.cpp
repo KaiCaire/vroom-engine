@@ -244,6 +244,10 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 			//existing -> skip copy
 			finalDestPath = path;
 		}
+		
+		//also copy to Textures folder
+		CopyToTexFolder(path, file);
+		
 		ApplyTextureToSelectedObject(finalDestPath);
 	}
 	else {
@@ -263,6 +267,19 @@ std::string Input::CopyFileToAssets(const std::string sourcePath, const char* de
 		return sourcePath;
 	}
 	
+}
+
+std::string Input::CopyToTexFolder(const std::string sourcePath, const std::string file)
+{
+	std::string destPath = std::string(Paths::TEXTURE_ASSETS_DIR) + "/" + file;
+	if (!fs->ExistsInSubDirectories(destPath.c_str(), file.c_str())) {
+		fs->CopyFile(sourcePath.c_str(), destPath.c_str());
+		return destPath;
+	}
+	else {
+		return sourcePath;
+	}
+
 }
 
 
@@ -286,6 +303,7 @@ void Input::ApplyTextureToSelectedObject(const std::string& texturePath) {
 			selectedObj->GetName().c_str());
 		return;
 	}
+
 
 	// Get or create MaterialComponent
 	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(selectedObj->GetComponent(ComponentType::MATERIAL));
@@ -313,7 +331,8 @@ void Input::ApplyTextureToSelectedObject(const std::string& texturePath) {
 
 	if (newTexture) {
 		newTexture->mapType = "texture_diffuse";
-		newTexture->path = texturePath;
+		newTexture->SetAssetFilePath(texturePath.c_str());
+		newTexture->SetName(fs->GetFileNameFromPath(texturePath.c_str()));
 	}
 
 	// Apply texture to MaterialComponent
@@ -324,8 +343,28 @@ void Input::ApplyTextureToSelectedObject(const std::string& texturePath) {
 	if (meshPtr) {
 		meshPtr->textures.clear();
 		meshPtr->textures.push_back(newTexture);
+
+		//update model meta!
+		std::shared_ptr<GameObject> modelParentGO = Application::GetInstance().sceneManager.get()->GetActiveScene()->GetModelParentGameObject(selectedObj);
+
+		std::string modelName = modelParentGO.get()->GetName().c_str();
+		std::string modelPath = Application::GetInstance().sceneManager->GetActiveScene()->FindModelInAssetsFolder(modelName);
+
+		if (modelPath.empty()) {
+			LOG("ERROR: Could not find source model to save texture info to model meta");
+			return;
+		}
+		std::string modelMetaPath = fs->NormalizePath(modelPath.c_str()) + ".meta";
+
+		/*std::string modelDir = fs->GetDirFromPath(modelPath.c_str());*/
+		UpdateTexturesInModelMeta(modelMetaPath, meshComp);
+
 	}
 
+	
+	/*Application::GetInstance().importer.get()->modelImporter->SaveModelMeta(modelPath.c_str());*/
+
+	
 	// Make sure checker texture is disabled when applying a new texture
 	guiManager->RestoreOGTexture(selectedObj);
 
@@ -336,9 +375,107 @@ void Input::ApplyTextureToSelectedObject(const std::string& texturePath) {
 		fileName.c_str(), newTexture->GetUUID(), selectedObj->GetName().c_str());
 }
 
+
+
 bool Input::GetWindowEvent(EventWindow ev)
 {
 	return windowEvents[ev];
+}
+
+bool Input::UpdateTexturesInModelMeta(std::string metaPath, std::shared_ptr<RenderMeshComponent> renderComp) {
+
+	if (metaPath.empty() || !fs->Exists(metaPath.c_str()) || !fs->IsMetaValid(metaPath.c_str())) {
+		LOG("Invalid meta file or path, cannot update model textures");
+		return false;
+	}
+
+	// 3. Update the .meta file
+	nlohmann::json meta = fs->LoadJSON(metaPath.c_str());
+
+	if (meta.empty()) {
+		LOG("Failed to open json file to update textures");
+		return false;
+	}
+
+	if (!meta.contains("meshes")) {
+		LOG("No mesh data found in model .meta, can't update textures");
+		return false;
+	}
+
+
+	bool foundMesh = false;
+
+	for (auto& meshEntry : meta["meshes"]) {
+		if (meshEntry["meshUUID"] == renderComp->GetMeshUUID()) {
+			foundMesh = true;
+			// Found the mesh, update its texture
+			auto mesh = renderComp->GetMesh();
+
+			if (!mesh) {
+				LOG("Warning: Mesh not loaded for UUID %llu", renderComp->GetMeshUUID());
+				continue;
+
+			}
+
+
+			if (!meshEntry.contains("meshTextures")) {
+				meshEntry["meshTextures"] = nlohmann::json::array();
+			}
+
+			auto& texArray = meshEntry["meshTextures"];
+
+
+			for (size_t i = 0; i < mesh->textures.size(); i++) {
+				/*auto& texEntry = texturesArray[i];*/
+				auto& texture = mesh->textures[i];
+
+				if (i < texArray.size()) {
+					auto& texEntry = texArray[i];
+					texEntry["texUUID"] = texture->GetUUID();
+					texEntry["texName"] = texture->GetName();
+					texEntry["texType"] = texture->mapType;
+					LOG("Updated texture entry %zu", i);
+				}
+				else {
+					// Create new entry (more textures than entries)
+					nlohmann::json newTexEntry;
+					newTexEntry["texUUID"] = texture->GetUUID();
+					newTexEntry["texName"] = texture->GetName();
+					newTexEntry["texType"] = texture->mapType;
+
+					texArray.push_back(newTexEntry);
+
+					LOG("Added new texture entry: %s (UUID: %llu)",
+						texture->GetName().c_str(), texture->GetUUID());
+				}
+
+			}
+
+			//Remove extra entries if mesh has fewer textures than meta
+			if (texArray.size() > mesh->textures.size()) {
+				LOG("Removing %d unused texture entries", texArray.size() - mesh->textures.size());
+				texArray.erase(texArray.begin() + mesh->textures.size(), texArray.end());
+			}
+
+			//mesh found, exit loop
+			break;
+
+
+		}
+	}
+
+	if (!foundMesh) {
+		LOG("WARNING: Mesh UUID %llu not found in model meta", renderComp->GetMeshUUID());
+		return false;
+	}
+
+
+	fs->SaveJSON(metaPath.c_str(), meta);
+	LOG("Updated texture in model meta");
+
+	return true;
+
+	
 }
 
 

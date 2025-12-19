@@ -9,6 +9,8 @@
 #include "ModelImporter.h"
 #include "SceneManager.h"
 #include "Input.h"
+#include "Camera.h"
+#include "SceneManager.h"
 
 #include "TransformComponent.h"
 #include "RenderMeshComponent.h"
@@ -68,6 +70,9 @@ void GUIElement::ElementSetUp()
 	case ElementType::AssetsViewer:
 		if (Application::GetInstance().guiManager.get()->showAssetsViewer) AssetsViewerSetUp(&Application::GetInstance().guiManager.get()->showAssetsViewer);
 		break;
+	case ElementType::SceneViewport:
+		if (Application::GetInstance().guiManager.get()->showSceneViewport) SceneViewportSetUp(&Application::GetInstance().guiManager.get()->showSceneViewport);
+		break;
 	default:
 		LOG("No GUIType detected.");
 		break;
@@ -79,7 +84,17 @@ void GUIElement::MenuBarSetUp()
 {
 	if (ImGui::BeginMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
-			if (ImGui::MenuItem("Exit")) {
+			auto activeScene = Application::GetInstance().sceneManager.get()->GetActiveScene();
+			std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/SampleScene.vroomscene";
+			if (ImGui::MenuItem("Save Scene")) {
+				
+				activeScene->SaveScene(scenesPath);
+			}
+			if (ImGui::MenuItem("Load Scene")) {
+				
+				activeScene->LoadScene(scenesPath);
+			}
+			if (ImGui::MenuItem("Al carrer")) {
 				//handle exit
 				Application::GetInstance().requestExit = true;
 			}
@@ -107,6 +122,10 @@ void GUIElement::MenuBarSetUp()
 			if (ImGui::MenuItem("Inspector", nullptr, Application::GetInstance().guiManager.get()->showInspector)) {
 				bool set = !Application::GetInstance().guiManager.get()->showInspector;
 				Application::GetInstance().guiManager.get()->showInspector = set;
+			}
+			if (ImGui::MenuItem("Scene", nullptr, Application::GetInstance().guiManager.get()->showSceneViewport)) {
+				bool set = !Application::GetInstance().guiManager.get()->showSceneViewport;
+				Application::GetInstance().guiManager.get()->showSceneViewport = set;
 			}
 
 			ImGui::EndMenu();
@@ -286,7 +305,7 @@ void GUIElement::ConfigSetUp(bool* show) {
 	//toggle AABB drawing
 	ImGui::Checkbox("Show Object AABBs", &Application::GetInstance().guiManager.get()->drawAABBs);
 	//toggle raycast drawing
-	ImGui::Checkbox("Show Debug Raycast", &Application::GetInstance().guiManager.get()->drawRaycast);
+	//ImGui::Checkbox("Show Debug Raycast", &Application::GetInstance().guiManager.get()->drawRaycast);
 	ImGui::Separator();
 
 	//hardware and memory consuption
@@ -327,17 +346,6 @@ void GUIElement::HierarchySetUp(bool* show)
 		return;
 	}
 
-	//drag and drop target
-	if (ImGui::BeginDragDropTarget()) {
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
-			std::string droppedPath((const char*)payload->Data);
-
-			//handle instantiation
-			InstantiateAsset(droppedPath);
-		}
-		ImGui::EndDragDropTarget();
-	}
-
 	//create objects (minim cube)
 	if (ImGui::BeginMenu("Create...")) {
 		if (ImGui::MenuItem("Empty")) {
@@ -369,6 +377,24 @@ void GUIElement::HierarchySetUp(bool* show)
 	{
 		if (child && child->IsActive()) 
 			DrawNode(child, manager->selectedObject);
+	}
+
+	//creating invisible object for drag and drop
+	//get avaiable size 
+	ImVec2 contentSize = ImGui::GetContentRegionAvail();
+
+	//give area an id and create invisible box
+	ImGui::InvisibleButton("##HierarchyDropTraget", contentSize);
+
+	//drag and drop target
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			std::string droppedPath((const char*)payload->Data);
+
+			//handle instantiation
+			InstantiateAsset(droppedPath);
+		}
+		ImGui::EndDragDropTarget();
 	}
 
 	ImGui::End();
@@ -423,20 +449,21 @@ void GUIElement::InspectorSetUp(bool* show)
 		return;
 	}
 
-	//drag and drop
-	if (ImGui::BeginDragDropTarget()) {
-		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
-			//check if an object is selected
-			if (manager->selectedObject) {
-				std::string droppedPath((const char*)payload->Data);
-				ApplyTextureToSelection(droppedPath); 
-			}
-		}
-		ImGui::EndDragDropTarget();
-	}
-
 	//check if a game object is selected
 	auto selected = manager->selectedObject;
+
+	if (auto prev = manager->previousSelectedObject.lock()) {
+		// Check if the selection has changed AND the previous object was showing the checker
+		if (selected != prev) {
+			// Assuming IsShowingCheckerTexture returns true if the object is in the originalTextures map.
+			if (manager->originalTextures.count(prev) > 0) {
+				manager->RestoreOGTexture(prev);
+				LOG("Auto-restored texture for previous selection '%s'.", prev->GetName().c_str());
+			}
+		}
+	}
+
+	manager->previousSelectedObject = selected;
 
 	if (selected) {
 		//show game object name
@@ -493,6 +520,18 @@ void GUIElement::InspectorSetUp(bool* show)
 			}
 			//texture
 			if (ImGui::CollapsingHeader("Texture") && mesh) {
+				//drag and drop of textures
+				if (ImGui::BeginDragDropTarget()) {
+					if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+						//check if an object is selected
+						if (manager->selectedObject) {
+							std::string droppedPath((const char*)payload->Data);
+							ApplyTextureToSelection(droppedPath);
+						}
+					}
+					ImGui::EndDragDropTarget();
+				}
+
 				auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(
 					selected->GetComponent(ComponentType::MATERIAL)
 				);
@@ -503,7 +542,7 @@ void GUIElement::InspectorSetUp(bool* show)
 					if (currentTex) {
 						ImGui::Text("Current Texture:");
 						ImGui::BulletText("UUID: %llu", currentTex->GetUUID());
-						ImGui::BulletText("Path: %s", currentTex->path.c_str());
+						ImGui::BulletText("Path: %s", currentTex->GetAssetFilePath());
 						ImGui::BulletText("Size: %dx%d", currentTex->texW, currentTex->texH);
 					}
 					else {
@@ -533,6 +572,18 @@ void GUIElement::InspectorSetUp(bool* show)
 	}
 
 	ImGui::End();
+}
+
+bool GUIManager::IsShowingCheckerTexture(std::shared_ptr<GameObject> go) {
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL));
+	if (!materialComp) return false;
+
+	std::shared_ptr<ResourceTexture> currentTex = materialComp->GetDiffuseMap();
+	if (!currentTex) return false;
+
+	VroomUUID checkerUUID = GetCheckerTextureUUID(); // Use the helper
+
+	return currentTex->GetUUID() == checkerUUID;
 }
 
 void GUIElement::AssetsViewerSetUp(bool* show) {
@@ -615,7 +666,7 @@ void GUIElement::DrawAssetTreeNode(const std::string& directoryPath) {
 					std::shared_ptr<Resource> managedResource = Application::GetInstance().resourceManager->GetResourceByUUID(uuid);
 
 					if (managedResource) {
-						displayName = entry.name + " (Refs: " + std::to_string(managedResource->GetReferenceCount()) + ")";
+						displayName = entry.name + " (Refs: " + std::to_string(managedResource.get()->GetReferenceCount()) + ")";
 					}
 				}
 			}
@@ -722,22 +773,66 @@ void GUIElement::ApplyTextureToSelection(const std::string& assetPath) {
 		//apply to MaterialComponent for inspector
 		materialComp->SetDiffuseMap(newTex);
 
-		//apply to ResourceMesh for rendering
-		if (mesh->textures.empty()) {
-			mesh->textures.push_back(newTex);
-		}
-		else {
-			mesh->textures[0] = newTex;
-		}
+		////apply to ResourceMesh for rendering
+		//if (mesh->textures.empty()) {
+		//	mesh->textures.push_back(newTex);
+		//}
+		//else {
+		//	mesh->textures[0] = newTex;
+		//}
 
-		auto it = manager->originalTextures.find(go);
-		if (it != manager->originalTextures.end()) {
-			manager->originalTextures.erase(it);
-		}
+		//auto it = manager->originalTextures.find(go);
+		//if (it != manager->originalTextures.end()) {
+		//	manager->originalTextures.erase(it);
+		//}
 
 		LOG("SUCCESS: Applied texture '%s' to GameObject '%s'.", newTex->GetName().c_str(), go->GetName().c_str());
 	}
 	else {
 		LOG("ERROR: Failed to load/cast texture from path: %s", assetPath.c_str());
+	}
+}
+
+void GUIElement::SceneViewportSetUp(bool* show) {
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+
+	if (ImGui::Begin("Scene", show, window_flags)) {
+		//input gate -> check if window is hovered
+		manager->sceneViewportIsHovered = ImGui::IsWindowHovered();
+
+		//resizing handling
+		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+		Render* render = Application::GetInstance().render.get();
+
+		int currentWidth = Application::GetInstance().window->width;
+		int currentHeight = Application::GetInstance().window->height;
+
+		bool isInvalid = currentWidth <= 0 || currentHeight <= 0;
+		bool needsResize = isInvalid || (viewportSize.x != currentWidth || viewportSize.y != currentHeight);
+
+		if(needsResize) {
+			if (viewportSize.x > 0 && viewportSize.y > 0) {
+				Application::GetInstance().window->width = (int)viewportSize.x;
+				Application::GetInstance().window->height = (int)viewportSize.y;
+
+				render->InitSceneFBO((int)viewportSize.x, (int)viewportSize.y);
+
+				Application::GetInstance().camera->RecalculateMatrices((int)viewportSize.x, (int)viewportSize.y);
+
+				LOG("Scene Viewport resized and camera updated to %dx%d.", (int)viewportSize.x, (int)viewportSize.y);
+			}
+		}
+
+		//render scene texture
+		unsigned int sceneTextureID = render->sceneTextureID;
+		//LOG("Current Scene Texture ID: %u", sceneTextureID);
+		if (sceneTextureID != 0) {
+			ImGui::Image((ImTextureID)(intptr_t)sceneTextureID, viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
+		}
+		else {
+			manager->sceneViewportIsHovered = false;
+		}
+
+		ImGui::End();
 	}
 }
