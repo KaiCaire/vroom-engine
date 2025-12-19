@@ -120,6 +120,16 @@ bool Render::PostUpdate()
 	Shader* renderShader = Application::GetInstance().openGL.get()->GetActiveShader();
 	if (renderShader) RenderFrame(*renderShader);
 
+	if (Application::GetInstance().openGL.get()->drawZbuffer) {
+		Shader* depthBufferShader = Application::GetInstance().openGL.get()->depthBufferShader;
+		glDepthFunc(GL_ALWAYS);
+		depthBufferShader->Use();
+		depthBufferShader->setFloat("near", Application::GetInstance().camera->nearPlane);
+		depthBufferShader->setFloat("far", Application::GetInstance().camera->farPlane / 5);
+		RenderFrame(*depthBufferShader);
+		glDepthFunc(GL_LESS);
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Application::GetInstance().window->width, Application::GetInstance().window->height);
 
@@ -405,35 +415,27 @@ void Render::DrawActiveScene(Shader& shader) {
 			if (bounds.min != bounds.max) {
 				DrawAABB(bounds, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 			}
+			shader.Use();
 		}
 	}
 }
 
 void Render::DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader) {
-	
-	auto rendererComp = go->GetComponent(ComponentType::MESH_RENDERER);
-	if (!rendererComp) 
-		return;
-
-	auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
-	if (!renderer) 
-		return;
-
-	//auto meshComp = go->GetComponent(ComponentType::MESH_RENDERER);
-	//auto mesh = std::dynamic_pointer_cast<RenderMeshComponent>(meshComp);
-		
-
-	// Get transform and set model matrix
+	//transform comp's get global transform must happen always!!
 	auto transformComp = go->GetComponent(ComponentType::TRANSFORM);
 	if (transformComp) {
 		auto transform = std::dynamic_pointer_cast<TransformComponent>(transformComp);
-		glm::mat4 modelMat = transform->GetModelMatrix();
-
-		//Each GameObject has a UNIQUE position/rotation/scale
+		glm::mat4 modelMat = transform->GetGlobalTransform();
 		shader.setMat4("model", modelMat);
 	}
 
-	// Draw the mesh
+	auto rendererComp = go->GetComponent(ComponentType::MESH_RENDERER);
+	if (!rendererComp) return;
+
+	auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
+	if (!renderer) return;
+
+	// 3. Draw the mesh
 	renderer->Render(&shader);
 }
 
