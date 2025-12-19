@@ -344,6 +344,9 @@ void Render::RenderFrame(Shader& shader) {
 	auto camera = Application::GetInstance().camera.get();
 	auto input = Application::GetInstance().input.get();
 	auto guiManager = Application::GetInstance().guiManager.get();
+	if (guiManager->selectedObject) {
+		Application::GetInstance().openGL.get()->RenderOutline(guiManager->selectedObject, glm::vec3(1.0f, 0.5f, 0.0f), 1.05f);
+	}
 
 	if (guiManager->drawRaycast) {
 		//calculate current mouse ray

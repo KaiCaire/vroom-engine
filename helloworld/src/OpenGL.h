@@ -25,7 +25,10 @@ public:
 	bool Update(float dt) override;
 	bool CleanUp() override;
 
-	Shader* texCoordsShader, * depthBufferShader;
+	Shader* texCoordsShader, * depthBufferShader, * outlineShader;
+
+	void RenderOutline(std::shared_ptr<GameObject> selectedObj, const glm::vec3& color = glm::vec3(1.0f), float scale = 1.05f);
+
 
 private:
 	Shader* activeShader;
