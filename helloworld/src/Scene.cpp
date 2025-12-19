@@ -500,10 +500,6 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
        
     }
 
-
-    
-
-
     if (goMeta.contains("6.children")) {
         for (auto& childJson : goMeta["6.children"]) {
             auto child = DeserializeGameObject(childJson, sourceModelName);

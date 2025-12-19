@@ -90,7 +90,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 16375480521063634291
+                                "meshUUID": 8661484578475616969
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -99,7 +99,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 2550581956700656251,
+                                "diffuseMapUUID": 17814167397335722563,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -128,7 +128,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 9236420023226449212
+                                "meshUUID": 656775362313351787
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -137,7 +137,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 15643548970833150878,
+                                "diffuseMapUUID": 16047147461941452762,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -166,7 +166,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 12698551274519200169
+                                "meshUUID": 3657969938756193114
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -175,7 +175,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 13440893325135807457,
+                                "diffuseMapUUID": 5593509509920037908,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -204,7 +204,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 14184374710642155268
+                                "meshUUID": 2151593458465120518
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -213,7 +213,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 3267276744773029672,
+                                "diffuseMapUUID": 17851613509572473191,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -242,7 +242,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 4812163717808814082
+                                "meshUUID": 4313993460765737553
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -251,7 +251,7 @@
                                     0.2705882489681244,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 10190838090956257091,
+                                "diffuseMapUUID": 11709804429636130921,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 7.999999046325684
@@ -280,7 +280,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 18159193732635285456
+                                "meshUUID": 18064544995394207667
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -289,7 +289,7 @@
                                     0.05882353335618973,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 10190838090956257091,
+                                "diffuseMapUUID": 11709804429636130921,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -318,7 +318,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 9477962216786188815
+                                "meshUUID": 17680619830403089509
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -327,7 +327,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 5281201519918565418,
+                                "diffuseMapUUID": 3182304986829135486,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1024.0
@@ -356,7 +356,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 9745145105510629518
+                                "meshUUID": 2947547618562527278
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -365,7 +365,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 13440893325135807457,
+                                "diffuseMapUUID": 5593509509920037908,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -394,7 +394,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 2360063251870843036
+                                "meshUUID": 18288971347867311532
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -403,7 +403,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 16334912526875897818,
+                                "diffuseMapUUID": 1901540611058332419,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 21.112125396728516
@@ -432,7 +432,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 7879272177178885419
+                                "meshUUID": 182312361655090891
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -441,7 +441,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 2550581956700656251,
+                                "diffuseMapUUID": 17814167397335722563,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -470,7 +470,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 1155298184339075154
+                                "meshUUID": 7696195145209922249
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -479,7 +479,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 5281201519918565418,
+                                "diffuseMapUUID": 3182304986829135486,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1024.0
@@ -508,7 +508,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 17519906681263478154
+                                "meshUUID": 10467047226152295335
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -517,7 +517,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 5281201519918565418,
+                                "diffuseMapUUID": 3182304986829135486,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1024.0
@@ -546,7 +546,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 9987406108196226530
+                                "meshUUID": 16207628622448016078
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -555,7 +555,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 7016665319665743190,
+                                "diffuseMapUUID": 11753441957338956574,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -584,7 +584,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 10690273090053971344
+                                "meshUUID": 5686596634808599350
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -593,7 +593,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 13440893325135807457,
+                                "diffuseMapUUID": 5593509509920037908,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -622,7 +622,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 7054432538845486488
+                                "meshUUID": 11111260067347964310
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -631,7 +631,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 3267276744773029672,
+                                "diffuseMapUUID": 17851613509572473191,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -660,7 +660,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 3749759652295614827
+                                "meshUUID": 11087596337412903158
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -669,7 +669,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 7016665319665743190,
+                                "diffuseMapUUID": 11753441957338956574,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -698,7 +698,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 4701454452754612716
+                                "meshUUID": 1491410398827272538
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -707,7 +707,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 3656596497983080679,
+                                "diffuseMapUUID": 12889583886691106904,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -736,7 +736,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 11433677794537435464
+                                "meshUUID": 7263112848871802224
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -745,7 +745,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 10190838090956257091,
+                                "diffuseMapUUID": 11709804429636130921,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -774,7 +774,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 9473541431336524478
+                                "meshUUID": 10934611480497076323
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -783,7 +783,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 3656596497983080679,
+                                "diffuseMapUUID": 12889583886691106904,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -812,7 +812,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 3588183197731839551
+                                "meshUUID": 10842435468965602481
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -821,7 +821,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 3656596497983080679,
+                                "diffuseMapUUID": 12889583886691106904,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -850,7 +850,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 2720382145703449390
+                                "meshUUID": 1204632790748384392
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -859,7 +859,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 2550581956700656251,
+                                "diffuseMapUUID": 17814167397335722563,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -888,7 +888,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 2199962420517244390
+                                "meshUUID": 3439555710117178738
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -897,7 +897,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 16334912526875897818,
+                                "diffuseMapUUID": 1901540611058332419,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 21.112125396728516
@@ -926,7 +926,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 15104159328246731568
+                                "meshUUID": 9831804625113937463
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -935,7 +935,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 7016665319665743190,
+                                "diffuseMapUUID": 11753441957338956574,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -964,7 +964,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 12853684400962960379
+                                "meshUUID": 931037902680490969
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -973,7 +973,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 3656596497983080679,
+                                "diffuseMapUUID": 12889583886691106904,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -1002,7 +1002,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 15607292454733259318
+                                "meshUUID": 1716955456235249613
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1011,7 +1011,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 16334912526875897818,
+                                "diffuseMapUUID": 1901540611058332419,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 21.112125396728516
@@ -1040,7 +1040,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 12336789454177150917
+                                "meshUUID": 14259405588119830859
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1049,7 +1049,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 7016665319665743190,
+                                "diffuseMapUUID": 11753441957338956574,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -1078,7 +1078,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 16943844088703947744
+                                "meshUUID": 8911165519763926037
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1087,7 +1087,7 @@
                                     0.5882353186607361,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 7016665319665743190,
+                                "diffuseMapUUID": 11753441957338956574,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 1.9999998807907104
@@ -1116,7 +1116,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 5532970785682925925
+                                "meshUUID": 14901428942269314281
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1125,7 +1125,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 3656596497983080679,
+                                "diffuseMapUUID": 12889583886691106904,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -1154,7 +1154,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 263039026044952897
+                                "meshUUID": 3859540575635722215
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1163,7 +1163,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 3656596497983080679,
+                                "diffuseMapUUID": 12889583886691106904,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -1192,7 +1192,7 @@
                                 ]
                             },
                             "4.meshRenderer": {
-                                "meshUUID": 14779747152445388143
+                                "meshUUID": 2082058883843505725
                             },
                             "5.material": {
                                 "diffuseColor": [
@@ -1201,7 +1201,7 @@
                                     0.5879999995231628,
                                     1.0
                                 ],
-                                "diffuseMapUUID": 15643548970833150878,
+                                "diffuseMapUUID": 16047147461941452762,
                                 "metallic": 0.0,
                                 "roughness": 0.5,
                                 "shininess": 2.0
@@ -1348,7 +1348,7 @@
                         ]
                     },
                     "4.meshRenderer": {
-                        "meshUUID": 11372547606441705210
+                        "meshUUID": 4174168199939962532
                     },
                     "5.material": {
                         "diffuseColor": [
@@ -1357,7 +1357,7 @@
                             0.800000011920929,
                             1.0
                         ],
-                        "diffuseMapUUID": 17752728297931655339,
+                        "diffuseMapUUID": 14483717358510116394,
                         "metallic": 0.0,
                         "roughness": 0.5,
                         "shininess": 32.0
@@ -1386,7 +1386,7 @@
                         ]
                     },
                     "4.meshRenderer": {
-                        "meshUUID": 10430082394008408292
+                        "meshUUID": 10428138645148922510
                     },
                     "5.material": {
                         "diffuseColor": [
@@ -1395,402 +1395,12 @@
                             0.800000011920929,
                             1.0
                         ],
-                        "diffuseMapUUID": 17752728297931655339,
+                        "diffuseMapUUID": 14483717358510116394,
                         "metallic": 0.0,
                         "roughness": 0.5,
                         "shininess": 32.0
                     },
                     "6.children": []
-                }
-            ]
-        },
-        {
-            "1.name": "Eren Colossal Titan",
-            "2.active": true,
-            "3.transform": {
-                "position": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "rotation": [
-                    1.0,
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "scale": [
-                    1.0,
-                    1.0,
-                    1.0
-                ]
-            },
-            "6.children": [
-                {
-                    "1.name": "Eren Colossal Titan",
-                    "2.active": true,
-                    "3.transform": {
-                        "position": [
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "rotation": [
-                            0.7071067094802856,
-                            -0.7071068286895752,
-                            0.0,
-                            0.0
-                        ],
-                        "scale": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ]
-                    },
-                    "6.children": [
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 5946699821185354979
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 14574676334721526900,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 56.25
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 3740181913866781547
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 791632258209598666,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 25.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 6199023759293237166
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 4143869678943781288,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 36.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 6881421681756251205
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 13544816617369225904,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 36.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 16565168760591000840
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 15445450235635727615,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 36.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 4888902618553029032
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 15445450235635727615,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 25.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 6298967847839705368
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 15445450235635727615,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 25.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 14576305233380815986
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 11539359575620680766,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 25.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 6139102643058916598
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 4713156218383817930,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 25.0
-                            },
-                            "6.children": []
-                        }
-                    ]
                 }
             ]
         },
@@ -1838,7 +1448,7 @@
                         ]
                     },
                     "4.meshRenderer": {
-                        "meshUUID": 15241712405524099383
+                        "meshUUID": 12191833301947083508
                     },
                     "5.material": {
                         "diffuseColor": [
@@ -1847,7 +1457,7 @@
                             0.5,
                             1.0
                         ],
-                        "diffuseMapUUID": 10313883218910189190,
+                        "diffuseMapUUID": 17961016191191394013,
                         "metallic": 0.0,
                         "roughness": 0.5,
                         "shininess": 2.0

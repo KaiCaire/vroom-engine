@@ -189,7 +189,7 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
             texMetaPath = fs->NormalizePath(texMetaPath.c_str());
 
             nlohmann::json texMeta = fs->LoadJSON(texMetaPath.c_str());
-            if (!fs->Exists(texMetaPath.c_str()))
+            if (!fs->Exists(texMetaPath.c_str())) continue;
                
             //check if uuid is in meta
             if (texMeta.contains("uuid") && texMeta["uuid"].get<VroomUUID>() == uuid) {
