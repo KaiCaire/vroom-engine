@@ -153,7 +153,9 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
 
 
                 std::string modelDir = fs->GetDirFromPath(modelPath.c_str());
-                std::string texturePath = modelDir + "/" + std::string(str.C_Str());
+                std::string relativeTexPath = fs->NormalizePath(str.C_Str());
+                relativeTexPath = relativeTexPath.substr(relativeTexPath.find_first_of("/") + 1 );
+                std::string texturePath = modelDir + "/" + relativeTexPath;
                 texturePath = fs->NormalizePath(texturePath.c_str());
 
                 
@@ -185,7 +187,7 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
                 
                 bool found = false;
                 for (auto& loadedTex : textures_loaded) {
-                    if (loadedTex.get()->path == texturePath) {
+                    if (loadedTex.get()->GetAssetFilePath() == texturePath) {
                         textures.push_back(loadedTex);
                         found = true;
                         break;
@@ -201,12 +203,14 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
                     }
                     
                     tex.get()->mapType = typeName;
-                    tex.get()->path = texturePath;
+                    tex.get()->SetAssetFilePath(texturePath);
+                    std::string fileName = fs->GetFileFromPath(texturePath.c_str());
+                    tex.get()->SetName(fileName); 
                     textures_loaded.push_back(tex);
                     textures.push_back(tex);
                 }
             }
-            };
+        };
 
         // Load different texture types
         loadTextures(aiTextureType_DIFFUSE, "texture_diffuse");
@@ -227,7 +231,7 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
         auto& textures_loaded = Application::GetInstance().importer->textures_loaded;
         bool found = false;
         for (auto& loadedTex : textures_loaded) {
-            if (loadedTex.get()->path == defaultTexPath) {
+            if (loadedTex.get()->GetAssetFilePath() == defaultTexPath) {
                 textures.push_back(loadedTex);
                 found = true;
                 break;
@@ -247,9 +251,15 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
             }
             
             defaultTex.get()->mapType = "texture_diffuse";
-            defaultTex.get()->path = defaultTexPath;
-            textures_loaded.push_back(defaultTex);
+            defaultTex.get()->SetAssetFilePath(defaultTexPath);
+            std::string fileName = fs->GetFileFromPath(defaultTexPath.c_str());
+            defaultTex.get()->SetName(fileName);
+
+            if (std::find(textures_loaded.begin(), textures_loaded.end(), defaultTex) == textures_loaded.end()) {
+                textures_loaded.push_back(defaultTex);
+            }
             textures.push_back(defaultTex);
+
         }
 
         LOG("MeshImporter: Assigned default texture");

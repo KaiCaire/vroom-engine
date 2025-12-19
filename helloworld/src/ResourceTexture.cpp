@@ -31,10 +31,15 @@ void ResourceTexture::SaveBin() {
        
     }
 
-    // Calculate total size
-    uint headerSize = sizeof(VroomUUID) + sizeof(uint) * 3; // uuid + width + height + channels
+    //asset path and map type string lengths
+    uint pathLen = (uint)assetsPath.length();
+    uint typeLen = (uint)mapType.length();
+
+    // Calculate total size: UUID + W + H + Channels + PathLen + PathChars + TypeLen + TypeChars + PixelData
+    uint headerSize = sizeof(VroomUUID) + (sizeof(uint) * 3); // uuid + width + height + channels
+    uint stringInfoSize = (sizeof(uint) * 2) + pathLen + typeLen;
     uint dataSize = texW * texH * nChannels;
-    uint totalSize = headerSize + dataSize;
+    uint totalSize = headerSize + stringInfoSize + dataSize;
 
     //Create buffer
 
@@ -52,6 +57,18 @@ void ResourceTexture::SaveBin() {
     cursor += sizeof(uint);
     memcpy(cursor, &nChannels, sizeof(uint));
     cursor += sizeof(uint);
+
+    //assetpath:
+    memcpy(cursor, &pathLen, sizeof(uint));
+    cursor += sizeof(uint); //first we write path length
+    memcpy(cursor, assetsPath.c_str(), pathLen); 
+    cursor += pathLen; //then we write the actual path
+
+    //maptype
+    memcpy(cursor, &typeLen, sizeof(uint));
+    cursor += sizeof(uint);
+    memcpy(cursor, mapType.c_str(), typeLen);
+    cursor += typeLen;
 
     memcpy(cursor, data, dataSize);
 
@@ -84,6 +101,20 @@ void ResourceTexture::LoadBin() {
     memcpy(&nChannels, cursor, sizeof(uint));
     cursor += sizeof(uint);
 
+    //Read Assets Path
+    uint pathLen;
+    memcpy(&pathLen, cursor, sizeof(uint));        
+    cursor += sizeof(uint);
+    assetsPath.assign(cursor, pathLen);            
+    cursor += pathLen;
+
+    //Read Map Type
+    uint typeLen;
+    memcpy(&typeLen, cursor, sizeof(uint));        
+    cursor += sizeof(uint);
+    mapType.assign(cursor, typeLen);               
+    cursor += typeLen;
+
     uint dataSize = texW * texH * nChannels;
     data = new unsigned char[dataSize];
     memcpy(data, cursor, dataSize);
@@ -98,17 +129,22 @@ void ResourceTexture::SaveMeta() const {
 
     std::string metaPath = assetsPath + ".meta";
     nlohmann::json meta = fs->LoadJSON(metaPath.c_str());
+    
 
     meta["uuid"] = GetUUID();
     meta["modTime"] = fs->GetFileModTime(assetsPath);
     meta["name"] = name;
+    meta["path"] = assetsPath;
     meta["width"] = texW;
     meta["height"] = texH;
     meta["channels"] = nChannels;
+    meta["mapType"] = mapType;
 
     fs->SaveJSON(metaPath.c_str(), meta);
 
 }
+
+
 
 void ResourceTexture::LoadMeta() {
     std::string metaPath = assetsPath + ".meta";
@@ -119,10 +155,13 @@ void ResourceTexture::LoadMeta() {
     }
     nlohmann::json meta = fs->LoadJSON(metaPath.c_str());
 
+    //the uuid is what took us to the meta, so we don't load it
     if (meta.contains("name")) name = meta["name"];
+    if (meta.contains("path")) assetsPath = meta["path"];
     if (meta.contains("width")) texW = meta["width"];
     if (meta.contains("height")) texH = meta["height"];
     if (meta.contains("channels")) nChannels = meta["channels"];
+    if (meta.contains("mapType")) mapType = meta["mapType"];
 
 }
 

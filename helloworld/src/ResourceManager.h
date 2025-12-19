@@ -33,7 +33,7 @@ public:
     std::shared_ptr<Resource> RequestResource(const std::string& assetsPath);
 
     // Import a new file from disk
-    VroomUUID ImportFile(const std::string& assetsPath, ResourceType type);
+    VroomUUID ImportFile(const std::string& assetsPath, ResourceType type, bool addToScene = true);
 
     // Create a new resource (used by importers)
     std::shared_ptr<Resource> CreateResource(ResourceType type, VroomUUID uuid = 0);
@@ -50,6 +50,7 @@ public:
 
     // Cleanup unused resources (refCount == 0)
     void DeleteUnusedLibraryFiles();
+    void ReimportMissingFiles();
 
     std::shared_ptr<ResourceMesh> CreateCubeMesh();
 

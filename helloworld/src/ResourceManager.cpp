@@ -29,10 +29,17 @@ bool ResourceManager::Start() {
     fs->CreateDir(Paths::LIB_DIR);
     fs->CreateDir(Paths::MESH_LIB_DIR);
     fs->CreateDir(Paths::TEXTURE_LIB_DIR);
-    
 
-    //scan assets
+    ReimportMissingFiles();
+
+    DeleteUnusedLibraryFiles();
+   
+    //scan assets for imgui hierarchy
     ScanAssetsFolder();
+
+
+
+    Application::GetInstance().sceneManager->LoadDefaultScene();
 
     return true;
 }
@@ -54,10 +61,11 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
 
     // Determine type from library file extension
     ResourceType type = ResourceType::UNKNOWN;
+    std::string libraryPath;
 
     std::string texturePath = Paths::TEXTURE_LIB_DIR + std::to_string(uuid) + ".vroomtex";
     std::string meshPath = Paths::MESH_LIB_DIR + std::to_string(uuid) + ".vroommesh";
-    std::string libraryPath;
+    
 
     if (fs->Exists(texturePath.c_str())) {
         type = ResourceType::TEXTURE;
@@ -82,6 +90,9 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
     if (resource) {
         LoadResourceFromLibrary(resource);
         RegisterResource(resource);
+        //we always add reference when we load from library
+        resource->AddReference();
+
         return resource;
     }
 
@@ -98,9 +109,12 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(assetsPath)) {
         
-        if (entry.path().extension() == ".fbx" || entry.path().extension() == ".obj") {
+        if (!entry.is_regular_file()) continue;
+        std::string path = fs->NormalizePath(entry.path().string().c_str());
+        std::string ext = fs->GetExtensionFromPath(path.c_str());
+        if (ext == "fbx" || ext == "obj") {
             //Find the meta file
-            std::string metaPath = entry.path().string() + ".meta";
+            std::string metaPath = path + ".meta";
             metaPath = fs->NormalizePath(metaPath.c_str());
             if (!fs->Exists(metaPath.c_str())) continue;
             nlohmann::json modelMeta = fs->LoadJSON(metaPath.c_str());
@@ -109,11 +123,11 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
             {
                 for (auto& meshEntry : modelMeta["meshes"]) 
                 {
-                    if (meshEntry.contains("uuid")){
+                    if (meshEntry.contains("meshUUID")){
 
-                        if (meshEntry["uuid"].get<VroomUUID>() == uuid) {
-                            // Found it! Reimport the model
-                            std::string modelPath = entry.path().string();
+                        if (meshEntry["meshUUID"].get<VroomUUID>() == uuid) {
+                            // Resource is a mesh! Reimport the model
+                            std::string modelPath = path;
                             modelPath = fs->NormalizePath(modelPath.c_str());
                             //modelPath = modelPath.substr(0, modelPath.length() - 5); // Remove ".meta"
 
@@ -121,11 +135,47 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
                             LOG("Reimporting to regenerate mesh UUID %llu", uuid);
 
                             // Reimport (importers already handle looking at the meta!)
-                            Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath);
+                            Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath, &modelMeta, false);
 
                             outType = ResourceType::MESH;
                             return true;
                         }
+
+                        if (meshEntry.contains("meshTextures")) {
+                            for (auto& texEntry : meshEntry["meshTextures"]) {
+                                if (texEntry.contains("texUUID")) {
+                                    if (texEntry["texUUID"].get<VroomUUID>() == uuid) {
+                                        //resource is a texture being used by a model! Reimport texture
+
+                                        //two possibilities: either it's in the same path as the model, or it's in the textures folder
+                                        std::string texturePath1 = path; //same path as model
+                                        std::string texturePath2 = Paths::TEXTURE_ASSETS_DIR + fs->GetFileFromPath(path.c_str()); //textures folder
+                                        std::string foundTexturePath;
+
+                                        if (fs->Exists(texturePath1.c_str())) {
+                                            LOG("Texture found in the same directory as the source model: %s", texturePath1.c_str());
+                                            foundTexturePath = texturePath1;
+                                        }
+                                        else if (fs->Exists(texturePath2.c_str())) {
+                                            LOG("Texture found in the textures folder : %s", texturePath2.c_str());
+                                            foundTexturePath = texturePath2;
+                                        }
+                                        else {
+                                            std::string checkersPath = Application::GetInstance().importer.get()->defaultTexDir;
+                                            LOG("Texture directory not found, will default to checkers texture: %s", checkersPath.c_str());
+                                            foundTexturePath = checkersPath;
+                                        }
+
+                                        outType = ResourceType::TEXTURE;
+                                        LOG("Reimporting to regenerate texture UUID %llu", uuid);
+                                        Application::GetInstance().resourceManager.get()->ImportFile(foundTexturePath, outType);
+                                        return true;
+                                        
+                                    }
+                                }
+                            }
+                        }
+                        
 
                     }
 
@@ -134,9 +184,8 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
         }
 
         
-        if (entry.path().extension() == ".png" || entry.path().extension() == ".dds" 
-            || entry.path().extension() == ".jpg" || entry.path().extension() == ".tga") {
-            std::string texMetaPath = entry.path().string() + ".meta";
+        if (ext == "png" || ext == "dds" || ext == "jpg" || ext == "tga") {
+            std::string texMetaPath = path + ".meta";
             texMetaPath = fs->NormalizePath(texMetaPath.c_str());
 
             nlohmann::json texMeta = fs->LoadJSON(texMetaPath.c_str());
@@ -144,7 +193,7 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
                
             //check if uuid is in meta
             if (texMeta.contains("uuid") && texMeta["uuid"].get<VroomUUID>() == uuid) {
-                std::string texturePath = entry.path().string();
+                std::string texturePath = path;
                 texturePath = fs->NormalizePath(texturePath.c_str());
                 //texturePath = texturePath.substr(0, texturePath.length() - 5); // Remove ".meta"
 
@@ -171,15 +220,14 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
 std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& assetsPath) {
    
     std::string normalizedPath = fs->NormalizePath(assetsPath.c_str());
-
-    // Determine resource type from file extension
     std::string extension = fs->GetExtensionFromPath(assetsPath.c_str());
-    ResourceType type = ResourceType::UNKNOWN;
 
+
+    ResourceType type = ResourceType::UNKNOWN;
     if (extension == "png" || extension == "jpg" || extension == "tga" || extension == "dds") {
         type = ResourceType::TEXTURE;
     }
-    else if (extension == "fbx" || extension == "obj") {
+    else if (extension == "fbx" || extension == "FBX" || extension == "obj") { //method already converts to lower, but just in case...
         type = ResourceType::SCENE;
     }
 
@@ -187,41 +235,61 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
 
     // Check if .meta exists
     std::string metaPath = normalizedPath + ".meta";
-    if (fs->Exists(metaPath.c_str())) {
-        LOG(".meta file found for %s, importing from library.", normalizedPath.c_str());
-        /*return nullptr;*/
 
-         // Load UUID from .meta
-        resUUID = fs->GetUUIDFromMeta(metaPath.c_str());
+    if (fs->Exists(metaPath.c_str())) {
+
+        LOG(".meta file found for %s, importing from library.", normalizedPath.c_str());
+        resUUID = fs->GetUUIDFromMeta(metaPath.c_str()); // Load UUID from .meta
+
+
         // Check if already loaded
         auto it = resources.find(resUUID);
         if (it != resources.end()) {
-            LOG("Resource '%s' (UUID: %llu) already loaded in memory, increasing reference count.", normalizedPath.c_str(), resUUID);
+            LOG("Resource '%s' (UUID: %llu) already loaded in memory");
             it->second->AddReference();
 
-            if (LoadResourceToGPU(it->second))
+
+            // Set asset path if missing
+            if (it->second->GetAssetFilePath() == "") {
+                it->second->SetAssetFilePath(normalizedPath);
+            }
+            
+            if (!it->second->IsLoadedToRAM()) {
+                LOG("Resource data is NULL, reloading from library...");
+                it->second->LoadBin();
+            }
+
+            if (LoadResourceToGPU(it->second)) {
+                it->second->AddReference(); //Caller now owns resource
                 return it->second;
+            }
+
         }
         else {
             std::string libraryPath = Paths::TEXTURE_LIB_DIR + std::to_string(resUUID) + ".vroomtex";
 
-            if (!fs->Exists(libraryPath.c_str())) {
-                LOG("Library file missing, reimporting from source");
-                //handle reimporting from source
-                
-            }
-            else {
+            if (fs->Exists(libraryPath.c_str())) {
                 auto res = CreateResource(type, resUUID);
                 res->SetLibraryFilePath(libraryPath);
+                res->SetAssetFilePath(normalizedPath);
 
                 if (LoadResourceFromLibrary(res)) {
                     RegisterResource(res);
+
+                    //we always add reference when we load from library
+                    res->AddReference();
                     LoadResourceToGPU(res);
                     return res;
                 }
                 else {
                     LOG("Failed to load from Library, reimporting from source");
                 }
+                
+                
+            }
+            else {
+                LOG("Library file missing, reimporting from source");
+                //handle reimporting from source below
             }
 
         }
@@ -232,12 +300,19 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
 
     }
 
+    // Import fresh
+    LOG("Importing fresh from: %s", normalizedPath.c_str());
     resUUID = ImportFile(normalizedPath, type);
-    // Return the now-loaded resource
-    return GetResourceByUUID(resUUID);
+
+    auto resource = GetResourceByUUID(resUUID);
+    if (resource) {
+        resource->AddReference();  
+    }
+
+    return resource;
 }
 
-VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type) {
+VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type, bool addToScene) {
     LOG("ResourceManager: Importing file '%s' (type: %d)", assetsPath.c_str(), (int)type);
 
     Importer* importer = Application::GetInstance().importer.get();
@@ -255,7 +330,7 @@ VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceTyp
     }
     case ResourceType::SCENE:
         /*auto mesh = Application::GetInstance().importer.get()->meshImporter->Import(assetsPath.c_str());*/
-        Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str());
+        Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str(), addToScene);
         
         break;
 
@@ -321,7 +396,7 @@ void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource)
     }
 
     resources[uuid] = resource;
-    //resource->AddReference();
+    //resource->AddReference(); <-- REGISTERING RESOURCE != OWNERSHIP !!
 
     LOG("Registered resource (UUID: %llu, Name: %s)", uuid, resource->GetName().c_str());
 }
@@ -346,35 +421,184 @@ void ResourceManager::RemoveReference(VroomUUID uuid) {
 }
 
 
+void ResourceManager::ReimportMissingFiles() {
+    std::string assetsPath = Paths::ASSETS_DIR;
+    if (!fs->Exists(assetsPath.c_str())) {
+        LOG("Assets folder not found, creating...");
+        fs->CreateDir(assetsPath.c_str());
+        return;
+    }
+
+    int scanned = 0;
+    int generated = 0;
+    int reimported = 0;
+
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(assetsPath)) {
+        if (!entry.is_regular_file()) continue;
+        if (entry.path().extension() == ".meta") continue;
+
+        std::string assetPath = fs->NormalizePath(entry.path().string().c_str());
+        std::string extension = fs->GetExtensionFromPath(assetPath.c_str());
+
+        // Only process known asset types
+        if (extension != "png" && extension != "jpg" && extension != "tga" &&
+            extension != "dds" && extension != "fbx" && extension != "obj") {
+            continue;
+        }
+
+        scanned++;
+        std::string metaPath = assetPath + ".meta";
+        bool needsImport = false;
+
+        // Case 1: .meta doesn't exist
+        if (!fs->Exists(metaPath.c_str())) {
+            LOG("Missing .meta for: %s - will reimport to generate", assetPath.c_str());
+            needsImport = true;
+            generated++;
+        }
+        // Case 2: .meta is invalid/corrupted
+        else if (!fs->IsMetaValid(metaPath.c_str())) {
+            LOG("Invalid .meta for: %s - will reimport to regenerate", assetPath.c_str());
+            needsImport = true;
+            generated++;
+        }
+        // Case 3: Asset was modified (different timestamp)
+        else if (fs->NeedsReimport(metaPath.c_str(), assetPath.c_str())) {
+            LOG("Asset modified, needs reimport: %s", assetPath.c_str());
+            needsImport = true;
+            reimported++;
+
+            // Delete old Library files before reimporting
+            /*DeleteUnusedLibraryFiles((metaPath, extension);)*/
+        }
+
+        // Reimport if needed
+        if (needsImport) {
+            ResourceType type = DetermineResourceType(assetPath);
+
+            if (type == ResourceType::UNKNOWN) {
+                LOG("WARNING: Skipping unknown file type: %s", assetPath.c_str());
+                continue;
+            }
+
+            VroomUUID uuid = ImportFile(assetPath, type, false);
+
+            if (type == ResourceType::TEXTURE && uuid == 0) {
+                LOG("ERROR: Failed to import texture: %s", assetPath.c_str());
+            }
+            else if (type == ResourceType::MESH) {
+                LOG("Model imported successfully: %s", assetPath.c_str());
+            }
+        }
+        
+    }
+
+    LOG("========================================");
+    LOG("Asset scan complete:");
+    LOG("  - %d assets scanned", scanned);
+    LOG("  - %d .meta files generated", generated);
+    LOG("  - %d assets reimported", reimported);
+    LOG("========================================");
+}
+
 void ResourceManager::DeleteUnusedLibraryFiles() {
     LOG("Cleaning up orphaned library files...");
 
-    // Collect all UUIDs referenced in .meta files
     std::unordered_set<VroomUUID> validUUIDs;
-    
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::ASSETS_DIR))) {
-        std::string path = entry.path().string(); 
-        if (Application::GetInstance().fileSystem.get()->GetExtensionFromPath(path.c_str()) == ".meta") {
+        if (!entry.is_regular_file()) continue;
+
+        std::string path = entry.path().string();
+        path = fs->NormalizePath(path.c_str());
+
+        if (fs->GetExtensionFromPath(path.c_str()) != "meta") continue;
+
+        // Add try-catch for JSON parsing
+        try {
+            LOG("Reading .meta file: %s", path.c_str());
             nlohmann::json meta = fs->LoadJSON(path.c_str());
+            LOG("Successfully parsed .meta");
+
+            if (meta.empty() || meta.is_null()) {
+                LOG("WARNING: Empty or null .meta file: %s", path.c_str());
+                continue;
+            }
+
+            // Collect UUIDs from MODEL metas
             if (meta.contains("meshes")) {
                 for (const auto& mesh : meta["meshes"]) {
-                    validUUIDs.insert(std::stoull(std::string(mesh["uuid"])));
+                    if (mesh.contains("meshUUID")) {
+                        validUUIDs.insert(mesh["meshUUID"].get<VroomUUID>());
+                    }
+
+                    if (mesh.contains("meshTextures")) {
+                        for (const auto& tex : mesh["meshTextures"]) {
+                            if (tex.contains("texUUID")) {
+                                validUUIDs.insert(tex["texUUID"].get<VroomUUID>());
+                            }
+                        }
+                    }
                 }
+            }
+            // Collect UUIDs from STANDALONE RESOURCE metas
+            else if (meta.contains("uuid")) {
+                validUUIDs.insert(meta["uuid"].get<VroomUUID>());
+            }
+            else {
+                LOG("WARNING: .meta file has no recognizable structure: %s", path.c_str());
+            }
+
+        }
+        catch (const nlohmann::json::parse_error& e) {
+            LOG("ERROR: Failed to parse .meta file: %s", path.c_str());
+            LOG("Parse error: %s", e.what());
+            LOG("Skipping this file...");
+            continue;
+        }
+        catch (const std::exception& e) {
+            LOG("ERROR: Exception while processing .meta file: %s", path.c_str());
+            LOG("Error: %s", e.what());
+            continue;
+        }
+    }
+
+    LOG("Found %zu valid UUIDs in Assets metas", validUUIDs.size());
+
+    int deletedFiles = 0;
+
+    try {
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::LIB_DIR))) {
+            if (!entry.is_regular_file()) continue;
+
+            std::string filename = entry.path().stem().string();
+
+            // Add validation for filename
+            if (filename.empty()) {
+                LOG("WARNING: Empty filename in Library, skipping");
+                continue;
+            }
+
+            try {
+                VroomUUID uuid = std::stoull(filename);
+
+                if (validUUIDs.find(uuid) == validUUIDs.end()) {
+                    std::filesystem::remove(entry.path());
+                    deletedFiles++;
+                    LOG("Deleted orphaned library file: %s", entry.path().string().c_str());
+                }
+            }
+            catch (const std::exception& e) {
+                LOG("WARNING: Invalid UUID filename in Library: %s", filename.c_str());
+                continue;
             }
         }
     }
-
-    // Delete library files not in the set
-    for (const auto& entry : std::filesystem::directory_iterator(std::string(Paths::LIB_DIR))) {
-        std::string filename = entry.path().stem().string(); //gets filename without extension
-        VroomUUID uuid = std::stoull(filename); //converts to unsigned long
-
-        if (validUUIDs.find(uuid) == validUUIDs.end()) {
-            std::filesystem::remove(entry.path());
-            LOG("Deleted orphaned library file: %s", entry.path().string().c_str());
-        }
+    catch (const std::exception& e) {
+        LOG("ERROR: Exception while cleaning Library: %s", e.what());
     }
+
+    LOG("Unused Library Files Clean Up Complete: %d files deleted", deletedFiles);
 }
 
 bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource) {
@@ -390,6 +614,8 @@ bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource
         auto texture = std::dynamic_pointer_cast<ResourceTexture>(resource);
         if (texture) {
             texture->LoadToGPU();  // ← Should work, data was just loaded
+
+
             return texture->isLoadedToGPU;
         }
     }
@@ -398,6 +624,8 @@ bool ResourceManager::LoadResourceFromLibrary(std::shared_ptr<Resource> resource
         LOG("ERROR: Failed to load binary data for resource %llu", resource->GetUUID());
         return false;
     }
+
+    
 
     return true;
 }
@@ -456,7 +684,16 @@ std::shared_ptr<ResourceMesh> ResourceManager::GetPrimitiveMesh(PrimitiveType ty
 
 
 
-    if (mesh) mesh->SetUUID(UUIDGen::GenerateUUID());
+    if (mesh) {
+        mesh->SetUUID(UUIDGen::GenerateUUID());
+        RegisterResource(mesh);
+
+       
+        /*AddReference(mesh->GetUUID());*/ 
+        //we increase later, when adding the mesh renderer component
+
+        LOG("Created primitive (UUID: %llu, refCount: %d)", mesh->GetUUID(), mesh->GetReferenceCount());
+    }
     
     return mesh;
 }
@@ -534,7 +771,7 @@ void ResourceManager::ScanAssetsFolder() {
     LOG("Scanning Assets for unmanaged resources.");
 
     //start recursively search
-    std::vector<std::string> assetFiles = fs->IterateAssetsRecursive("Assets");
+    std::vector<std::string> assetFiles = fs->IterateAssetsRecursive(Paths::ASSETS_DIR);
 
     //iterate through files 
     for (const auto& assetPath : assetFiles) {
@@ -575,7 +812,7 @@ ResourceType ResourceManager::DetermineResourceType(const std::string& assetsPat
     }
 
     if (extension == "fbx" || extension == "obj") {
-        return ResourceType::MESH;
+        return ResourceType::SCENE;
     }
 
     return ResourceType::UNKNOWN;

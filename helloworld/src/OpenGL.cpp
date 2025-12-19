@@ -66,7 +66,9 @@ bool OpenGL::Start() {
 
 	glEnable(GL_DEPTH_TEST);
 
-	Application::GetInstance().sceneManager->LoadDefaultScene();
+	//texCoordsShader->Use();
+	//viewMat = glm::mat4(1.0f);
+	
 
 	return true;
 }
@@ -81,17 +83,21 @@ bool OpenGL::Update(float dt) {
 
 	glDisable(GL_CULL_FACE); //if defined clockwise, will not render
 
-	Shader* activeShader = nullptr;
+	activeShader = nullptr;
 
 	if (drawZbuffer) {
 		activeShader = depthBufferShader;
+		activeShader->Use();
+		activeShader->setFloat("near", Application::GetInstance().camera->nearPlane);
+		activeShader->setFloat("far", Application::GetInstance().camera->farPlane / 5);
+		
 	}
 	else {
 		activeShader = texCoordsShader;
+		activeShader->Use();
+		/*glUniform1f(glad_glGetUniformLocation(activeShader->ID, "near"), Application::GetInstance().camera->nearPlane);
+		glUniform1f(glad_glGetUniformLocation(activeShader->ID, "far"), Application::GetInstance().camera->farPlane);*/
 	}
-
-	activeShader->Use();
-
 	// Render everything
 	Application::GetInstance().render.get()->RenderFrame(*activeShader);
 

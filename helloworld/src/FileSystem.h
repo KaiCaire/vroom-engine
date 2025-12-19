@@ -67,5 +67,7 @@ public:
 	bool ExistsInDirectory(const char* directory, const char* fileName);
 	bool ExistsInSubDirectories(const char* directory, const char* fileName);
 
+	bool IsFolderEmpty(const char* path);
+
 
 };
