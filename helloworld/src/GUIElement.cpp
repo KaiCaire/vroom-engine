@@ -76,6 +76,9 @@ void GUIElement::ElementSetUp()
 	case ElementType::SceneViewport:
 		if (Application::GetInstance().guiManager.get()->showSceneViewport) SceneViewportSetUp(&Application::GetInstance().guiManager.get()->showSceneViewport);
 		break;
+	case ElementType::GameViewport:
+		if (Application::GetInstance().guiManager.get()->showGameViewport) GameViewportSetUp(&Application::GetInstance().guiManager.get()->showGameViewport);
+		break;
 	default:
 		LOG("No GUIType detected.");
 		break;
@@ -117,6 +120,10 @@ void GUIElement::MenuBarSetUp()
 			if (ImGui::MenuItem("Configuration", nullptr, Application::GetInstance().guiManager.get()->showConfig)) {
 				bool set = !Application::GetInstance().guiManager.get()->showConfig;
 				Application::GetInstance().guiManager.get()->showConfig = set;
+			}
+			if (ImGui::MenuItem("Game View", nullptr, Application::GetInstance().guiManager.get()->showGameViewport)) {
+				bool set = !Application::GetInstance().guiManager.get()->showGameViewport;
+				Application::GetInstance().guiManager.get()->showGameViewport = set;
 			}
 			if (ImGui::MenuItem("Hierarchy", nullptr, Application::GetInstance().guiManager.get()->showHierarchy)) {
 				bool set = !Application::GetInstance().guiManager.get()->showHierarchy;
@@ -356,6 +363,9 @@ void GUIElement::HierarchySetUp(bool* show)
 			auto empty = std::make_shared<GameObject>();
 			Application::GetInstance().sceneManager->GetActiveScene()->AddGameObject(empty);
 			
+		}
+		if (ImGui::MenuItem("Camera")) {
+			Application::GetInstance().sceneManager->CreateCameraObject("Camera");
 		}
 		if (ImGui::MenuItem("Cube")) {
 			auto defaultCube = Application::GetInstance().sceneManager->CreateCube();
@@ -992,7 +1002,41 @@ void GUIElement::SceneViewportSetUp(bool* show) {
 		else {
 			manager->sceneViewportIsHovered = false;
 		}
-
-		ImGui::End();
 	}
+	ImGui::End();
+}
+
+void GUIElement::GameViewportSetUp(bool* show) {
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+
+	if (ImGui::Begin("Game", show, window_flags)) {
+		//resizing handling
+		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+		Render* render = Application::GetInstance().render.get();
+
+		int currentWidth = Application::GetInstance().render->gameWidth;
+		int currentHeight = Application::GetInstance().render->gameHeight;
+
+		bool isInvalid = currentWidth <= 0 || currentHeight <= 0;
+		bool needsResize = isInvalid || (viewportSize.x != currentWidth || viewportSize.y != currentHeight);
+
+		if (needsResize) {
+			if (viewportSize.x > 0 && viewportSize.y > 0) {
+				Application::GetInstance().render->gameWidth = (int)viewportSize.x;
+				Application::GetInstance().render->gameHeight = (int)viewportSize.y;
+
+				render->InitGameFBO((int)viewportSize.x, (int)viewportSize.y);
+
+				Application::GetInstance().camera->RecalculateMatrices((int)viewportSize.x, (int)viewportSize.y);
+
+				LOG("Game Viewport resized and camera updated to %dx%d.", (int)viewportSize.x, (int)viewportSize.y);
+			}
+		}
+
+		uint32_t texID = Application::GetInstance().render->gameTextureID;
+		if (texID) {
+			ImGui::Image((ImTextureID)(uintptr_t)texID, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
+		}
+	}
+	ImGui::End();
 }

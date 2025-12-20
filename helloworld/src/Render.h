@@ -22,6 +22,9 @@ public:
     bool CleanUp() override;
 
     void InitSceneFBO(int w, int h);
+    void InitGameFBO(int w, int h);
+
+    void DrawGameView(Shader& shader);
 
     // 3D Rendering
     void RenderFrame(Shader& shader);
@@ -40,6 +43,10 @@ public:
     void SetBackgroundColor(SDL_Color color);
 
     unsigned int sceneTextureID = 0;
+    unsigned int gameTextureID = 0;
+
+    int gameWidth = 1280;
+    int gameHeight = 720;
 
 private:
     SDL_Renderer* renderer = nullptr;
@@ -55,4 +62,8 @@ private:
 
     unsigned int sceneFBO = 0;
     unsigned int sceneRBO = 0;
+
+    unsigned int gameFBO = 0;
+    unsigned int gameRBO = 0;
 };
+

@@ -84,6 +84,11 @@ glm::vec3 TransformComponent::GetWorldScale() const {
     return localScale;
 }
 
+glm::vec3 TransformComponent::GetForward() const {
+    glm::mat4 rotation = glm::mat4_cast(GetRotation()); 
+    return glm::normalize(glm::vec3(rotation * glm::vec4(0.0f, 0.0f, -1.0f, 0.0f)));
+}
+
 glm::mat4 TransformComponent::GetLocalTransform() const {
     if (isDirty) RecalculateMatrices();
     return localMatrix;

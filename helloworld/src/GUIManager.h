@@ -86,6 +86,7 @@ public:
 	bool showInspector = true;
 	bool showAssetsViewer = true;
 	bool showSceneViewport = true;
+	bool showGameViewport = true;
 
 	std::shared_ptr<GameObject> selectedObject;
 	std::weak_ptr<GameObject> previousSelectedObject;

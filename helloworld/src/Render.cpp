@@ -12,6 +12,7 @@
 #include "Octree.h"
 #include "GUIManager.h"
 #include "Input.h"
+#include "CameraComponent.h"
 
 
 #ifndef M_PI
@@ -86,6 +87,7 @@ bool Render::Start()
 		LOG("SDL_GetRenderViewport failed: %s", SDL_GetError());
 	}
 	InitSceneFBO(Application::GetInstance().window->width, Application::GetInstance().window->height);
+	InitGameFBO(Application::GetInstance().window->width, Application::GetInstance().window->height);
 
 	glEnable(GL_DEPTH_TEST); 
 	glDepthFunc(GL_LESS);
@@ -130,6 +132,11 @@ bool Render::PostUpdate()
 		glDepthFunc(GL_LESS);
 	}
 
+	//draw game view
+	if (renderShader) {
+		DrawGameView(*renderShader);
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, Application::GetInstance().window->width, Application::GetInstance().window->height);
 
@@ -150,6 +157,10 @@ bool Render::CleanUp()
 	if (sceneFBO) glDeleteFramebuffers(1, &sceneFBO);
 	if (sceneTextureID) glDeleteTextures(1, &sceneTextureID);
 	if (sceneRBO) glDeleteRenderbuffers(1, &sceneRBO);
+
+	if (gameFBO) glDeleteFramebuffers(1, &gameFBO);
+	if (gameTextureID) glDeleteTextures(1, &gameTextureID);
+	if (gameRBO) glDeleteRenderbuffers(1, &gameRBO);
 	
 	LOG("Destroying SDL render");
 	SDL_DestroyRenderer(renderer);
@@ -184,6 +195,77 @@ void Render::InitSceneFBO(int w, int h) {
 	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	LOG("Scene FBO initialized/resized to %dx%d.", w, h);
+}
+
+void Render::InitGameFBO(int w, int h) {
+	//create fbo
+	if (gameFBO) glDeleteFramebuffers(1, &gameFBO);
+	glGenFramebuffers(1, &gameFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, gameFBO);
+
+	//create texture attatchment
+	if (gameTextureID) glDeleteTextures(1, &gameTextureID);
+	glGenTextures(1, &gameTextureID);
+	glBindTexture(GL_TEXTURE_2D, gameTextureID);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gameTextureID, 0);
+
+	//renderbuffer
+	if (gameRBO) glDeleteRenderbuffers(1, &gameRBO);
+	glGenRenderbuffers(1, &gameRBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, gameRBO);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gameRBO);
+
+	//safety check
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+		LOG("ERROR: Game Framebuffer is not complete!");
+	}
+
+	//unbind
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	LOG("Game FBO initialized/resized to %dx%d.", w, h);
+}
+
+void Render::DrawGameView(Shader& shader) {
+	auto scene = Application::GetInstance().sceneManager->GetActiveScene();
+	if (!scene) return;
+
+	std::shared_ptr<CameraComponent> mainCam = nullptr;
+
+	//find the camera component
+	for (auto& go : scene->GetAllGameObjects()) {
+		if (!go) continue;
+		auto cam = std::dynamic_pointer_cast<CameraComponent>(go->GetComponent(ComponentType::CAMERA));
+		if (cam && cam->isPrimary) {
+			mainCam = cam;
+			break;
+		}
+	}
+
+	if (mainCam) {
+		glBindFramebuffer(GL_FRAMEBUFFER, gameFBO);
+		glViewport(0, 0, gameWidth, gameHeight);
+
+		//clear
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f); 
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//update shader matrices
+		shader.Use();
+
+		float aspect = gameWidth / gameHeight;
+
+		shader.setMat4("view", mainCam->GetViewMatrix());
+		shader.setMat4("projection", mainCam->GetProjectionMatrix(aspect));
+
+		DrawActiveScene(shader);
+
+		//unbind
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 }
 
 void Render::SetBackgroundColor(SDL_Color color)
