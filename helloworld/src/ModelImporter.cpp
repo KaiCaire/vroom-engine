@@ -37,13 +37,17 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path, bool ad
         return nullptr;
     }
 
+    
+    this->meshes.clear();
+    this->meshMetaInfo.clear();
+
     FileSystem* fs = Application::GetInstance().fileSystem.get();
     fullPath = fs->NormalizePath(path);
     fileName = fs->GetFileNameFromPath(path);
     LOG("DEBUG: fileName extracted = '%s' from path = '%s'", fileName.c_str(), path);
 
-    modelRootGO = std::make_shared<GameObject>(fileName);  // <-- ADD THIS LINE
-    gameObjects.push_back(modelRootGO);  // <-- AND THIS
+    modelRootGO = std::make_shared<GameObject>(fileName);  
+    //gameObjects.push_back(modelRootGO); 
 
     // Try to load model meta for caching
     nlohmann::json* modelMeta = LoadModelMeta(path);
@@ -59,13 +63,13 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path, bool ad
     fileExtension = fs->GetExtensionFromPath(fullPath.c_str());
     stbi_set_flip_vertically_on_load(fileExtension == "obj");
 
-    // Only add to scene if requested AND scene manager is ready
-    if (addToScene) {
-        auto sceneManager = Application::GetInstance().sceneManager.get();
-        if (sceneManager && sceneManager->GetActiveScene()) {
-            sceneManager->GetActiveScene()->AddGameObject(modelRootGO);
-        }
-    }
+    
+    //if (addToScene) {
+    //    auto sceneManager = Application::GetInstance().sceneManager.get();
+    //    if (sceneManager && sceneManager->GetActiveScene()) {
+    //        sceneManager->GetActiveScene()->AddGameObject(modelRootGO);
+    //    }
+    //}
     modelRootGO->AddComponent(ComponentType::TRANSFORM);
 
     // Process scene - pass the meta pointer
@@ -204,7 +208,7 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
     }
 
     auto gameObject = make_shared<GameObject>(std::string(currentNode->mName.C_Str()));
-    gameObjects.push_back(gameObject);
+    /*gameObjects.push_back(gameObject);*/
 
     LOG("Created GameObject: '%s' (Parent: '%s')",
         gameObject->GetName().c_str(),
@@ -256,7 +260,7 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
 
             
             auto meshGO = make_shared<GameObject>(std::string(nodeName)); //casting just in case
-            gameObjects.push_back(meshGO);
+            /*gameObjects.push_back(meshGO);*/
 
             meshGO->AddComponent(ComponentType::TRANSFORM);
             meshGO->SetParent(gameObject);
@@ -270,17 +274,8 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
         meshIndex = currentNode->mMeshes[0]; // ← Global index
         aiMesh* aiMesh = scene->mMeshes[meshIndex];
 
-
-
         createComponentsForMesh(gameObject, aiMesh, scene, modelMeta);
     }
-    //else { //no meshes-> create empty GO
-    //    auto emptyGO = make_shared<GameObject>(nodeName);
-    //    emptyGO->AddComponent(ComponentType::TRANSFORM);
-    //    emptyGO->SetParent(gameObject);
-    //    gameObjects.push_back(emptyGO);
-    //}
-
 
 
     LOG("  - Processing %d children for '%s'", currentNode->mNumChildren, gameObject->GetName().c_str());
@@ -294,12 +289,19 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 {
     LOG("=== createComponentsForMesh START ===");
 
-    std::shared_ptr<ResourceMesh> mesh;
+    VroomUUID existingUUID = 0;
+    if (modelMeta && modelMeta->contains("meshes")) {
+        for (auto& m : (*modelMeta)["meshes"]) {
+            // Look for "meshName" to match your JSON structure
+            if (m.contains("meshName") && m["meshName"] == aiMesh->mName.C_Str()) {
+                existingUUID = m["meshUUID"].get<VroomUUID>();
+                break;
+            }
+        }
+    }
     
-
-    // Let MeshImporter handle loading/importing
     // Pass the cached UUID if we have one
-    mesh = Application::GetInstance().importer->meshImporter->Import(aiMesh, scene, fullPath);
+    auto mesh = Application::GetInstance().importer->meshImporter->Import(aiMesh, scene, fullPath, existingUUID);
 
     if (!mesh) {
         LOG("ERROR: Failed to import mesh");
@@ -311,9 +313,6 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
     for (auto tex : mesh->textures) {
         texMetaInfo.push_back({ tex->GetName(), tex->GetUUID(), tex->mapType });
     }
-
-    //register resource
-    /*Application::GetInstance().resourceManager->RegisterResource(mesh);*/
 
     // Store mesh info for model meta
     meshMetaInfo.push_back({aiMesh->mName.C_Str(), mesh->GetUUID(), texMetaInfo});
@@ -384,15 +383,10 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 
         //assign
         if (textureFoundInModel) {
-            //set mesh textures
-            /*currentMesh->textures.push_back(loadedTexture);*/
-            //set material component
             matComponent->SetDiffuseMap(loadedTexture);
         }
         //texture loading failed 
         else {
-            //assign the checkers
-           /* AssignDefaultTexture(currentMesh->textures);*/
 
             std::string defaultPath = Application::GetInstance().importer.get()->defaultTexDir;
             std::string defaultName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(defaultPath.c_str());

@@ -416,6 +416,7 @@ void Render::DrawActiveScene(Shader& shader) {
 				DrawAABB(bounds, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 			}
 			shader.Use();
+			//Uniforms are local to a specific shader program! If you're using the depth buffer shader, you must reset them!
 		}
 	}
 }

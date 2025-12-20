@@ -322,17 +322,36 @@ void GUIManager::ProcessEvents(SDL_Event event) {
 }
 
 void GUIManager::HandleExternalFileDrop(const std::string& sourceOSPath) {
-	std::string fileName = Application::GetInstance().fileSystem->GetFileFromPath(sourceOSPath.c_str());
-	std::string targetDir = "../Assets";
+	FileSystem* fs = Application::GetInstance().fileSystem.get();
 
+	std::string sourcePath = fs->NormalizePath(sourceOSPath.c_str());
+	std::string fileName = Application::GetInstance().fileSystem->GetFileFromPath(sourceOSPath.c_str());
+	std::string targetDir;
+
+	ResourceType resType = Application::GetInstance().resourceManager.get()->DetermineResourceType(sourcePath);
+	
+	if (resType == ResourceType::SCENE) {
+		targetDir = std::string(Paths::MODEL_ASSETS_DIR);
+	}
+	else if (resType == ResourceType::TEXTURE) {
+		targetDir = std::string(Paths::TEXTURE_ASSETS_DIR);
+	}
+	else {
+		LOG("Unrecognized file type, copying to general Assets/ folder");
+		targetDir == std::string(Paths::ASSETS_DIR);
+	}
+	
 	//build final path
+	
 	std::string targetPath = targetDir + "/" + fileName;
+
+
 
 	Application::GetInstance().fileSystem->CreateDir(targetDir.c_str());
 
-	if (Application::GetInstance().fileSystem->CopyFile(sourceOSPath.c_str(), targetPath.c_str())) {
-		std::string assetRelativePath = "Assets/" + fileName; 
-		Application::GetInstance().resourceManager->RequestResource(assetRelativePath);
+	if (fs->CopyFile(sourcePath.c_str(), targetPath.c_str())) {
+		/*std::string assetRelativePath = Paths::ASSETS_DIR + fileName; */
+		Application::GetInstance().resourceManager->RequestResource(targetPath);
 		LOG("External file '%s' successfully copied to Assets/ and imported.", fileName.c_str());
 	}
 	else {

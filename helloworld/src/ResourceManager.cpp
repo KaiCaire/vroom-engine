@@ -100,120 +100,76 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
 }
 
 bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType) {
-
-
     LOG("Attempting to reimport resource %llu", uuid);
 
-    // Search for .meta files in Assets that reference this UUID
     std::string assetsPath = Paths::ASSETS_DIR;
 
     for (const auto& entry : std::filesystem::recursive_directory_iterator(assetsPath)) {
-        
         if (!entry.is_regular_file()) continue;
+
         std::string path = fs->NormalizePath(entry.path().string().c_str());
         std::string ext = fs->GetExtensionFromPath(path.c_str());
-        if (ext == "fbx" || ext == "obj") {
-            //Find the meta file
-            std::string metaPath = path + ".meta";
-            metaPath = fs->NormalizePath(metaPath.c_str());
-            if (!fs->Exists(metaPath.c_str())) continue;
-            nlohmann::json modelMeta = fs->LoadJSON(metaPath.c_str());
+        std::string metaPath = path + ".meta";
 
-            if (modelMeta.contains("meshes")) 
-            {
-                for (auto& meshEntry : modelMeta["meshes"]) 
-                {
-                    if (meshEntry.contains("meshUUID")){
+        if (!fs->Exists(metaPath.c_str())) continue;
 
-                        if (meshEntry["meshUUID"].get<VroomUUID>() == uuid) {
-                            // Resource is a mesh! Reimport the model
-                            std::string modelPath = path;
-                            modelPath = fs->NormalizePath(modelPath.c_str());
-                            //modelPath = modelPath.substr(0, modelPath.length() - 5); // Remove ".meta"
+        nlohmann::json meta = fs->LoadJSON(metaPath.c_str());
 
-                            LOG("Found source model: %s", modelPath.c_str());
-                            LOG("Reimporting to regenerate mesh UUID %llu", uuid);
-
-                            // Reimport (importers already handle looking at the meta!)
-                            Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath, &modelMeta, false);
-
-                            outType = ResourceType::MESH;
-                            return true;
-                        }
-
-                        if (meshEntry.contains("meshTextures")) {
-                            for (auto& texEntry : meshEntry["meshTextures"]) {
-                                if (texEntry.contains("texUUID")) {
-                                    if (texEntry["texUUID"].get<VroomUUID>() == uuid) {
-                                        //resource is a texture being used by a model! Reimport texture
-
-                                        //two possibilities: either it's in the same path as the model, or it's in the textures folder
-                                        std::string texturePath1 = path; //same path as model
-                                        std::string texturePath2 = Paths::TEXTURE_ASSETS_DIR + fs->GetFileFromPath(path.c_str()); //textures folder
-                                        std::string foundTexturePath;
-
-                                        if (fs->Exists(texturePath1.c_str())) {
-                                            LOG("Texture found in the same directory as the source model: %s", texturePath1.c_str());
-                                            foundTexturePath = texturePath1;
-                                        }
-                                        else if (fs->Exists(texturePath2.c_str())) {
-                                            LOG("Texture found in the textures folder : %s", texturePath2.c_str());
-                                            foundTexturePath = texturePath2;
-                                        }
-                                        else {
-                                            std::string checkersPath = Application::GetInstance().importer.get()->defaultTexDir;
-                                            LOG("Texture directory not found, will default to checkers texture: %s", checkersPath.c_str());
-                                            foundTexturePath = checkersPath;
-                                        }
-
-                                        outType = ResourceType::TEXTURE;
-                                        LOG("Reimporting to regenerate texture UUID %llu", uuid);
-                                        Application::GetInstance().resourceManager.get()->ImportFile(foundTexturePath, outType);
-                                        return true;
-                                        
-                                    }
-                                }
-                            }
-                        }
-                        
-
-                    }
-
-                }
-            }
-        }
-
-        
+        // --- CASE 1: Standalone Textures ---
         if (ext == "png" || ext == "dds" || ext == "jpg" || ext == "tga") {
-            std::string texMetaPath = path + ".meta";
-            texMetaPath = fs->NormalizePath(texMetaPath.c_str());
-
-            nlohmann::json texMeta = fs->LoadJSON(texMetaPath.c_str());
-            if (!fs->Exists(texMetaPath.c_str())) continue;
-               
-            //check if uuid is in meta
-            if (texMeta.contains("uuid") && texMeta["uuid"].get<VroomUUID>() == uuid) {
-                std::string texturePath = path;
-                texturePath = fs->NormalizePath(texturePath.c_str());
-                //texturePath = texturePath.substr(0, texturePath.length() - 5); // Remove ".meta"
-
-                LOG("Found source texture: %s", texturePath.c_str());
-                LOG("Reimporting texture UUID %llu", uuid);
-
-                // Reimport texture
-                Application::GetInstance().importer.get()->textureImporter->Import(texturePath.c_str());
-
+            if (meta.contains("uuid") && meta["uuid"].get<VroomUUID>() == uuid) {
+                LOG("Found source texture for reimport: %s", path.c_str());
+                Application::GetInstance().importer->textureImporter->Import(path.c_str());
                 outType = ResourceType::TEXTURE;
                 return true;
             }
-
-
-                
         }
-        
+
+        // --- CASE 2: Models (FBX/OBJ) ---
+        if (ext == "fbx" || ext == "obj") {
+            // A model meta can contain the UUID for a Mesh OR a Texture used by that mesh
+            if (meta.contains("meshes")) {
+                for (auto& meshEntry : meta["meshes"]) {
+
+                    // A: Is the UUID a Mesh?
+                    if (meshEntry.contains("meshUUID") && meshEntry["meshUUID"].get<VroomUUID>() == uuid) {
+                        LOG("Found Mesh UUID %llu inside model: %s", uuid, path.c_str());
+                       
+                        //reimport 
+                        Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(path, &meta, false);
+                        outType = ResourceType::MESH;
+                        return true;
+                    }
+
+                    //// B: Is the UUID a Texture referenced by this model?
+                    //if (meshEntry.contains("meshTextures")) {
+                    //    for (auto& texEntry : meshEntry["meshTextures"]) {
+                    //        if (texEntry.contains("texUUID") && texEntry["texUUID"].get<VroomUUID>() == uuid) {
+                    //            LOG("Found Texture UUID %llu used by model: %s", uuid, path.c_str());
+
+                    //            // Resolve the physical texture path
+                    //            std::string fileName = texEntry["fileName"]; // Assuming you store this in meta
+                    //            std::string modelDir = fs->GetDirFromPath(path.c_str());
+                    //            std::string texPath = modelDir + fileName;
+
+                    //            if (!fs->Exists(texPath.c_str())) {
+                    //                texPath = Paths::TEXTURE_ASSETS_DIR + fileName;
+                    //            }
+
+                    //            if (fs->Exists(texPath.c_str())) {
+                    //                Application::GetInstance().resourceManager->ImportFile(texPath, ResourceType::TEXTURE);
+                    //                outType = ResourceType::TEXTURE;
+                    //                return true;
+                    //            }
+                    //        }
+                    //    }
+                    //}
+                }
+            }
+        }
     }
 
-    LOG("ERROR: Could not find source file for UUID %llu", uuid);
+    LOG("ERROR: Could not find source file for UUID %llu after full asset scan", uuid);
     return false;
 }
 

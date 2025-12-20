@@ -210,12 +210,12 @@ void ResourceMesh::Draw(Shader& shader, MaterialComponent* material) {
         bindTex(material->GetRoughnessMap(), "texture_roughness1");
         bindTex(material->GetAOMap(), "texture_ao1");
 
-        // If you decide to use diffuseColor in your shader, this sends it:
-        // shader.setVec4("material.diffuseColor", material->GetDiffuseColor());
+
     }
     else {
         //USE CHECKERS AS FALLBACK
         std::string defaultPath = Application::GetInstance().importer.get()->defaultTexDir;
+        //should use a weakptr for better performance but don't have the time to waste on extra refactoring, if it works it works lol
         std::shared_ptr<Resource> defaultResource = Application::GetInstance().resourceManager->RequestResource(defaultPath);
         std::shared_ptr<ResourceTexture> defaultTex = std::dynamic_pointer_cast<ResourceTexture>(defaultResource);
 
@@ -272,7 +272,7 @@ void ResourceMesh::Draw(Shader& shader, MaterialComponent* material) {
     glActiveTexture(GL_TEXTURE0);
 }
 
-void ResourceMesh::SetMeshData(const std::vector<Vertex>& verts, const std::vector<unsigned int>& inds, const std::vector<std::shared_ptr<ResourceTexture>>& texs) {
+void ResourceMesh::SetMeshData(const std::vector<Vertex>& verts, const std::vector<unsigned int>& inds/*, const std::vector<std::shared_ptr<ResourceTexture>>& texs*/) {
     // Unload old mesh data if it exists
     if (isLoadedToRAM) {
         FreeMemory();
@@ -281,11 +281,19 @@ void ResourceMesh::SetMeshData(const std::vector<Vertex>& verts, const std::vect
     // Set new data
     vertices = verts;
     indices = inds;
-    textures = texs;
+    //textures = texs;
+
+    if (!textures.empty()) {
+        textures.clear();
+    }
+
+    // 3. Update counts and GPU state
+    numVertices = (uint)vertices.size();
+    numIndices = (uint)indices.size();
 
     // Setup OpenGL buffers with new data
     LoadToGPU();
-   
+    isLoadedToRAM = true;
 
     LOG("Mesh data updated: %d vertices, %d indices, %d textures", vertices.size(), indices.size(), textures.size());
 }
@@ -323,6 +331,93 @@ void ResourceMesh::CalculateNormals() {
 
 }
 
+//currently saving textures
+//void ResourceMesh::SaveBin() {
+//
+//    if (!isLoadedToRAM) {
+//        LOG("ERROR: Cannot save mesh binary - data not loaded to RAM");
+//        return;
+//    }
+//
+//    std::string binPath = GetLibraryFilePath();
+//    std::string meshAssetPath = GetAssetFilePath();
+//    
+//    if (binPath.empty()) {
+//        LOG("ERROR: Library path not set for mesh");
+//        return;
+//    }
+//    
+//    std::string directory = fs->GetDirFromPath(libraryPath.c_str());
+//    if (!directory.empty() && !fs->Exists(directory.c_str())) {
+//        fs->CreateDir(directory.c_str());
+//    }
+//   
+//    // Calculate total size needed
+//    uint vertexCount = vertices.size();
+//    uint indexCount = indices.size();
+//    uint textureCount = textures.size();
+//
+//
+//
+//    // Calculate buffer size
+//    size_t bufferSize = sizeof(uint) * 3; // header (3 counts)
+//    bufferSize += vertexCount * sizeof(Vertex);
+//    bufferSize += indexCount * sizeof(unsigned int);
+//
+//    // Add texture string sizes
+//    for (const auto& tex : textures) {
+//        bufferSize += sizeof(uint); // path length
+//        std::string texAssetPath = tex->GetAssetFilePath();
+//        bufferSize += texAssetPath.length();
+//        bufferSize += sizeof(uint); // type length
+//        bufferSize += tex.get()->mapType.length();
+//    }
+//
+//    // Create buffer
+//    char* buffer = new char[bufferSize];
+//    char* ptr = buffer;
+//
+//    // Write header
+//    std::memcpy(ptr, &vertexCount, sizeof(uint));
+//    ptr += sizeof(uint);
+//    std::memcpy(ptr, &indexCount, sizeof(uint));
+//    ptr += sizeof(uint);
+//    std::memcpy(ptr, &textureCount, sizeof(uint));
+//    ptr += sizeof(uint);
+//
+//    // Write vertices
+//    std::memcpy(ptr, vertices.data(), vertexCount * sizeof(Vertex));
+//    ptr += vertexCount * sizeof(Vertex);
+//
+//    // Write indices
+//    std::memcpy(ptr, indices.data(), indexCount * sizeof(unsigned int));
+//    ptr += indexCount * sizeof(unsigned int);
+//
+//    // Write texture info
+//    for (const auto& tex : textures) {
+//        std::string texPath = tex.get()->GetAssetFilePath();
+//        uint pathLength = texPath.length();
+//        std::memcpy(ptr, &pathLength, sizeof(uint));
+//        ptr += sizeof(uint);
+//        std::memcpy(ptr, texPath.c_str(), pathLength);
+//        ptr += pathLength;
+//
+//        uint typeLength = tex.get()->mapType.length();
+//        std::memcpy(ptr, &typeLength, sizeof(uint));
+//        ptr += sizeof(uint);
+//        std::memcpy(ptr, tex.get()->mapType.c_str(), typeLength);
+//        ptr += typeLength;
+//    }
+//
+//    // Write using FileSystem
+//    fs->WriteBinData(binPath.c_str(), buffer, bufferSize);
+//
+//
+//    delete[] buffer;
+//
+//    LOG("Mesh binary saved: %s", binPath.c_str());
+//}
+
 void ResourceMesh::SaveBin() {
 
     if (!isLoadedToRAM) {
@@ -331,49 +426,34 @@ void ResourceMesh::SaveBin() {
     }
 
     std::string binPath = GetLibraryFilePath();
-    std::string meshAssetPath = GetAssetFilePath();
-    
+
     if (binPath.empty()) {
         LOG("ERROR: Library path not set for mesh");
         return;
     }
-    
+
     std::string directory = fs->GetDirFromPath(libraryPath.c_str());
     if (!directory.empty() && !fs->Exists(directory.c_str())) {
         fs->CreateDir(directory.c_str());
     }
-   
-    // Calculate total size needed
+
+    // Calculate total size needed (Removed textureCount)
     uint vertexCount = vertices.size();
     uint indexCount = indices.size();
-    uint textureCount = textures.size();
 
-
-
-    // Calculate buffer size
-    size_t bufferSize = sizeof(uint) * 3; // header (3 counts)
+    // Calculate buffer size: Header (2 counts) + Vertices + Indices
+    size_t bufferSize = sizeof(uint) * 2;
     bufferSize += vertexCount * sizeof(Vertex);
     bufferSize += indexCount * sizeof(unsigned int);
-
-    // Add texture string sizes
-    for (const auto& tex : textures) {
-        bufferSize += sizeof(uint); // path length
-        std::string texAssetPath = tex->GetAssetFilePath();
-        bufferSize += texAssetPath.length();
-        bufferSize += sizeof(uint); // type length
-        bufferSize += tex.get()->mapType.length();
-    }
 
     // Create buffer
     char* buffer = new char[bufferSize];
     char* ptr = buffer;
 
-    // Write header
+    // Write header (Only vertex and index counts)
     std::memcpy(ptr, &vertexCount, sizeof(uint));
     ptr += sizeof(uint);
     std::memcpy(ptr, &indexCount, sizeof(uint));
-    ptr += sizeof(uint);
-    std::memcpy(ptr, &textureCount, sizeof(uint));
     ptr += sizeof(uint);
 
     // Write vertices
@@ -384,31 +464,98 @@ void ResourceMesh::SaveBin() {
     std::memcpy(ptr, indices.data(), indexCount * sizeof(unsigned int));
     ptr += indexCount * sizeof(unsigned int);
 
-    // Write texture info
-    for (const auto& tex : textures) {
-        std::string texPath = tex.get()->GetAssetFilePath();
-        uint pathLength = texPath.length();
-        std::memcpy(ptr, &pathLength, sizeof(uint));
-        ptr += sizeof(uint);
-        std::memcpy(ptr, texPath.c_str(), pathLength);
-        ptr += pathLength;
-
-        uint typeLength = tex.get()->mapType.length();
-        std::memcpy(ptr, &typeLength, sizeof(uint));
-        ptr += sizeof(uint);
-        std::memcpy(ptr, tex.get()->mapType.c_str(), typeLength);
-        ptr += typeLength;
-    }
-
     // Write using FileSystem
     fs->WriteBinData(binPath.c_str(), buffer, bufferSize);
 
-
     delete[] buffer;
 
-    LOG("Mesh binary saved: %s", binPath.c_str());
 }
-
+//currently loading textures
+//void ResourceMesh::LoadBin() {
+//    std::string binPath = GetLibraryFilePath();
+//    if (binPath.empty()) {
+//        LOG("ERROR: Library path not set for mesh");
+//        return;
+//    }
+//    fs = Application::GetInstance().fileSystem.get();
+//    if (!fs->Exists(binPath.c_str())) {
+//        LOG("ERROR: Mesh binary file does not exist: %s", binPath.c_str());
+//        return;
+//    }
+//
+//    // Read using FileSystem
+//    uint size = 0;
+//    char* buffer = fs->ReadBinData(binPath.c_str(), &size);
+//    if (!buffer) {
+//        LOG("ERROR: Failed to read mesh binary: %s", binPath.c_str());
+//        return;
+//    }
+//
+//    char* ptr = buffer;
+//
+//    // Read header
+//    uint vertexCount, indexCount, textureCount;
+//    std::memcpy(&vertexCount, ptr, sizeof(uint));
+//    ptr += sizeof(uint);
+//    std::memcpy(&indexCount, ptr, sizeof(uint));
+//    ptr += sizeof(uint);
+//    std::memcpy(&textureCount, ptr, sizeof(uint));
+//    ptr += sizeof(uint);
+//
+//    // Read vertices
+//    vertices.resize(vertexCount);
+//    std::memcpy(vertices.data(), ptr, vertexCount * sizeof(Vertex));
+//    ptr += vertexCount * sizeof(Vertex);
+//
+//    // Read indices
+//    indices.resize(indexCount);
+//    std::memcpy(indices.data(), ptr, indexCount * sizeof(unsigned int));
+//    ptr += indexCount * sizeof(unsigned int);
+//
+//    if (textures.size() != 0) {
+//        textures.clear();
+//    }
+//    textures.reserve(textureCount);
+//
+//    for (uint i = 0; i < textureCount; i++) {
+//        uint pathLength;
+//        std::memcpy(&pathLength, ptr, sizeof(uint));
+//        ptr += sizeof(uint);
+//
+//        std::string path(ptr, pathLength);
+//        ptr += pathLength;
+//
+//        uint typeLength;
+//        std::memcpy(&typeLength, ptr, sizeof(uint));
+//        ptr += sizeof(uint);
+//
+//        std::string mapType(ptr, typeLength);
+//        ptr += typeLength;
+//
+//       
+//        /*auto tex = Application::GetInstance().importer.get()->textureImporter->Import(path);*/
+//        auto resTex = Application::GetInstance().resourceManager.get()->RequestResource(path);
+//        auto tex = std::dynamic_pointer_cast<ResourceTexture>(resTex);
+//        
+//        
+//        if (!tex) {
+//            LOG("WARNING: Failed to load texture '%s' from cached mesh", path.c_str());
+//            // Create placeholder
+//            tex = std::make_shared<ResourceTexture>();
+//            tex->SetAssetFilePath(path);
+//            tex->SetName(fs->GetFileNameFromPath(path.c_str()));
+//            
+//        }
+//        
+//        tex->mapType = mapType;
+//        textures.push_back(tex);
+//        LOG("Loaded texture: %s (type: %s, gpu_id: %u)", path.c_str(), mapType.c_str(), tex->gpu_id);
+//    }
+//
+//    delete[] buffer;
+//    isLoadedToRAM = true;
+//    LOG("Mesh binary loaded: %s (%d vertices, %d indices, %d textures)", binPath.c_str(), vertexCount, indexCount, textureCount);
+//}
 
 void ResourceMesh::LoadBin() {
     std::string binPath = GetLibraryFilePath();
@@ -416,6 +563,7 @@ void ResourceMesh::LoadBin() {
         LOG("ERROR: Library path not set for mesh");
         return;
     }
+
     fs = Application::GetInstance().fileSystem.get();
     if (!fs->Exists(binPath.c_str())) {
         LOG("ERROR: Mesh binary file does not exist: %s", binPath.c_str());
@@ -432,70 +580,34 @@ void ResourceMesh::LoadBin() {
 
     char* ptr = buffer;
 
-    // Read header
-    uint vertexCount, indexCount, textureCount;
+    // 1. Read header (Now only 2 uints: vertex and index counts)
+    uint vertexCount, indexCount;
     std::memcpy(&vertexCount, ptr, sizeof(uint));
     ptr += sizeof(uint);
     std::memcpy(&indexCount, ptr, sizeof(uint));
     ptr += sizeof(uint);
-    std::memcpy(&textureCount, ptr, sizeof(uint));
-    ptr += sizeof(uint);
 
-    // Read vertices
+    // 2. Read vertices
     vertices.resize(vertexCount);
     std::memcpy(vertices.data(), ptr, vertexCount * sizeof(Vertex));
     ptr += vertexCount * sizeof(Vertex);
 
-    // Read indices
+    // 3. Read indices
     indices.resize(indexCount);
     std::memcpy(indices.data(), ptr, indexCount * sizeof(unsigned int));
     ptr += indexCount * sizeof(unsigned int);
 
-    if (textures.size() != 0) {
-        textures.clear();
-    }
-    textures.reserve(textureCount);
-
-    for (uint i = 0; i < textureCount; i++) {
-        uint pathLength;
-        std::memcpy(&pathLength, ptr, sizeof(uint));
-        ptr += sizeof(uint);
-
-        std::string path(ptr, pathLength);
-        ptr += pathLength;
-
-        uint typeLength;
-        std::memcpy(&typeLength, ptr, sizeof(uint));
-        ptr += sizeof(uint);
-
-        std::string mapType(ptr, typeLength);
-        ptr += typeLength;
-
-       
-        /*auto tex = Application::GetInstance().importer.get()->textureImporter->Import(path);*/
-        auto resTex = Application::GetInstance().resourceManager.get()->RequestResource(path);
-        auto tex = std::dynamic_pointer_cast<ResourceTexture>(resTex);
-        
-        
-        if (!tex) {
-            LOG("WARNING: Failed to load texture '%s' from cached mesh", path.c_str());
-            // Create placeholder
-            tex = std::make_shared<ResourceTexture>();
-            tex->SetAssetFilePath(path);
-            tex->SetName(fs->GetFileNameFromPath(path.c_str()));
-            
-        }
-        
-        tex->mapType = mapType;
-        textures.push_back(tex);
-        LOG("Loaded texture: %s (type: %s, gpu_id: %u)", path.c_str(), mapType.c_str(), tex->gpu_id);
-    }
-
+    // 4. Cleanup
     delete[] buffer;
-    isLoadedToRAM = true;
-    LOG("Mesh binary loaded: %s (%d vertices, %d indices, %d textures)", binPath.c_str(), vertexCount, indexCount, textureCount);
-}
 
+    //// Clear any old texture references since this mesh is now geometry-only
+    //if (!textures.empty()) {
+    //    textures.clear();
+    //}
+
+    isLoadedToRAM = true;
+    LOG("Mesh binary loaded: %s (%d vertices, %d indices)", binPath.c_str(), vertexCount, indexCount);
+}
 
 void ResourceMesh::FreeMemory() {
     vertices.clear();
