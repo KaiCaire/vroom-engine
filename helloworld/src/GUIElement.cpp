@@ -393,9 +393,25 @@ void GUIElement::HierarchySetUp(bool* show)
 	if (ImGui::BeginDragDropTarget()) {
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
 			std::string droppedPath((const char*)payload->Data);
-
 			//handle instantiation
 			InstantiateAsset(droppedPath);
+		}
+		// Accept hierarchy reparent to root
+		if (const ImGuiPayload* payload2 = ImGui::AcceptDragDropPayload("HIERARCHY_GO")) {
+			if (payload2->DataSize == sizeof(VroomUUID)) {
+				VroomUUID srcUUID = 0;
+				std::memcpy(&srcUUID, payload2->Data, sizeof(VroomUUID));
+				auto scene = Application::GetInstance().sceneManager.get()->GetActiveScene();
+				if (scene) {
+					auto srcGO = scene->FindGameObjectByUUID(srcUUID);
+					if (srcGO) {
+						// Reparent to root
+						srcGO->SetParent(scene->GetRoot());
+						Application::GetInstance().guiManager.get()->selectedObject = srcGO;
+						LOG("Reparented '%s' to scene root", srcGO->GetName().c_str());
+					}
+				}
+			}
 		}
 		ImGui::EndDragDropTarget();
 	}
@@ -415,6 +431,53 @@ void GUIElement::DrawNode(const std::shared_ptr<GameObject>& obj, std::shared_pt
 
 	//create node and check if opened
 	bool opened = ImGui::TreeNodeEx((void*)obj.get(), flags, "%s", obj->GetName().c_str());
+
+	// Drag source: start dragging this gameobject (payload = its UUID)
+	if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+		VroomUUID payloadUUID = obj->GetUUID();
+		ImGui::SetDragDropPayload("HIERARCHY_GO", &payloadUUID, sizeof(VroomUUID));
+		ImGui::Text("%s", obj->GetName().c_str());
+		ImGui::EndDragDropSource();
+	}
+
+	// Accept drop on this node to reparent the dragged object under 'obj'
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_GO")) {
+			if (payload->DataSize == sizeof(VroomUUID)) {
+				VroomUUID srcUUID = 0;
+				std::memcpy(&srcUUID, payload->Data, sizeof(VroomUUID));
+
+				// find the source GameObject
+				auto scene = Application::GetInstance().sceneManager.get()->GetActiveScene();
+				if (scene) {
+					auto srcGO = scene->FindGameObjectByUUID(srcUUID);
+					if (srcGO && srcGO != obj) {
+						// Prevent reparenting to a descendant of srcGO (would create cycle)
+						bool invalid = false;
+						auto check = obj;
+						while (check) {
+							if (check == srcGO) { invalid = true; break; }
+							check = check->GetParent();
+						}
+
+						if (!invalid) {
+							// Perform reparent: SetParent handles removal from old parent and adding to new
+							srcGO->SetParent(obj);
+
+							// Keep selection on the moved object
+							Application::GetInstance().guiManager.get()->selectedObject = srcGO;
+
+							LOG("Reparented '%s' under '%s'", srcGO->GetName().c_str(), obj->GetName().c_str());
+						}
+						else {
+							LOG("Cannot reparent '%s' under its own descendant '%s'", srcGO->GetName().c_str(), obj->GetName().c_str());
+						}
+					}
+				}
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
 
 	//check if object has been selected
 	if (ImGui::IsItemClicked()) selected = obj;
