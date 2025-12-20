@@ -431,65 +431,38 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
             auto materialComp = go->AddComponent(ComponentType::MATERIAL);
             auto material = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
 
-            // Diffuse color
-            if (m.contains("diffuseColor")) {
-                auto c = m["diffuseColor"];
-                material->SetDiffuseColor(glm::vec4(c[0], c[1], c[2], c[3]));
-            }
+            auto& rm = *Application::GetInstance().resourceManager;
 
-            // PBR values
-            if (m.contains("shininess")) material->SetShininess(m["shininess"]);
-            if (m.contains("metallic"))  material->SetMetallic(m["metallic"]);
-            if (m.contains("roughness")) material->SetRoughness(m["roughness"]);
 
-            // Texture maps (UUIDs)
-            if (m.contains("diffuseMapUUID")) {
-                VroomUUID id = m["diffuseMapUUID"];
-                auto resTex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-                std::shared_ptr<Resource> textureToAssign = resTex;
+            auto assignTex = [&](const std::string& jsonKey, bool useFallback, std::function<void(std::shared_ptr<ResourceTexture>)> setFunc) {
+                if (!m.contains(jsonKey)) return;
 
-                if (!textureToAssign) {
-                    std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
-                    textureToAssign = Application::GetInstance().resourceManager.get()->RequestResource(checkerPath);
-                    LOG("WARNING: Diffuse texture UUID %llu missing. Falling back to checker.", id);
+                VroomUUID id = m[jsonKey];
+                auto res = rm.RequestResource(id);
+                auto tex = std::dynamic_pointer_cast<ResourceTexture>(res);
+
+                // If missing and we want a fallback (the checker texture, but only for diffuse)
+                if (!tex && useFallback) {
+                    std::string checkerPath = Application::GetInstance().importer->defaultTexDir;
+                    tex = std::dynamic_pointer_cast<ResourceTexture>(rm.RequestResource(checkerPath));
+                    LOG("WARNING: Texture %s (UUID %llu) missing. Using fallback.", jsonKey.c_str(), id);
                 }
 
-                
-                if (textureToAssign) {
-                    material->SetDiffuseMap(std::dynamic_pointer_cast<ResourceTexture>(textureToAssign));
+                if (tex) {
+                    // Ensure it is on the GPU before assigning
+                    if (!tex->isLoadedToGPU) {
+                        rm.LoadResourceToGPU(tex);
+                    }
+                    setFunc(tex); // SetDiffuse/SetNormal/SetAO/etc.
                 }
-                
-               
-            }
+            };
 
-            if (m.contains("normalMapUUID")) {
-                VroomUUID id = m["normalMapUUID"];
-                auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-                /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
-                material->SetNormalMap(std::static_pointer_cast<ResourceTexture>(tex));
-            }
-
-            if (m.contains("metallicMapUUID")) {
-                VroomUUID id = m["metallicMapUUID"];
-                auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-                /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
-                material->SetMetallicMap(std::static_pointer_cast<ResourceTexture>(tex));
-            }
-
-            if (m.contains("roughnessMapUUID")) {
-                VroomUUID id = m["roughnessMapUUID"];
-                auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-                /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
-                material->SetRoughnessMap(std::static_pointer_cast<ResourceTexture>(tex));
-            }
-
-            if (m.contains("AOMapUUID")) {
-                VroomUUID id = m["AOMapUUID"];
-                auto tex = Application::GetInstance().resourceManager.get()->RequestResource(id);
-                /*if (!tex->isLoadedToGPU) Application::GetInstance().resourceManager.get()->LoadResourceToGPU(tex);*/
-                material->SetAOMap(std::static_pointer_cast<ResourceTexture>(tex));
-            }
-
+            // Now your massive block of IFs becomes these 5 clean lines:
+            assignTex("diffuseMapUUID", true, [&](auto t) { material->SetDiffuseMap(t); });
+            assignTex("normalMapUUID", false, [&](auto t) { material->SetNormalMap(t); });
+            assignTex("metallicMapUUID", false, [&](auto t) { material->SetMetallicMap(t); });
+            assignTex("roughnessMapUUID", false, [&](auto t) { material->SetRoughnessMap(t); });
+            assignTex("AOMapUUID", false, [&](auto t) { material->SetAOMap(t); });
 
         }
 

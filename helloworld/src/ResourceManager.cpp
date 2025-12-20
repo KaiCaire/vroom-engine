@@ -50,7 +50,7 @@ bool ResourceManager::CleanUp() {
     return true;
 }
 
-std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
+std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid, bool allowRetry) {
     // Check if already loaded
     auto it = resources.find(uuid);
     if (it != resources.end()) {
@@ -77,24 +77,36 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid) {
         libraryPath = meshPath;
     }
     else {
-        LOG("ERROR: Library file not found for UUID %llu, reimporting", uuid);
+        // If we already tried to heal and it's STILL missing, stop the loop!
+        if (!allowRetry) {
+            LOG("ERROR: Healing failed for UUID %llu. Resource is lost.", uuid);
+            return nullptr;
+        }
         TryReimportResource(uuid, type);
+        
 
-        //TODO: REIMPORT !!
-        return nullptr;
+        //now that it's reimported, request again one more time 
+        // (if it still doesn't find it we'll stop)
+        return RequestResource(uuid, false); 
     }
 
     // Create and load from library
     auto resource = CreateResource(type, uuid);
-    resource->SetLibraryFilePath(libraryPath);
+
     if (resource) {
-        LoadResourceFromLibrary(resource);
         RegisterResource(resource);
-        
-        //resource->AddReference();
+
+        resource->SetLibraryFilePath(libraryPath);
+        LoadResourceFromLibrary(resource);
+       
+        LoadResourceToGPU(resource);
 
         return resource;
     }
+    else {
+        LOG("Failed to create new resource of type %s (UUID: %llu)", type, uuid);
+    }
+   
 
     return nullptr;
 }
@@ -211,21 +223,20 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
 VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type, bool addToScene) {
     LOG("ResourceManager: Importing file '%s' (type: %d)", assetsPath.c_str(), (int)type);
 
-    Importer* importer = Application::GetInstance().importer.get();
-    VroomUUID uuid = 0;
+    //No UUIDs should be generated here!!
 
     switch (type) {
     case ResourceType::TEXTURE:
     {
         auto texture = Application::GetInstance().importer.get()->textureImporter->Import(assetsPath);
         if (texture) {
-            RegisterResource(texture);
-            uuid = texture->GetUUID();
+            RegisterResource(texture); //already in the importer but the method itself will skip if already registered
+            return texture->GetUUID();
         }
         break;
     }
     case ResourceType::SCENE:
-        /*auto mesh = Application::GetInstance().importer.get()->meshImporter->Import(assetsPath.c_str());*/
+       
         Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str(), addToScene);
         
         break;
@@ -235,7 +246,7 @@ VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceTyp
         break;
     }
 
-    return uuid;
+    return 0;
 }
 
 std::shared_ptr<Resource> ResourceManager::CreateResource(ResourceType type, VroomUUID uuid) {
@@ -285,8 +296,7 @@ void ResourceManager::RegisterResource(std::shared_ptr<Resource> resource)
     }
 
     // Check if already registered
-    auto it = resources.find(uuid);
-    if (it != resources.end()) {
+    if (resources.find(uuid) != resources.end()) {
         LOG("Resource %llu already registered, skipping duplicate registration", uuid);
         return;  
     }
@@ -368,22 +378,17 @@ void ResourceManager::ReimportMissingFiles() {
             /*DeleteUnusedLibraryFiles((metaPath, extension);)*/
         }
 
-        // Reimport if needed
+        // Inside the loop in ReimportMissingFiles
         if (needsImport) {
-            ResourceType type = DetermineResourceType(assetPath);
-
-            if (type == ResourceType::UNKNOWN) {
-                LOG("WARNING: Skipping unknown file type: %s", assetPath.c_str());
-                continue;
+            ResourceType resType = DetermineResourceType(assetPath);
+            if (resType == ResourceType::TEXTURE) {
+                // Direct call to specialized importer. 
+                // This is safe because our new Import() checks meta first!
+                Application::GetInstance().importer->textureImporter->Import(assetPath);
             }
-
-            VroomUUID uuid = ImportFile(assetPath, type, false);
-
-            if (type == ResourceType::TEXTURE && uuid == 0) {
-                LOG("ERROR: Failed to import texture: %s", assetPath.c_str());
-            }
-            else if (type == ResourceType::MESH) {
-                LOG("Model imported successfully: %s", assetPath.c_str());
+            else if (resType == ResourceType::SCENE) {
+                // ModelImporter should also be updated to check meta first
+                Application::GetInstance().importer->modelImporter->ImportScene(assetPath.c_str(), false);
             }
         }
         

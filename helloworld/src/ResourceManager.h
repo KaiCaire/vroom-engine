@@ -27,7 +27,7 @@ public:
     bool CleanUp() override;
 
     // Request a resource by UUID (loads if not loaded)
-    std::shared_ptr<Resource> RequestResource(VroomUUID uuid);
+    std::shared_ptr<Resource> RequestResource(VroomUUID uuid, bool allowRetry = true);
 
     // Request a resource by file path (checks cache, imports if needed)
     std::shared_ptr<Resource> RequestResource(const std::string& assetsPath);
