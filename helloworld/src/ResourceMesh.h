@@ -38,7 +38,8 @@ public:
 
     // Constructors
     ResourceMesh();
-    ResourceMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<ResourceTexture>> textures);
+    ResourceMesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, 
+        std::vector<std::shared_ptr<ResourceTexture>> textures = {}); //textures are optional
     ResourceMesh(std::shared_ptr<ResourceMesh> mesh);
     // Draw the mesh
 
@@ -49,7 +50,7 @@ public:
     
 
     // Set mesh data (useful for updating mesh after creation)
-    void SetMeshData(const std::vector<Vertex>& verts, const std::vector<unsigned int>& inds, const std::vector<std::shared_ptr<ResourceTexture>>& texs);
+    void SetMeshData(const std::vector<Vertex>& verts, const std::vector<unsigned int>& inds/*, const std::vector<std::shared_ptr<ResourceTexture>>& texs*/);
     void LoadToGPU();
     void UnloadFromGPU();
 

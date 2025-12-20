@@ -37,10 +37,10 @@ public:
     // Processing methods
     void processNodeWithGameObjects(const aiNode* node, const aiScene* scene, std::shared_ptr<GameObject> parent, nlohmann::json* modelMeta);
 
-    void createComponentsForMesh(std::shared_ptr<GameObject> gameObject, aiMesh* aiMesh, const aiScene* scene, nlohmann::json* modelMeta);
+    void createComponentsForMesh(std::shared_ptr<GameObject> gameObject, aiMesh* aiMesh, const aiScene* scene, nlohmann::json* modelMeta, uint meshIndex);
 
-    std::shared_ptr<ResourceTexture> GetOrLoadTexture(const std::string& fullPath, const std::string& fileName, const std::string& typeName);
-    void AssignDefaultTexture(std::vector<std::shared_ptr<ResourceTexture>>& textures);
+    /*std::shared_ptr<ResourceTexture> GetOrLoadTexture(const std::string& fullPath, const std::string& fileName, const std::string& typeName);*/
+    //void AssignDefaultTexture(std::vector<std::shared_ptr<ResourceTexture>>& textures);
 
 public:
     // Constructors
@@ -56,16 +56,17 @@ public:
 
     const std::vector<std::shared_ptr<ResourceMesh>>& GetMeshes() const { return meshes; }
 
-    struct TexMetaInfo {
-        std::string name;
-        VroomUUID uuid;
-        std::string texType;
-    };
+    //struct TexMetaInfo {
+    //    std::string name;
+    //    VroomUUID uuid;
+    //    std::string texType;
+    //};
 
     struct MeshMetaInfo {
         std::string name;
         VroomUUID uuid;
-        std::vector<TexMetaInfo> textures;
+        /*std::vector<TexMetaInfo> textures;*/ //meshes don't store textures anymore, the material does
+        uint index; //we need this to identify meshes with sth other than names, in case two are named the same
     };
 
     std::vector<MeshMetaInfo> meshMetaInfo;

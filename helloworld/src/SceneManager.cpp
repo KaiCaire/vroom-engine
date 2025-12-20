@@ -2,6 +2,7 @@
 #include "ResourceManager.h"
 #include "Application.h"
 #include "RenderMeshComponent.h"
+#include "GUIManager.h"
 #include "Input.h"
 
 
@@ -128,8 +129,7 @@ std::shared_ptr<GameObject> SceneManager::CreateEmptyGameObject(const std::strin
         LOG("  - Parent set to root");
     }
 
-    // Añadir a la lista
-    /*allGameObjects.push_back(newGameObject);*/
+
     currentScene->AddGameObject(newGameObject);
 
     int gameObjectsSize = currentScene->GetAllGameObjects().size();
@@ -140,6 +140,44 @@ std::shared_ptr<GameObject> SceneManager::CreateEmptyGameObject(const std::strin
 }
 
 
+
+void ManualResourceCleanup(const std::shared_ptr<GameObject>& go) {
+    
+    if (auto rmc = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER))) {
+        // The RMC destructor should do this, but we force it here for synchronous cleanup
+        if (auto mesh = rmc->GetMesh()) {
+            mesh->RemoveReference();
+            rmc->SetMesh(nullptr);
+            LOG("  - Mesh ref removed for '%s'", go->GetName().c_str());
+        }
+    }
+
+   
+    if (auto mc = std::dynamic_pointer_cast<MaterialComponent>(go->GetComponent(ComponentType::MATERIAL))) {
+
+        if (auto tex = mc->GetDiffuseMap()) {
+            LOG("Texture Reference Count before deletion: %d", tex->GetReferenceCount());
+            tex->RemoveReference();
+            LOG("Reference to texture %s removed, reference count is now: %d", tex->GetAssetFilePath(), tex->GetReferenceCount());
+        }
+            
+            
+        if (auto tex = mc->GetNormalMap()) 
+            tex->RemoveReference();
+        if (auto tex = mc->GetMetallicMap()) 
+            tex->RemoveReference();
+        if (auto tex = mc->GetRoughnessMap()) 
+            tex->RemoveReference();
+        if (auto tex = mc->GetAOMap()) 
+            tex->RemoveReference();
+
+        
+        mc->SetDiffuseMap(nullptr); 
+
+        LOG("  - Material refs removed for '%s'", go->GetName().c_str());
+    }
+}
+
 void SceneManager::DestroyGameObject(std::shared_ptr<GameObject> gameObject) {
     if (!gameObject) {
         LOG("WARNING: Attempted to destroy null GameObject");
@@ -148,6 +186,7 @@ void SceneManager::DestroyGameObject(std::shared_ptr<GameObject> gameObject) {
 
     LOG("Destroying GameObject '%s'", gameObject->GetName().c_str());
 
+    ManualResourceCleanup(gameObject);
     // Marcar este GameObject
     gameObject->MarkForDestroy();
 
@@ -155,6 +194,7 @@ void SceneManager::DestroyGameObject(std::shared_ptr<GameObject> gameObject) {
     auto markChildren = [&](auto&& self, std::shared_ptr<GameObject> go) -> void {
         for (auto& child : go->GetChildren()) {
             if (child && !child->IsMarkedForDestroy()) {
+                ManualResourceCleanup(child);
                 LOG("  - Marking child '%s' for destruction", child->GetName().c_str());
                 child->MarkForDestroy();
                 self(self, child);  // recursi�n

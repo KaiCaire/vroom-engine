@@ -14,7 +14,12 @@ MaterialComponent::MaterialComponent(std::shared_ptr<GameObject> owner)
 }
 
 MaterialComponent::~MaterialComponent() {
-    // Nothing to clean up
+    if (diffuseMap) diffuseMap->RemoveReference();
+    if (specularMap) specularMap->RemoveReference();
+    if (normalMap) normalMap->RemoveReference();
+    if (metallicMap) metallicMap->RemoveReference();
+    if (roughnessMap) roughnessMap->RemoveReference();
+    if (aoMap) aoMap->RemoveReference();
 }
 
 void MaterialComponent::Enable() {

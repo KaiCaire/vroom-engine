@@ -19,40 +19,50 @@ std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene
     FileSystem* fs = Application::GetInstance().fileSystem.get();
 
     
-    VroomUUID meshUUID = cachedUUID;
+    VroomUUID meshUUID = (cachedUUID == 0) ? UUIDGen::GenerateUUID() : cachedUUID;
+    std::string libraryPath = Paths::MESH_LIB_DIR + std::to_string(meshUUID) + ".vroommesh";
 
-    // If we have a cached UUID, try to load from Library
-    //if (meshUUID != 0) {
-    //    std::string libraryPath = std::string(Paths::MESH_LIB_DIR) + std::to_string(meshUUID) + ".vroommesh";
+    
+    if (cachedUUID != 0 && fs->Exists(libraryPath.c_str())) {
+        LOG("Mesh library file exists. Reusing: %llu", meshUUID);
+        // Check if ResourceManager already has this mesh loaded to avoid duplicates
+        auto existingRes = Application::GetInstance().resourceManager->RequestResource(meshUUID);
+        if (existingRes) {
+            return std::dynamic_pointer_cast<ResourceMesh>(existingRes);
+        }
 
-    //    if (fs->Exists(libraryPath.c_str())) {
-    //        LOG("Loading mesh from cache: %s", libraryPath.c_str());
+        auto mesh = std::make_shared<ResourceMesh>();
+        mesh->SetUUID(meshUUID);
+        mesh->SetName(aiMesh->mName.C_Str());
 
-    //        auto mesh = std::make_shared<ResourceMesh>();
-    //        mesh->SetUUID(meshUUID);
-    //        mesh->SetName(aiMesh->mName.C_Str());
-
-    //        LOG("Mesh loaded from cache successfully");
-    //        return mesh;
-    //    }
-    //    else {
-    //        LOG("Cache file missing, will reimport");
-    //    }
-    //}
+        //load mesh!!!
+        mesh->LoadBin();
+        mesh->LoadToGPU();
+        Application::GetInstance().resourceManager->RegisterResource(mesh);
+        return mesh;
+  
+    }
 
     // No cached UUID or cache miss - import fresh
-    meshUUID = (meshUUID == 0) ? UUIDGen::GenerateUUID() : meshUUID;
-    LOG("Importing mesh (UUID: %llu)", meshUUID);
+   
+    if (cachedUUID != 0) {
+        //the uuid exists in the meta but the library file is gone 
+        LOG("Healing missing mesh file for UUID: %llu", meshUUID);
+    }
+    else {
+        LOG("Importing brand new mesh with UUID: %llu", meshUUID);
+    }
 
     // Process mesh data
     auto vertices = ProcessVertices(aiMesh);
     auto indices = ProcessIndices(aiMesh);
-    auto textures = ProcessTextures(aiMesh, scene, modelPath);
+    /*auto textures = ProcessTextures(aiMesh, scene, modelPath);*/ //HANDLED IN MODEL IMPORTER
 
     // Create mesh resource
-    auto mesh = std::make_shared<ResourceMesh>(vertices, indices, textures);
+    auto mesh = std::make_shared<ResourceMesh>(vertices, indices);
     mesh->SetUUID(meshUUID);
     mesh->SetName(aiMesh->mName.C_Str());
+    mesh->SetLibraryFilePath(libraryPath);
 
     //bounding box calculation
     if (!vertices.empty()) {
@@ -71,11 +81,13 @@ std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene
             aiMesh->mName.C_Str(), min.x, min.y, min.z, max.x, max.y, max.z);
     }
 
-    // Save to Library
-    std::string libraryPath = Paths::MESH_LIB_DIR + std::to_string(meshUUID) + ".vroommesh";
-    mesh->SetLibraryFilePath(libraryPath);
-    mesh->SaveBin();
+    
 
+    mesh->SaveBin();
+    if (!mesh->isLoadedToGPU) {
+        mesh->LoadToGPU();
+    }
+        
     Application::GetInstance().resourceManager->RegisterResource(mesh);
     
 

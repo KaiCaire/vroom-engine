@@ -2,7 +2,7 @@
     "1.name": "DefaultScene",
     "2.gameObjects": [
         {
-            "1.name": "Kodama_LOW",
+            "1.name": "Street environment_V01",
             "2.active": true,
             "3.transform": {
                 "position": [
@@ -24,7 +24,1310 @@
             },
             "6.children": [
                 {
-                    "1.name": "Kadama",
+                    "1.name": "Sky001",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            18.153732299804688,
+                            0.0,
+                            58.96091079711914
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Dummy001",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            0.7071067690849304,
+                            -0.7071067690849304,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "6.children": [
+                        {
+                            "1.name": "City_building_004",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -41.47589111328125,
+                                    21.01409912109375,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 7737972445243405542
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 6927165077197223102,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_001",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    17.707164764404297,
+                                    20.05327606201172,
+                                    2.121072952832037e-07
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 16469157630458713679
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 12788129349515952104,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_007",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    16.0104923248291,
+                                    37.4932861328125,
+                                    -1.5106878663573298e-06
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 11882017498874676917
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 7765950438783128565,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_008",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    40.97999572753906,
+                                    18.270824432373047,
+                                    -2.0522466002148576e-06
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 2415568157502796440
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 16516015467659593658,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Line002",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -2.1597719192504883,
+                                    1.8538382053375244,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    -0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 18026920540060890508
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 12788129349515952104,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Plane001",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -0.02860260009765625,
+                                    0.026032090187072754,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    0.973893404006958,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 6933065247859829144
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 12788129349515952104,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_010",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    25.154010772705078,
+                                    -39.15372085571289,
+                                    8.553864176974457e-07
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 15213315074241933293
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 10348234397014204271,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_011",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    30.134540557861328,
+                                    37.4932861328125,
+                                    -1.5106878663573298e-06
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 10473700499592923760
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 7765950438783128565,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_013",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -42.288055419921875,
+                                    33.201576232910156,
+                                    5.014607040720875e-07
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 11430106049671690629
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 12509997749226198939,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_014",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -19.439706802368164,
+                                    32.061729431152344,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    -4.371138828673793e-08,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 9154493901388487061
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 6927165077197223102,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_016",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    34.270423889160156,
+                                    -41.972747802734375,
+                                    8.553864176974457e-07
+                                ],
+                                "rotation": [
+                                    -4.371138828673793e-08,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 6753378175940570296
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 10348234397014204271,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_017",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    44.26008224487305,
+                                    -39.15372085571289,
+                                    8.553864176974457e-07
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 6392660494985162670
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 10348234397014204271,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_022",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -20.831323623657227,
+                                    -27.426488876342773,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.9470718370939721e-07,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 14948960606678584221
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 16198612392160397138,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_023",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    42.13064193725586,
+                                    37.4932861328125,
+                                    -1.5106878663573298e-06
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 1388230054892178379
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 7765950438783128565,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_024",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -20.572771072387695,
+                                    43.060829162597656,
+                                    -0.06919445842504501
+                                ],
+                                "rotation": [
+                                    4.371138828673793e-08,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 12005612500591767854
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 16516015467659593658,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_026",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    31.51188850402832,
+                                    -16.446016311645508,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    4.371138828673793e-08,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 6332554508918408796
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 16198612392160397138,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_028",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    13.38798999786377,
+                                    -33.75503921508789,
+                                    -9.383451811117993e-07
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 3113295771098207178
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 7752448429064455886,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "Object010",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -2.5033531188964844,
+                                    15.800846099853516,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 14624345991297230430
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 12788129349515952104,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_030",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -42.8072395324707,
+                                    -41.83556365966797,
+                                    -9.383451811117993e-07
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    -0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 1427381611356917103
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 7752448429064455886,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_031",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -34.679481506347656,
+                                    -41.83556365966797,
+                                    -9.383451811117993e-07
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    -0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 18239945982690470116
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 7752448429064455886,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_032",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -29.478403091430664,
+                                    21.01409912109375,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 14030079738909271369
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 6927165077197223102,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_033",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -32.36149597167969,
+                                    42.37042236328125,
+                                    5.014607040720875e-07
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 4558674316391910393
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 12509997749226198939,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_034",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    16.049516677856445,
+                                    -16.696884155273438,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    0.7071067094802856,
+                                    0.0,
+                                    0.0,
+                                    -0.7071068286895752
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 8479005524940777905
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 16198612392160397138,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_035",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    13.38798999786377,
+                                    -40.80251693725586,
+                                    -9.383451811117993e-07
+                                ],
+                                "rotation": [
+                                    1.0,
+                                    0.0,
+                                    0.0,
+                                    0.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 6794952009944015434
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 7752448429064455886,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_036",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -31.216331481933594,
+                                    33.201576232910156,
+                                    5.014607040720875e-07
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    -0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 606835819932309200
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 12509997749226198939,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_037",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -20.31769371032715,
+                                    -16.16360855102539,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    1.9470718370939721e-07,
+                                    0.0,
+                                    0.0,
+                                    1.0
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 9769232091192539320
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 16198612392160397138,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_038",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -41.64900207519531,
+                                    -16.495393753051758,
+                                    0.0
+                                ],
+                                "rotation": [
+                                    0.7071067094802856,
+                                    0.0,
+                                    0.0,
+                                    -0.7071068286895752
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 10260557115491635495
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 16198612392160397138,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_039",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -42.8072395324707,
+                                    -30.643888473510742,
+                                    -9.383451811117993e-07
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    -0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 15588803398461127892
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 7752448429064455886,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_040",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    -34.679481506347656,
+                                    -30.643888473510742,
+                                    -9.383451811117993e-07
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    -0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 13074517283729874524
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 7752448429064455886,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        },
+                        {
+                            "1.name": "City_building_041",
+                            "2.active": true,
+                            "3.transform": {
+                                "position": [
+                                    30.69527816772461,
+                                    21.612646102905273,
+                                    2.121072952832037e-07
+                                ],
+                                "rotation": [
+                                    0.7071067690849304,
+                                    0.0,
+                                    0.0,
+                                    0.7071067690849304
+                                ],
+                                "scale": [
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ]
+                            },
+                            "4.meshRenderer": {
+                                "meshUUID": 13808140949420038220
+                            },
+                            "5.material": {
+                                "diffuseColor": [
+                                    1.0,
+                                    1.0,
+                                    1.0,
+                                    1.0
+                                ],
+                                "diffuseMapUUID": 5999756900099072906,
+                                "metallic": 0.0,
+                                "roughness": 0.5,
+                                "shininess": 32.0
+                            },
+                            "6.children": []
+                        }
+                    ]
+                },
+                {
+                    "1.name": "Camera001",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            -78.31243133544922,
+                            45.251216888427734,
+                            -97.03111267089844
+                        ],
+                        "rotation": [
+                            -0.3301403522491455,
+                            0.049339789897203445,
+                            0.9322873950004578,
+                            0.13933119177818298
+                        ],
+                        "scale": [
+                            1.0,
+                            0.9999999403953552,
+                            0.9999999403953552
+                        ]
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Camera001.Target",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            -28.13262176513672,
+                            20.873329162597656,
+                            -35.064212799072266
+                        ],
+                        "rotation": [
+                            -0.33014044165611267,
+                            0.04933980479836464,
+                            0.932287335395813,
+                            0.13933119177818298
+                        ],
+                        "scale": [
+                            1.0,
+                            0.9999999403953552,
+                            1.0
+                        ]
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Spot001",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            -66.72126770019531,
+                            141.9341278076172,
+                            6.204137662280118e-06
+                        ],
+                        "rotation": [
+                            0.6900351643562317,
+                            0.15443938970565796,
+                            -0.6900351047515869,
+                            0.15443938970565796
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Spot001.Target",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            28.890945434570313,
+                            -60.96388244628906,
+                            -2.6648158382158726e-06
+                        ],
+                        "rotation": [
+                            1.0,
+                            5.960464477539063e-08,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "6.children": []
+                }
+            ]
+        },
+        {
+            "1.name": "backpack",
+            "2.active": true,
+            "3.transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "6.children": [
+                {
+                    "1.name": "Cube.028__0",
                     "2.active": true,
                     "3.transform": {
                         "position": [
@@ -45,48 +1348,24 @@
                         ]
                     },
                     "4.meshRenderer": {
-                        "meshUUID": 9929972552800029301
+                        "meshUUID": 8413129734306347860
                     },
                     "5.material": {
                         "diffuseColor": [
-                            0.5,
-                            0.5,
-                            0.5,
+                            1.0,
+                            1.0,
+                            1.0,
                             1.0
                         ],
-                        "diffuseMapUUID": 9712297288695199485,
+                        "diffuseMapUUID": 2613674156832134414,
                         "metallic": 0.0,
                         "roughness": 0.5,
-                        "shininess": 2.0
+                        "shininess": 32.0
                     },
                     "6.children": []
-                }
-            ]
-        },
-        {
-            "1.name": "Eren Colossal Titan",
-            "2.active": true,
-            "3.transform": {
-                "position": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "rotation": [
-                    1.0,
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "scale": [
-                    1.0,
-                    1.0,
-                    1.0
-                ]
-            },
-            "6.children": [
+                },
                 {
-                    "1.name": "Eren Colossal Titan",
+                    "1.name": "Plane.008__0",
                     "2.active": true,
                     "3.transform": {
                         "position": [
@@ -95,8 +1374,8 @@
                             0.0
                         ],
                         "rotation": [
-                            0.7071067094802856,
-                            -0.7071068286895752,
+                            1.0,
+                            0.0,
                             0.0,
                             0.0
                         ],
@@ -106,350 +1385,2948 @@
                             1.0
                         ]
                     },
-                    "6.children": [
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 2696795257847615377
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 2846581003531482676,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 56.25
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 9455621932094098189
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 9302251553660068205,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 25.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 12930318877165369703
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 4147287931290209261,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 36.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 13148191735884480772
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 13190501974493813442,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 36.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 425395092577989409
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 12462810059297702894,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 36.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 5458004491496135747
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 16491388619599562412,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 25.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 242258440275523285
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 11030705100395935989,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 25.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 2221497581593529214
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 11030705100395935989,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 25.0
-                            },
-                            "6.children": []
-                        },
-                        {
-                            "1.name": "Eren Colossal Titan",
-                            "2.active": true,
-                            "3.transform": {
-                                "position": [
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "rotation": [
-                                    1.0,
-                                    0.0,
-                                    0.0,
-                                    0.0
-                                ],
-                                "scale": [
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ]
-                            },
-                            "4.meshRenderer": {
-                                "meshUUID": 18011610624153290464
-                            },
-                            "5.material": {
-                                "diffuseColor": [
-                                    1.0,
-                                    1.0,
-                                    1.0,
-                                    1.0
-                                ],
-                                "diffuseMapUUID": 8171489713605922376,
-                                "metallic": 0.0,
-                                "roughness": 0.5,
-                                "shininess": 25.0
-                            },
-                            "6.children": []
-                        }
-                    ]
+                    "4.meshRenderer": {
+                        "meshUUID": 16766993094202211268
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.029__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 14528342819018241341
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Plane.009__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 5461123450940537934
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Plane.010__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 3132462969653759119
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Plane.011__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 17744550223308277023
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.029__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 16689920145297032447
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.030__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 8747031107109835021
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Plane.012__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 4662873179367807072
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Plane.013__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 3528780926025429272
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.030__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 12301394221003795340
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Plane.014__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 4256531913140143163
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.031__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 11554064418632319269
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.031__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 10105789228643375786
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.032__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 499862463618833150
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.032__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 11893219912211959093
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.033__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 585991738043988028
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.034__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 6392157838462187646
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.035__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 11170479874750723426
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.036__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 9372648730913464425
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.033__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 8979684290107479096
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.037__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 11210590049166951639
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.034__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 9912236910237171581
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.035__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 13502278809106144731
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.038__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 4298655785084411884
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.039__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 3486903219078934611
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.036__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 10161903734658805139
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.037__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 3763285099878328062
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.038__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 16474095678804445364
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.039__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 15964747456798416031
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.040__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 15011308129532557464
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.041__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 17654687486164158958
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.042__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 11358337504756774428
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.043__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 5370296040127033158
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.044__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 1652208037157257962
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.045__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 1267737156688333249
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.046__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 5029751190998347200
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.047__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 17548428598552922202
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.048__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 4394294647333547264
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.049__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 4871527356784860140
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.040__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 16109121096676212532
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.041__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 14653310644085640088
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.042__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 1797431832450093475
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.043__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 7664269561179289304
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.044__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 7715414626021048180
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.045__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 378946834558808094
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Plane.015__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 14011937292228455212
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.046__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 17160513365740128655
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.047__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 1540506354815934009
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.050__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 1584006825421021428
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.048__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 3269831114693376322
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.051__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 8962470655515031027
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.052__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 414735440612773372
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.053__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 10736360111403182437
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.054__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 18432098736317013791
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "BezierCurve.003__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 9726916561570097416
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.049__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 12459346166398497981
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.055__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 7851234810162486551
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cylinder.056__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 5941947448550074951
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.050__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 13379858389899236916
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.014__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 16493972516639555555
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.015__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 1595251501139109767
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.016__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 13835490789252504827
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.017__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 10744610464799714905
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.051__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 13756708892807239126
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.018__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 7123176987964300804
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.019__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 14350626866977480882
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.020__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 2052058311253000417
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.021__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 11648380439776557188
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.052__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 6639935143011585320
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.053__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 8166770906207158202
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.054__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 5481777739456406126
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.022__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 2978868565454462469
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.023__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 11168106707316490422
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.024__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 18267783384358770709
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.025__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 11358864021461052485
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.026__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 17392940565969303655
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Sphere.027__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 1022511000261889230
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
+                },
+                {
+                    "1.name": "Cube.055__0",
+                    "2.active": true,
+                    "3.transform": {
+                        "position": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "rotation": [
+                            1.0,
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "scale": [
+                            1.0,
+                            1.0,
+                            1.0
+                        ]
+                    },
+                    "4.meshRenderer": {
+                        "meshUUID": 12512011144991103514
+                    },
+                    "5.material": {
+                        "diffuseColor": [
+                            1.0,
+                            1.0,
+                            1.0,
+                            1.0
+                        ],
+                        "diffuseMapUUID": 2613674156832134414,
+                        "metallic": 0.0,
+                        "roughness": 0.5,
+                        "shininess": 32.0
+                    },
+                    "6.children": []
                 }
             ]
         }

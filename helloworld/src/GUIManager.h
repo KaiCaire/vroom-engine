@@ -47,9 +47,10 @@ public:
 	bool CleanUp();
 
 	// Check if a GameObject is showing checker texture
-	bool IsShowingCheckerTexture(std::shared_ptr<GameObject> go) {
-		return originalTextures.find(go) != originalTextures.end();
-	}
+	bool IsShowingCheckerTexture(std::shared_ptr<GameObject> go);
+	//	return originalTextures.find(go) != originalTextures.end();
+	//}
+	VroomUUID GetCheckerTextureUUID();
 
 	// Show checker texture for a specific GameObject
 	void ShowCheckerTexture(std::shared_ptr<GameObject> go);
@@ -61,6 +62,7 @@ public:
 
 	//queue object for deletion
 	void AddToDeleteQueue(const std::shared_ptr<GameObject>& obj);
+	
 
 	//add file to asset viewer
 	void HandleExternalFileDrop(const std::string& sourceOSPath);
@@ -86,6 +88,7 @@ public:
 	bool showSceneViewport = true;
 
 	std::shared_ptr<GameObject> selectedObject;
+	std::weak_ptr<GameObject> previousSelectedObject;
 
 	std::map<std::shared_ptr<GameObject>, std::shared_ptr<ResourceTexture>> originalTextures;
 

@@ -31,11 +31,22 @@ public:
 
     void SetDiffuseMap(std::shared_ptr<ResourceTexture> tex) 
     { 
-        if (tex->mapType.empty()) {
-            tex->mapType = "texture_diffuse";
+        // 1. Decrement reference count for the OLD texture, if one exists
+        if (diffuseMap) {
+            diffuseMap->RemoveReference();
         }
-            
-        diffuseMap = tex; 
+
+        // 2. Assign the new shared pointer
+        diffuseMap = tex;
+
+        if (tex) {
+            // 3. Increment reference count for the NEW texture
+            tex->AddReference();
+
+            if (tex->mapType.empty()) {
+                tex->mapType = "texture_diffuse";
+            }
+        }
         
     }
     std::shared_ptr<ResourceTexture> GetDiffuseMap() const { return diffuseMap; }
