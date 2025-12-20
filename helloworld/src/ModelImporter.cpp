@@ -350,6 +350,10 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         LOG("SUCCESS: Mesh set in renderer (vertices=%d)", verifyMesh->vertices.size());
     }
 
+    if (mesh && !mesh->isLoadedToGPU) {
+        Application::GetInstance().resourceManager->LoadResourceToGPU(mesh);
+    }
+
     // --- Add Material Component ---
     auto materialComp = gameObject->AddComponent(ComponentType::MATERIAL);
     auto matComponent = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
@@ -384,6 +388,9 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         //assign
         if (textureFoundInModel) {
             matComponent->SetDiffuseMap(loadedTexture);
+            if (loadedTexture && !loadedTexture->isLoadedToGPU) {
+                Application::GetInstance().resourceManager->LoadResourceToGPU(loadedTexture);
+            }
         }
         //texture loading failed 
         else {
@@ -394,6 +401,9 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 
             if (defaultTex) {
                 matComponent->SetDiffuseMap(defaultTex);
+                if (!defaultTex->isLoadedToGPU) {
+                    Application::GetInstance().resourceManager->LoadResourceToGPU(defaultTex);
+                }
             }
         }
 
@@ -414,7 +424,9 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         auto defaultTex = GetOrLoadTexture(defaultPath, defaultName, "texture_diffuse");
         if (defaultTex) {
             matComponent->SetDiffuseMap(defaultTex);
-            
+            if(!defaultTex->isLoadedToGPU) {
+                Application::GetInstance().resourceManager->LoadResourceToGPU(defaultTex);
+            }
         }
     }
 

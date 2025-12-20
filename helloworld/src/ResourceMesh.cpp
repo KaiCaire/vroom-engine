@@ -52,8 +52,17 @@ ResourceMesh::~ResourceMesh() {
 
 void ResourceMesh::LoadToGPU() {
 
-    /*if (isLoadedToGPU) 
-        LOG("Mesh with UUID %llu already loaded to GPU, skipping", GetUUID()); return;*/
+    if (vertices.empty() || indices.empty()) {
+        LOG("WARNING: Attempted to upload empty mesh to GPU. Skipping.");
+        return;
+    }
+
+    if (isLoadedToGPU){
+
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+    }
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -185,10 +194,13 @@ void ResourceMesh::LoadToGPU() {
 //}
 
 void ResourceMesh::Draw(Shader& shader, MaterialComponent* material) {
-    // 1. TEXTURE BINDING
-    // We use a counter for texture units (GL_TEXTURE0, GL_TEXTURE1, etc.)
-    unsigned int unit = 0;
 
+    // CRITICAL: If the mesh isn't on the GPU, don't even try to bind or draw.
+    if (!isLoadedToGPU || VAO == 0) {
+        return;
+    }
+
+    unsigned int unit = 0;
     // Helper to bind textures and set the sampler uniform inside the 'material' struct
     auto bindTex = [&](const std::shared_ptr<ResourceTexture>& tex, const std::string& memberName) {
         if (tex && tex->isLoadedToGPU) {

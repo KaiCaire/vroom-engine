@@ -32,7 +32,7 @@ bool ResourceManager::Start() {
 
     ReimportMissingFiles();
 
-    DeleteUnusedLibraryFiles();
+    /*DeleteUnusedLibraryFiles();*/
    
     //scan assets for imgui hierarchy
     ScanAssetsFolder();

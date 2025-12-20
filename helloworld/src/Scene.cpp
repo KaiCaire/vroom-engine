@@ -377,47 +377,45 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
         auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
 
         VroomUUID meshUUID = mr["meshUUID"];
-        renderer->SetMeshUUID(meshUUID);
-
+       
         // Request mesh from ResourceManager
         auto resMesh = Application::GetInstance().resourceManager.get()->RequestResource(meshUUID);
-       
+        renderer->SetMeshUUID(meshUUID);
 
-        if (resMesh == nullptr) {
-            if (reimportedModels.find(sourceModelName) == reimportedModels.end()) {
 
-                // Mark the model as reimported to avoid repeating
-                reimportedModels.insert(sourceModelName);
+        //if (resMesh == nullptr) {
+        //    if (reimportedModels.find(sourceModelName) == reimportedModels.end()) {
 
-                LOG("Mesh missing -> reimporting entire model once: %s", sourceModelName.c_str());
+        //        // Mark the model as reimported to avoid repeating
+        //        reimportedModels.insert(sourceModelName);
 
-                std::string modelPath = Application::GetInstance().fileSystem->NormalizePath(
-                    FindModelInAssetsFolder(sourceModelName).c_str()
-                );
+        //        LOG("Mesh missing -> reimporting entire model once: %s", sourceModelName.c_str());
 
-                // IMPORT WITH NO META
-                //Application::GetInstance().importer->modelImporter->ImportScene(modelPath.c_str());
-                Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath.c_str(), nullptr, false);
-                // Traverse importedRoot to find the mesh by UUID
+        //        std::string modelPath = Application::GetInstance().fileSystem->NormalizePath(
+        //            FindModelInAssetsFolder(sourceModelName).c_str()
+        //        );
 
-                // Try fetching the mesh again from the ResourceManager
-                resMesh = Application::GetInstance().resourceManager->RequestResource(meshUUID);
+        //       
+        //        Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(modelPath.c_str(), nullptr, false);
 
-                if (resMesh != nullptr)
-                {
-                    // Update JSON with new UUID
-                }
-                else
-                {
-                    LOG("ERROR: Mesh still missing after reimport: %llu", meshUUID);
-                }
+        //        // Try fetching the mesh again from the ResourceManager
+        //        resMesh = Application::GetInstance().resourceManager->RequestResource(meshUUID);
 
-            }
-            else
-            {
-                LOG("Mesh missing but model already reimported. Skipping second reimport.");
-            }
-        }
+        //        if (resMesh != nullptr)
+        //        {
+        //            // Update JSON with new UUID
+        //        }
+        //        else
+        //        {
+        //            LOG("ERROR: Mesh still missing after reimport: %llu", meshUUID);
+        //        }
+
+        //    }
+        //    else
+        //    {
+        //        LOG("Mesh missing but model already reimported. Skipping second reimport.");
+        //    }
+        //}
         
         auto mesh = std::dynamic_pointer_cast<ResourceMesh>(resMesh);
         renderer->SetMesh(mesh);
