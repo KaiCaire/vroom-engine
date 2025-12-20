@@ -575,15 +575,23 @@ void GUIElement::InspectorSetUp(bool* show)
 		if (transform) {
 			//check if header is open
 			if (ImGui::CollapsingHeader("Transform")) {
-				//get values
-				glm::vec3 pos = transform.get()->GetWorldPosition();
-				glm::quat rot = glm::degrees(glm::eulerAngles(transform->GetWorldRotation()));
-				glm::vec3 scale = transform.get()->GetWorldScale();
+				//position
+				glm::vec3 pos = transform->GetPosition();
+				if (ImGui::DragFloat3("Position", glm::value_ptr(pos), 0.1f)) {
+					transform->SetPosition(pos);
+				}
 
-				//display values
-				ImGui::Text("Position: %.2f, %.2f, %.2f", pos.x, pos.y, pos.z);
-				ImGui::Text("Rotation: %.2f, %.2f, %.2f", rot.x, rot.y, rot.z);
-				ImGui::Text("Scale: %.2f, %.2f, %.2f", scale.x, scale.y, scale.z);
+				//rotation
+				glm::vec3 rotation = glm::degrees(glm::eulerAngles(transform->GetRotation()));
+				if (ImGui::DragFloat3("Rotation", glm::value_ptr(rotation), 0.1f)) {
+					transform->SetRotation(glm::quat(glm::radians(rotation)));
+				}
+
+				//scale
+				glm::vec3 scale = transform->GetScale();
+				if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), 0.1f)) {
+					transform->SetScale(scale);
+				}
 			}
 		}
 		
@@ -979,6 +987,13 @@ void GUIElement::SceneViewportSetUp(bool* show) {
 
 						// apllying the new transform
 						if (ImGuizmo::IsUsing()) {
+							float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+							glm::mat4 modelMatrix = transform->GetModelMatrix();
+							ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(modelMatrix), matrixTranslation, matrixRotation, matrixScale);
+							transform->SetPosition(glm::vec3(matrixTranslation[0], matrixTranslation[1], matrixTranslation[2]));
+							glm::vec3 eulerRadians = glm::radians(glm::vec3(matrixRotation[0], matrixRotation[1], matrixRotation[2]));
+							transform->SetRotation(glm::quat(eulerRadians));
+							transform->SetScale(glm::vec3(matrixScale[0], matrixScale[1], matrixScale[2]));
 
 							glm::mat4 newGlobal = glm::make_mat4(modelArr);
 
