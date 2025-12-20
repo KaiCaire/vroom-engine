@@ -76,8 +76,8 @@ std::vector<GUIElement> GUIManager::LoadElements()
 	elements.push_back(GUIElement(ElementType::Hierarchy, this));
 	elements.push_back(GUIElement(ElementType::Inspector, this));
 	elements.push_back(GUIElement(ElementType::AssetsViewer, this));
-	elements.push_back(GUIElement(ElementType::SceneViewport, this));
 	elements.push_back(GUIElement(ElementType::GameViewport, this));
+	elements.push_back(GUIElement(ElementType::SceneViewport, this));
 
 	return elements;
 }
@@ -136,6 +136,12 @@ bool GUIManager::Update(float dt)
 	ImGui::PopStyleVar(2);
 
 	if (!dockInitialized) InitDock();
+
+	static bool firstFrameFocus = true;
+	if (firstFrameFocus && dockInitialized) {
+		ImGui::SetWindowFocus("Scene");
+		firstFrameFocus = false;
+	}
 
 	//menu setup
 	Menu.ElementSetUp();
@@ -315,6 +321,9 @@ void GUIManager::InitDock() {
 	ImGui::DockBuilderDockWindow("Game", dockMainID);
 
 	ImGui::DockBuilderFinish(dockspaceID);
+
+	//make sure you start on scene
+	ImGui::SetWindowFocus("Scene");
 	//only do this once
 	dockInitialized = true;
 }
