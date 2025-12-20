@@ -20,8 +20,6 @@
 #include "ResourceTexture.h"
 #include "SceneManager.h"
 
-
-
 #include "SDL3/SDL.h"
 #include <vector>
 
@@ -99,6 +97,23 @@ bool Input::PreUpdate()
 				keyboard[i] = KEY_UP;
 			else
 				keyboard[i] = KEY_IDLE;
+		}
+	}
+
+	//Imguizmo controls
+	GUIManager* gui = Application::GetInstance().guiManager.get();
+	if (gui) {
+		if (GetKey(SDL_SCANCODE_W) == KEY_DOWN) {
+			gui->gizmoOperation = GUIManager::GIZMO_TRANSLATE;
+			LOG("Gizmo mode: Translate (W)");
+		}
+		if (GetKey(SDL_SCANCODE_E) == KEY_DOWN) {
+			gui->gizmoOperation = GUIManager::GIZMO_ROTATE;
+			LOG("Gizmo mode: Rotate (E)");
+		}
+		if (GetKey(SDL_SCANCODE_R) == KEY_DOWN) {
+			gui->gizmoOperation = GUIManager::GIZMO_SCALE;
+			LOG("Gizmo mode: Scale (R)");
 		}
 	}
 

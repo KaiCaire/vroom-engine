@@ -27,6 +27,9 @@
 
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "ImGuizmo.h"
 
 #include <vector>
 
@@ -828,6 +831,100 @@ void GUIElement::SceneViewportSetUp(bool* show) {
 		//LOG("Current Scene Texture ID: %u", sceneTextureID);
 		if (sceneTextureID != 0) {
 			ImGui::Image((ImTextureID)(intptr_t)sceneTextureID, viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
+
+			// show gizmo when an object is selected
+			ImVec2 imgMin = ImGui::GetItemRectMin();
+			ImVec2 imgMax = ImGui::GetItemRectMax();
+			float imgWidth = imgMax.x - imgMin.x;
+			float imgHeight = imgMax.y - imgMin.y;
+
+			// for safety reasons we only show if image has positive size
+			if (imgWidth > 0 && imgHeight > 0) {
+				// Begin ImGuizmo frame and configure
+				ImGuizmo::BeginFrame();
+				ImGuizmo::Enable(true);
+				ImGuizmo::SetOrthographic(false);
+				ImGuizmo::SetDrawlist();
+				ImGuizmo::SetRect(imgMin.x, imgMin.y, imgWidth, imgHeight);
+
+				// If there's a selection draw the manipulator
+				auto selected = manager->selectedObject;
+				if (selected) {
+					auto transform = std::dynamic_pointer_cast<TransformComponent>(selected->GetComponent(ComponentType::TRANSFORM));
+					if (transform) {
+						// Get matrices from camera and object
+						glm::mat4 modelMat = transform->GetGlobalTransform();
+						glm::mat4 viewMat = Application::GetInstance().camera->viewMat;
+						glm::mat4 projMat = Application::GetInstance().camera->projectionMat;
+
+						// Prepare float buffers for ImGuizmo (column-major)
+						float modelArr[16];
+						memcpy(modelArr, glm::value_ptr(modelMat), sizeof(modelArr));
+
+						// Choose imguizmo mode
+						ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
+						switch (manager->gizmoOperation) {
+						case GUIManager::GIZMO_TRANSLATE:
+							operation = ImGuizmo::TRANSLATE;
+							break;
+						case GUIManager::GIZMO_ROTATE:
+							operation = ImGuizmo::ROTATE;
+							break;
+						case GUIManager::GIZMO_SCALE:
+							operation = ImGuizmo::SCALE;
+							break;
+						default:
+							operation = ImGuizmo::TRANSLATE;
+							break;
+						}
+						ImGuizmo::MODE mode = ImGuizmo::WORLD;
+
+						// Show the guizmo manipulator
+						ImGuizmo::Manipulate(glm::value_ptr(viewMat), glm::value_ptr(projMat), operation, mode, modelArr);
+
+						// apllying the new transform
+						if (ImGuizmo::IsUsing()) {
+
+							glm::mat4 newGlobal = glm::make_mat4(modelArr);
+
+							glm::mat4 parentGlobal = glm::mat4(1.0f);
+							if (auto parent = selected->GetParent()) {
+								auto parentTransform = std::dynamic_pointer_cast<TransformComponent>(parent->GetComponent(ComponentType::TRANSFORM));
+								if (parentTransform) parentGlobal = parentTransform->GetGlobalTransform();
+							}
+
+							glm::mat4 localMat = glm::inverse(parentGlobal) * newGlobal;
+
+							glm::vec3 translation = glm::vec3(localMat[3]);
+							glm::vec3 col0 = glm::vec3(localMat[0]);
+							glm::vec3 col1 = glm::vec3(localMat[1]);
+							glm::vec3 col2 = glm::vec3(localMat[2]);
+							glm::vec3 scale(
+								glm::length(col0),
+								glm::length(col1),
+								glm::length(col2)
+							);
+							//divide by 0 prevention
+							if (scale.x == 0.0f) scale.x = 1.0f;
+							if (scale.y == 0.0f) scale.y = 1.0f;
+							if (scale.z == 0.0f) scale.z = 1.0f;
+
+							glm::mat3 rotMat(
+								col0 / scale.x,
+								col1 / scale.y,
+								col2 / scale.z
+							);
+
+							glm::quat rotation = glm::quat_cast(rotMat);
+
+							// Apply to component 
+							transform->SetPosition(translation);
+							transform->SetRotation(rotation);
+							transform->SetScale(scale);
+						}
+					}
+				}
+			}
 		}
 		else {
 			manager->sceneViewportIsHovered = false;
