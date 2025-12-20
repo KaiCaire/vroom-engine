@@ -414,6 +414,7 @@ void GUIElement::HierarchySetUp(bool* show)
 			DrawNode(child, manager->selectedObject);
 	}
 
+
 	//creating invisible object for drag and drop
 	//get avaiable size 
 	ImVec2 contentSize = ImGui::GetContentRegionAvail();
@@ -1043,6 +1044,7 @@ void GUIElement::SceneViewportSetUp(bool* show) {
 	ImGui::End();
 }
 
+
 void GUIElement::GameViewportSetUp(bool* show) {
 	ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
 
@@ -1073,6 +1075,17 @@ void GUIElement::GameViewportSetUp(bool* show) {
 		uint32_t texID = Application::GetInstance().render->gameTextureID;
 		if (texID) {
 			ImGui::Image((ImTextureID)(uintptr_t)texID, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
+		}
+
+		//drag and drop target
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+				std::string droppedPath((const char*)payload->Data);
+
+				//handle instantiation
+				InstantiateAsset(droppedPath);
+			}
+			ImGui::EndDragDropTarget();
 		}
 	}
 	ImGui::End();

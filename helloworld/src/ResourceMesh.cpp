@@ -1,4 +1,4 @@
-﻿#include "ResourceMesh.h"
+#include "ResourceMesh.h"
 #include "OpenGL.h"
 #include "ResourceTexture.h"
 #include "Importer.h"
@@ -52,8 +52,17 @@ ResourceMesh::~ResourceMesh() {
 
 void ResourceMesh::LoadToGPU() {
 
-    /*if (isLoadedToGPU) 
-        LOG("Mesh with UUID %llu already loaded to GPU, skipping", GetUUID()); return;*/
+    if (vertices.empty() || indices.empty()) {
+        LOG("WARNING: Attempted to upload empty mesh to GPU. Skipping.");
+        return;
+    }
+
+    if (isLoadedToGPU){
+
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+    }
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -185,10 +194,13 @@ void ResourceMesh::LoadToGPU() {
 //}
 
 void ResourceMesh::Draw(Shader& shader, MaterialComponent* material) {
-    // 1. TEXTURE BINDING
-    // We use a counter for texture units (GL_TEXTURE0, GL_TEXTURE1, etc.)
-    unsigned int unit = 0;
 
+    // CRITICAL: If the mesh isn't on the GPU, don't even try to bind or draw.
+    if (!isLoadedToGPU || VAO == 0) {
+        return;
+    }
+
+    unsigned int unit = 0;
     // Helper to bind textures and set the sampler uniform inside the 'material' struct
     auto bindTex = [&](const std::shared_ptr<ResourceTexture>& tex, const std::string& memberName) {
         if (tex && tex->isLoadedToGPU) {
@@ -441,10 +453,17 @@ void ResourceMesh::SaveBin() {
     uint vertexCount = vertices.size();
     uint indexCount = indices.size();
 
+    //uint textureCount = textures.size();
+
+    //calculate size of bounding box
+    size_t minMaxAABBSize = sizeof(glm::vec3) * 2;
+
+
     // Calculate buffer size: Header (2 counts) + Vertices + Indices
     size_t bufferSize = sizeof(uint) * 2;
     bufferSize += vertexCount * sizeof(Vertex);
     bufferSize += indexCount * sizeof(unsigned int);
+    bufferSize += minMaxAABBSize;
 
     // Create buffer
     char* buffer = new char[bufferSize];
@@ -455,6 +474,12 @@ void ResourceMesh::SaveBin() {
     ptr += sizeof(uint);
     std::memcpy(ptr, &indexCount, sizeof(uint));
     ptr += sizeof(uint);
+
+    //write local aabb
+    std::memcpy(ptr, &minAABB, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
+    std::memcpy(ptr, &maxAABB, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
 
     // Write vertices
     std::memcpy(ptr, vertices.data(), vertexCount * sizeof(Vertex));
@@ -587,7 +612,15 @@ void ResourceMesh::LoadBin() {
     std::memcpy(&indexCount, ptr, sizeof(uint));
     ptr += sizeof(uint);
 
-    // 2. Read vertices
+
+    //read local aabb
+    std::memcpy(&minAABB, ptr, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
+    std::memcpy(&maxAABB, ptr, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
+
+    // Read vertices
+
     vertices.resize(vertexCount);
     std::memcpy(vertices.data(), ptr, vertexCount * sizeof(Vertex));
     ptr += vertexCount * sizeof(Vertex);
