@@ -29,6 +29,9 @@ public:
     void DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader);
     void DrawGrid();
 
+    // Outline rendering for selected object
+    void RenderOutline(std::shared_ptr<GameObject> selectedObj, const glm::vec3& color = glm::vec3(1.0f), float scale = 1.05f);
+
     //aabb drawing
     void DrawAABB(const AABB& bounds, const glm::vec4& color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
     void DrawRay(const glm::vec3& origin, const glm::vec3& direction, const glm::vec4& color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));

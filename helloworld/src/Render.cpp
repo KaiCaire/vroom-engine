@@ -12,6 +12,8 @@
 #include "Octree.h"
 #include "GUIManager.h"
 #include "Input.h"
+#include "TransformComponent.h"
+#include "MaterialComponent.h"
 
 
 #ifndef M_PI
@@ -185,49 +187,55 @@ void Render::SetBackgroundColor(SDL_Color color)
 
 void Render::DrawGrid() {
 
-	Shader* gridShader = Application::GetInstance().openGL.get()->texCoordsShader;
-	gridShader->Use();
+    Shader* gridShader = Application::GetInstance().openGL.get()->texCoordsShader;
+    if (!gridShader) {
+        LOG("DrawGrid: texCoordsShader es null");
+        return;
+    }
 
-	auto camera = Application::GetInstance().camera.get();
-	gridShader->setMat4("view", camera->viewMat);
-	gridShader->setMat4("projection", camera->projectionMat);
+    gridShader->Use();
 
-	glm::mat4 identityMat = glm::mat4(1.0f);
-	gridShader->setMat4("model", identityMat);
+    auto camera = Application::GetInstance().camera.get();
+    if (!camera) {
+        LOG("DrawGrid: Camera es null");
+        return;
+    }
 
-	// Enable line color mode
-	glUniform1i(glGetUniformLocation(gridShader->ID, "useLineColor"), true);
-	glUniform4f(glGetUniformLocation(gridShader->ID, "lineColor"), 1.0f, 1.0f, 1.0f, 0.5f);
+    gridShader->setMat4("view", camera->viewMat);
+    gridShader->setMat4("projection", camera->projectionMat);
 
-	float lineX = -100.0f;
-	float lineZ = -100.0f;
+    glm::mat4 identityMat = glm::mat4(1.0f);
+    gridShader->setMat4("model", identityMat);
 
-	float lineLength = 100.0f;
-	for (int i = 0; i < 1000; i++) {
-		
-		glLineWidth(1.0f);
-		
-		glBegin(GL_LINES);
+    // Verificar que el shader exporta el uniform
+    GLint loc = glad_glGetUniformLocation(gridShader->ID, "useLineColor");
+    if (loc < 0) {
+        LOG("DrawGrid: uniform 'useLineColor' no encontrado en el shader (el shader puede usar otros nombres).");
+    }
 
-		//X AXIS LINES
-		glVertex3f(-lineLength, 0.0f, lineZ);
-		glVertex3f(lineLength, 0.0f, lineZ);
+    // DEBUG: deshabilitar depth para comprobar si el grid está siendo ocultado
+    GLboolean wasDepthEnabled = (GLboolean)glIsEnabled(GL_DEPTH_TEST);
+    if (wasDepthEnabled) glDisable(GL_DEPTH_TEST);
 
-		//Z AXIS LINES
-		glVertex3f(lineX, 0.f, -lineLength);
-		glVertex3f(lineX, 0.f, lineLength);
+    glUniform1i(glad_glGetUniformLocation(gridShader->ID, "useLineColor"), GL_TRUE);
+    glUniform4f(glad_glGetUniformLocation(gridShader->ID, "lineColor"), 1.0f, 1.0f, 1.0f, 0.5f);
 
-		glEnd();
-		
+    float lineX = -100.0f;
+    float lineZ = -100.0f;
+    float lineLength = 100.0f;
+    for (int i = 0; i < 1000; i++) {
+        glLineWidth(1.0f);
+        glBegin(GL_LINES);
+        glVertex3f(-lineLength, 0.0f, lineZ); glVertex3f(lineLength, 0.0f, lineZ);
+        glVertex3f(lineX, 0.f, -lineLength);      glVertex3f(lineX, 0.f, lineLength);
+        glEnd();
+        lineX++;
+        lineZ++;
+    }
 
-		lineX++;
-		lineZ++;
-	}
-
-	//glClearColor;
-
-	// Restore texture mode
-	glUniform1i(glGetUniformLocation(gridShader->ID, "useLineColor"), false);
+    // Restaurar estado
+    glUniform1i(glad_glGetUniformLocation(gridShader->ID, "useLineColor"), GL_FALSE);
+    if (wasDepthEnabled) glEnable(GL_DEPTH_TEST);
 }
 
 void Render::DrawAABB(const AABB& bounds, const glm::vec4& color) {
@@ -321,6 +329,87 @@ void Render::DrawRay(const glm::vec3& origin, const glm::vec3& direction, const 
 	glEnable(GL_DEPTH_TEST);
 }
 
+void Render::RenderOutline(std::shared_ptr<GameObject> selectedObj, const glm::vec3& color, float scale) {
+	if (!selectedObj) return;
+
+	// Get shaders from OpenGL module
+	OpenGL* ogl = Application::GetInstance().openGL.get();
+	if (!ogl) return;
+
+	Shader* texCoordsShader = ogl->texCoordsShader;
+	Shader* outlineShader = ogl->outlineShader;
+	if (!texCoordsShader || !outlineShader) return;
+
+	auto rendererComp = std::dynamic_pointer_cast<RenderMeshComponent>(selectedObj->GetComponent(ComponentType::MESH_RENDERER));
+	if (!rendererComp) return;
+
+	auto mesh = rendererComp->GetMesh();
+	if (!mesh) return;
+
+	auto transformComp = std::dynamic_pointer_cast<TransformComponent>(selectedObj->GetComponent(ComponentType::TRANSFORM));
+	if (!transformComp) return;
+
+	// Obtener material (si existe) para pasarlo al Draw
+	auto materialComp = std::dynamic_pointer_cast<MaterialComponent>(selectedObj->GetComponent(ComponentType::MATERIAL));
+	MaterialComponent* materialPtr = materialComp ? materialComp.get() : nullptr;
+
+	auto camera = Application::GetInstance().camera.get();
+	if (!camera) return;
+
+	// save previous GL states to restore later
+	GLboolean prevCull = (GLboolean)glIsEnabled(GL_CULL_FACE);
+	GLboolean prevDepthTest = (GLboolean)glIsEnabled(GL_DEPTH_TEST);
+	GLboolean prevDepthMask;
+	glGetBooleanv(GL_DEPTH_WRITEMASK, &prevDepthMask);
+	GLint prevCullFaceMode;
+	glGetIntegerv(GL_CULL_FACE_MODE, &prevCullFaceMode);
+	GLint prevDepthFunc;
+	glGetIntegerv(GL_DEPTH_FUNC, &prevDepthFunc);
+
+	// Modelos
+	glm::mat4 model = transformComp->GetModelMatrix();
+	glm::mat4 scaledModel = glm::scale(model, glm::vec3(scale));
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	glDepthMask(GL_FALSE); 
+
+	outlineShader->Use();
+	outlineShader->setMat4("view", camera->viewMat);
+	outlineShader->setMat4("projection", camera->projectionMat);
+	outlineShader->setMat4("model", scaledModel);
+
+	int colorLoc = glad_glGetUniformLocation(outlineShader->ID, "outlineColor");
+	if (colorLoc >= 0) {
+		glUniform3f(colorLoc, color.r, color.g, color.b);
+	}
+	
+	// Llamada corregida: pasar también el material asociado al GameObject (puede ser nullptr)
+	mesh->Draw(*outlineShader, materialPtr);
+
+	glDepthMask(GL_TRUE);
+
+	// draw object over the outline
+	texCoordsShader->Use();
+	texCoordsShader->setMat4("view", camera->viewMat);
+	texCoordsShader->setMat4("projection", camera->projectionMat);
+	texCoordsShader->setMat4("model", model);
+
+	// Igual, pasar el material si está presente
+	mesh->Draw(*texCoordsShader, materialPtr);
+
+	// restore previous GL states
+	glCullFace(prevCullFaceMode);
+	if (!prevCull) glDisable(GL_CULL_FACE);
+
+	if (!prevDepthTest) glDisable(GL_DEPTH_TEST);
+	glDepthFunc(prevDepthFunc);
+
+	glDepthMask(prevDepthMask);
+
+	glActiveTexture(GL_TEXTURE0);
+}
+
 void Render::UpdateShaderMatrices(Shader& shader) {
 	auto camera = Application::GetInstance().camera.get();
 
@@ -329,7 +418,6 @@ void Render::UpdateShaderMatrices(Shader& shader) {
 	shader.setMat4("view", camera->viewMat); 
 	shader.setMat4("projection", camera->projectionMat);
 	// Model matrix is set per object in DrawActiveScene
-
 
 }
 
@@ -345,7 +433,7 @@ void Render::RenderFrame(Shader& shader) {
 	auto input = Application::GetInstance().input.get();
 	auto guiManager = Application::GetInstance().guiManager.get();
 	if (guiManager->selectedObject) {
-		Application::GetInstance().openGL.get()->RenderOutline(guiManager->selectedObject, glm::vec3(1.0f, 0.5f, 0.0f), 1.05f);
+		RenderOutline(guiManager->selectedObject, glm::vec3(1.0f, 0.5f, 0.0f), 1.05f);
 	}
 
 	if (guiManager->drawRaycast) {
@@ -512,13 +600,13 @@ void Render::DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader) {
 //	}
 //
 //	SDL_FPoint* p = NULL;
-//	SDL_FPoint pivot;
-//	if (pivotX != INT_MAX && pivotY != INT_MAX)
-//	{
-//		pivot.x = (float)pivotX;
-//		pivot.y = (float)pivotY;
-//		p = &pivot;
-//	}
+///	SDL_FPoint pivot;
+///	if (pivotX != INT_MAX && pivotY != INT_MAX)
+///	{
+///		pivot.x = (float)pivotX;
+///		pivot.y = (float)pivotY;
+///		p = &pivot;
+///	}
 //
 //	// SDL3: returns bool; map to int-style check
 //	int rc = SDL_RenderTextureRotated(renderer, texture, src, &rect, angle, p, SDL_FLIP_NONE) ? 0 : -1;
