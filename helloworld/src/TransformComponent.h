@@ -32,6 +32,9 @@ public:
     glm::quat GetWorldRotation() const;
     glm::vec3 GetWorldScale() const;
 
+    //returns forward vector
+    glm::vec3 GetForward() const;
+
     // Matrix operations
     glm::mat4 GetLocalTransform() const;
     glm::mat4 GetGlobalTransform() const;

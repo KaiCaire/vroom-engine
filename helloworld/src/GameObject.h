@@ -9,7 +9,7 @@
 #include <memory>
 #include "UUID.h"
 
-
+class Scene;
 class ModelImporter;
 
 class GameObject : public std::enable_shared_from_this<GameObject> {
@@ -19,6 +19,9 @@ public:
     GameObject(const std::string& name, const VroomUUID uuid);
     GameObject(const std::string& name = "GameObject"); 
     ~GameObject(); // Destructor can remain trivial; shared_ptr handles cleanup
+
+    void SetScene(Scene* s) { scene = s; }
+    Scene* GetScene() const { return scene; }
 
     // Update this GameObject and its children
     void Update();
@@ -74,6 +77,7 @@ private:
     bool active = true;
     bool markedForDestroy = false;
     bool isEmpty = false;
+    Scene* scene;
 
     ////store model owner for root objects
     //ModelImporter* ownerModel = nullptr;

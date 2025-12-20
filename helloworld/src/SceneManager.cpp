@@ -139,7 +139,17 @@ std::shared_ptr<GameObject> SceneManager::CreateEmptyGameObject(const std::strin
     return newGameObject;
 }
 
+std::shared_ptr<GameObject> SceneManager::CreateCameraObject(const std::string& name) {
+    if (!currentScene) return nullptr;
 
+    //create the base GameObject
+    auto cameraGO = CreateEmptyGameObject(name, currentScene->GetRoot());
+
+    cameraGO->AddComponent(ComponentType::CAMERA);
+
+    LOG("Created Camera GameObject '%s'", name.c_str());
+    return cameraGO;
+}
 
 void ManualResourceCleanup(const std::shared_ptr<GameObject>& go) {
     

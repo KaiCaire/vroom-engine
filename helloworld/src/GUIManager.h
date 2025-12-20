@@ -86,6 +86,7 @@ public:
 	bool showInspector = true;
 	bool showAssetsViewer = true;
 	bool showSceneViewport = true;
+	bool showGameViewport = true;
 
 	std::shared_ptr<GameObject> selectedObject;
 	std::weak_ptr<GameObject> previousSelectedObject;
@@ -110,4 +111,12 @@ public:
 
 	bool drawAABBs = false;
 	bool drawRaycast = false;
+
+	enum GizmoOperation {
+		GIZMO_TRANSLATE = 0,
+		GIZMO_ROTATE = 1,
+		GIZMO_SCALE = 2
+	};
+
+	GizmoOperation gizmoOperation = GIZMO_TRANSLATE;
 };

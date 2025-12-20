@@ -24,6 +24,7 @@ public:
 
 	std::shared_ptr<GameObject> CreateGameObject(const std::string& name = "GameObject");
 	std::shared_ptr<GameObject> CreateEmptyGameObject(const std::string& name, std::shared_ptr<GameObject> parent);
+	std::shared_ptr<GameObject> CreateCameraObject(const std::string& name = "Camera");
 
 	void DestroyGameObject(std::shared_ptr<GameObject> go);
 	std::shared_ptr<GameObject> CreateCube();

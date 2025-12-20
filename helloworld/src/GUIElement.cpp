@@ -27,6 +27,10 @@
 
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "ImGuizmo.h"
+#include "imgui_internal.h"
 
 #include <vector>
 
@@ -73,6 +77,9 @@ void GUIElement::ElementSetUp()
 	case ElementType::SceneViewport:
 		if (Application::GetInstance().guiManager.get()->showSceneViewport) SceneViewportSetUp(&Application::GetInstance().guiManager.get()->showSceneViewport);
 		break;
+	case ElementType::GameViewport:
+		if (Application::GetInstance().guiManager.get()->showGameViewport) GameViewportSetUp(&Application::GetInstance().guiManager.get()->showGameViewport);
+		break;
 	default:
 		LOG("No GUIType detected.");
 		break;
@@ -115,6 +122,10 @@ void GUIElement::MenuBarSetUp()
 				bool set = !Application::GetInstance().guiManager.get()->showConfig;
 				Application::GetInstance().guiManager.get()->showConfig = set;
 			}
+			if (ImGui::MenuItem("Game View", nullptr, Application::GetInstance().guiManager.get()->showGameViewport)) {
+				bool set = !Application::GetInstance().guiManager.get()->showGameViewport;
+				Application::GetInstance().guiManager.get()->showGameViewport = set;
+			}
 			if (ImGui::MenuItem("Hierarchy", nullptr, Application::GetInstance().guiManager.get()->showHierarchy)) {
 				bool set = !Application::GetInstance().guiManager.get()->showHierarchy;
 				Application::GetInstance().guiManager.get()->showHierarchy = set;
@@ -150,6 +161,27 @@ void GUIElement::MenuBarSetUp()
 				Application::GetInstance().guiManager.get()->showAboutPopup = true;
 			}
 			ImGui::EndMenu();
+		}
+
+		float barWidth = ImGui::GetWindowSize().x;
+		ImGui::SetCursorPosX(barWidth * 0.5f - 50.0f);
+
+		Application& app = Application::GetInstance();
+		if (app.GetState() == EngineEditState::EDITOR) {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f)); 
+			if (ImGui::MenuItem(" PLAY ")) {
+				app.SetState(EngineEditState::GAME);
+				ImGui::SetWindowFocus("Game");
+			}
+			ImGui::PopStyleColor();
+		}
+		else {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); 
+			if (ImGui::MenuItem(" STOP ")) {
+				app.SetState(EngineEditState::EDITOR);
+				ImGui::SetWindowFocus("Scene");
+			}
+			ImGui::PopStyleColor();
 		}
 
 		ImGui::EndMenuBar();
@@ -354,6 +386,9 @@ void GUIElement::HierarchySetUp(bool* show)
 			Application::GetInstance().sceneManager->GetActiveScene()->AddGameObject(empty);
 			
 		}
+		if (ImGui::MenuItem("Camera")) {
+			Application::GetInstance().sceneManager->CreateCameraObject("Camera");
+		}
 		if (ImGui::MenuItem("Cube")) {
 			auto defaultCube = Application::GetInstance().sceneManager->CreateCube();
 			/*Application::GetInstance().render->AddModel(defaultCube);*/
@@ -379,6 +414,41 @@ void GUIElement::HierarchySetUp(bool* show)
 			DrawNode(child, manager->selectedObject);
 	}
 
+
+	//creating invisible object for drag and drop
+	//get avaiable size 
+	ImVec2 contentSize = ImGui::GetContentRegionAvail();
+
+	//give area an id and create invisible box
+	ImGui::InvisibleButton("##HierarchyDropTraget", contentSize);
+
+	//drag and drop target
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ASSET_PATH")) {
+			std::string droppedPath((const char*)payload->Data);
+			//handle instantiation
+			InstantiateAsset(droppedPath);
+		}
+		// Accept hierarchy reparent to root
+		if (const ImGuiPayload* payload2 = ImGui::AcceptDragDropPayload("HIERARCHY_GO")) {
+			if (payload2->DataSize == sizeof(VroomUUID)) {
+				VroomUUID srcUUID = 0;
+				std::memcpy(&srcUUID, payload2->Data, sizeof(VroomUUID));
+				auto scene = Application::GetInstance().sceneManager.get()->GetActiveScene();
+				if (scene) {
+					auto srcGO = scene->FindGameObjectByUUID(srcUUID);
+					if (srcGO) {
+						// Reparent to root
+						srcGO->SetParent(scene->GetRoot());
+						Application::GetInstance().guiManager.get()->selectedObject = srcGO;
+						LOG("Reparented '%s' to scene root", srcGO->GetName().c_str());
+					}
+				}
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
+
 	ImGui::End();
 }
 
@@ -394,6 +464,53 @@ void GUIElement::DrawNode(const std::shared_ptr<GameObject>& obj, std::shared_pt
 
 	//create node and check if opened
 	bool opened = ImGui::TreeNodeEx((void*)obj.get(), flags, "%s", obj->GetName().c_str());
+
+	// Drag source: start dragging this gameobject (payload = its UUID)
+	if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None)) {
+		VroomUUID payloadUUID = obj->GetUUID();
+		ImGui::SetDragDropPayload("HIERARCHY_GO", &payloadUUID, sizeof(VroomUUID));
+		ImGui::Text("%s", obj->GetName().c_str());
+		ImGui::EndDragDropSource();
+	}
+
+	// Accept drop on this node to reparent the dragged object under 'obj'
+	if (ImGui::BeginDragDropTarget()) {
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_GO")) {
+			if (payload->DataSize == sizeof(VroomUUID)) {
+				VroomUUID srcUUID = 0;
+				std::memcpy(&srcUUID, payload->Data, sizeof(VroomUUID));
+
+				// find the source GameObject
+				auto scene = Application::GetInstance().sceneManager.get()->GetActiveScene();
+				if (scene) {
+					auto srcGO = scene->FindGameObjectByUUID(srcUUID);
+					if (srcGO && srcGO != obj) {
+						// Prevent reparenting to a descendant of srcGO (would create cycle)
+						bool invalid = false;
+						auto check = obj;
+						while (check) {
+							if (check == srcGO) { invalid = true; break; }
+							check = check->GetParent();
+						}
+
+						if (!invalid) {
+							// Perform reparent: SetParent handles removal from old parent and adding to new
+							srcGO->SetParent(obj);
+
+							// Keep selection on the moved object
+							Application::GetInstance().guiManager.get()->selectedObject = srcGO;
+
+							LOG("Reparented '%s' under '%s'", srcGO->GetName().c_str(), obj->GetName().c_str());
+						}
+						else {
+							LOG("Cannot reparent '%s' under its own descendant '%s'", srcGO->GetName().c_str(), obj->GetName().c_str());
+						}
+					}
+				}
+			}
+		}
+		ImGui::EndDragDropTarget();
+	}
 
 	//check if object has been selected
 	if (ImGui::IsItemClicked()) selected = obj;
@@ -459,15 +576,23 @@ void GUIElement::InspectorSetUp(bool* show)
 		if (transform) {
 			//check if header is open
 			if (ImGui::CollapsingHeader("Transform")) {
-				//get values
-				glm::vec3 pos = transform.get()->GetWorldPosition();
-				glm::quat rot = glm::degrees(glm::eulerAngles(transform->GetWorldRotation()));
-				glm::vec3 scale = transform.get()->GetWorldScale();
+				//position
+				glm::vec3 pos = transform->GetPosition();
+				if (ImGui::DragFloat3("Position", glm::value_ptr(pos), 0.1f)) {
+					transform->SetPosition(pos);
+				}
 
-				//display values
-				ImGui::Text("Position: %.2f, %.2f, %.2f", pos.x, pos.y, pos.z);
-				ImGui::Text("Rotation: %.2f, %.2f, %.2f", rot.x, rot.y, rot.z);
-				ImGui::Text("Scale: %.2f, %.2f, %.2f", scale.x, scale.y, scale.z);
+				//rotation
+				glm::vec3 rotation = glm::degrees(glm::eulerAngles(transform->GetRotation()));
+				if (ImGui::DragFloat3("Rotation", glm::value_ptr(rotation), 0.1f)) {
+					transform->SetRotation(glm::quat(glm::radians(rotation)));
+				}
+
+				//scale
+				glm::vec3 scale = transform->GetScale();
+				if (ImGui::DragFloat3("Scale", glm::value_ptr(scale), 0.1f)) {
+					transform->SetScale(scale);
+				}
 			}
 		}
 		
@@ -810,9 +935,146 @@ void GUIElement::SceneViewportSetUp(bool* show) {
 		//LOG("Current Scene Texture ID: %u", sceneTextureID);
 		if (sceneTextureID != 0) {
 			ImGui::Image((ImTextureID)(intptr_t)sceneTextureID, viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
+
+			// show gizmo when an object is selected
+			ImVec2 imgMin = ImGui::GetItemRectMin();
+			ImVec2 imgMax = ImGui::GetItemRectMax();
+			float imgWidth = imgMax.x - imgMin.x;
+			float imgHeight = imgMax.y - imgMin.y;
+
+			// for safety reasons we only show if image has positive size
+			if (imgWidth > 0 && imgHeight > 0) {
+				// Begin ImGuizmo frame and configure
+				ImGuizmo::BeginFrame();
+				ImGuizmo::Enable(true);
+				ImGuizmo::SetOrthographic(false);
+				ImGuizmo::SetDrawlist();
+				ImGuizmo::SetRect(imgMin.x, imgMin.y, imgWidth, imgHeight);
+
+				// If there's a selection draw the manipulator
+				auto selected = manager->selectedObject;
+				if (selected) {
+					auto transform = std::dynamic_pointer_cast<TransformComponent>(selected->GetComponent(ComponentType::TRANSFORM));
+					if (transform) {
+						// Get matrices from camera and object
+						glm::mat4 modelMat = transform->GetGlobalTransform();
+						glm::mat4 viewMat = Application::GetInstance().camera->viewMat;
+						glm::mat4 projMat = Application::GetInstance().camera->projectionMat;
+
+						// Prepare float buffers for ImGuizmo (column-major)
+						float modelArr[16];
+						memcpy(modelArr, glm::value_ptr(modelMat), sizeof(modelArr));
+
+						// Choose imguizmo mode
+						ImGuizmo::OPERATION operation = ImGuizmo::TRANSLATE;
+						switch (manager->gizmoOperation) {
+						case GUIManager::GIZMO_TRANSLATE:
+							operation = ImGuizmo::TRANSLATE;
+							break;
+						case GUIManager::GIZMO_ROTATE:
+							operation = ImGuizmo::ROTATE;
+							break;
+						case GUIManager::GIZMO_SCALE:
+							operation = ImGuizmo::SCALE;
+							break;
+						default:
+							operation = ImGuizmo::TRANSLATE;
+							break;
+						}
+						ImGuizmo::MODE mode = ImGuizmo::WORLD;
+
+						// Show the guizmo manipulator
+						ImGuizmo::Manipulate(glm::value_ptr(viewMat), glm::value_ptr(projMat), operation, mode, modelArr);
+
+						// apllying the new transform
+						if (ImGuizmo::IsUsing()) {
+							float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+							glm::mat4 modelMatrix = transform->GetModelMatrix();
+							ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(modelMatrix), matrixTranslation, matrixRotation, matrixScale);
+							transform->SetPosition(glm::vec3(matrixTranslation[0], matrixTranslation[1], matrixTranslation[2]));
+							glm::vec3 eulerRadians = glm::radians(glm::vec3(matrixRotation[0], matrixRotation[1], matrixRotation[2]));
+							transform->SetRotation(glm::quat(eulerRadians));
+							transform->SetScale(glm::vec3(matrixScale[0], matrixScale[1], matrixScale[2]));
+
+							glm::mat4 newGlobal = glm::make_mat4(modelArr);
+
+							glm::mat4 parentGlobal = glm::mat4(1.0f);
+							if (auto parent = selected->GetParent()) {
+								auto parentTransform = std::dynamic_pointer_cast<TransformComponent>(parent->GetComponent(ComponentType::TRANSFORM));
+								if (parentTransform) parentGlobal = parentTransform->GetGlobalTransform();
+							}
+
+							glm::mat4 localMat = glm::inverse(parentGlobal) * newGlobal;
+
+							glm::vec3 translation = glm::vec3(localMat[3]);
+							glm::vec3 col0 = glm::vec3(localMat[0]);
+							glm::vec3 col1 = glm::vec3(localMat[1]);
+							glm::vec3 col2 = glm::vec3(localMat[2]);
+							glm::vec3 scale(
+								glm::length(col0),
+								glm::length(col1),
+								glm::length(col2)
+							);
+							//divide by 0 prevention
+							if (scale.x == 0.0f) scale.x = 1.0f;
+							if (scale.y == 0.0f) scale.y = 1.0f;
+							if (scale.z == 0.0f) scale.z = 1.0f;
+
+							glm::mat3 rotMat(
+								col0 / scale.x,
+								col1 / scale.y,
+								col2 / scale.z
+							);
+
+							glm::quat rotation = glm::quat_cast(rotMat);
+
+							// Apply to component 
+							transform->SetPosition(translation);
+							transform->SetRotation(rotation);
+							transform->SetScale(scale);
+						}
+					}
+				}
+			}
 		}
 		else {
 			manager->sceneViewportIsHovered = false;
+		}
+	}
+	ImGui::End();
+}
+
+
+void GUIElement::GameViewportSetUp(bool* show) {
+	ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
+
+	if (ImGui::Begin("Game", show, window_flags)) {
+		//resizing handling
+		ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+		Render* render = Application::GetInstance().render.get();
+
+		int currentWidth = Application::GetInstance().render->gameWidth;
+		int currentHeight = Application::GetInstance().render->gameHeight;
+
+		bool isInvalid = currentWidth <= 0 || currentHeight <= 0;
+		bool needsResize = isInvalid || (viewportSize.x != currentWidth || viewportSize.y != currentHeight);
+
+		if (needsResize) {
+			if (viewportSize.x > 0 && viewportSize.y > 0) {
+				Application::GetInstance().render->gameWidth = (int)viewportSize.x;
+				Application::GetInstance().render->gameHeight = (int)viewportSize.y;
+
+				render->InitGameFBO((int)viewportSize.x, (int)viewportSize.y);
+
+				Application::GetInstance().camera->RecalculateMatrices((int)viewportSize.x, (int)viewportSize.y);
+
+				LOG("Game Viewport resized and camera updated to %dx%d.", (int)viewportSize.x, (int)viewportSize.y);
+			}
+		}
+
+		uint32_t texID = Application::GetInstance().render->gameTextureID;
+		if (texID) {
+			ImGui::Image((ImTextureID)(uintptr_t)texID, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
 		}
 
 		//drag and drop target
@@ -825,7 +1087,6 @@ void GUIElement::SceneViewportSetUp(bool* show) {
 			}
 			ImGui::EndDragDropTarget();
 		}
-
-		ImGui::End();
 	}
+	ImGui::End();
 }

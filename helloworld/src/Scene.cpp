@@ -7,6 +7,7 @@
 #include "RenderMeshComponent.h"
 #include "SceneManager.h"
 #include "MaterialComponent.h"
+#include "CameraComponent.h"
 #include "Log.h"
 #include "Importer.h"
 
@@ -52,6 +53,7 @@ void Scene::AddGameObject(std::shared_ptr<GameObject> go) {
     }
 
     allGameObjects.push_back(go);
+    go->SetScene(this);
 
     // If no parent, set to root
     if (!go->GetParent()) {
@@ -530,4 +532,16 @@ std::string Scene::FindModelInAssetsFolder(std::string sourceModelName) {
 
     LOG("Could not retrieve source model file name");
     return "";
+}
+
+std::vector<std::shared_ptr<CameraComponent>> Scene::GetCameras() const {
+    std::vector<std::shared_ptr<CameraComponent>> cameras;
+    for (auto& go : allGameObjects) {
+        if (!go) continue;
+        auto cam = std::dynamic_pointer_cast<CameraComponent>(go->GetComponent(ComponentType::CAMERA));
+        if (cam) {
+            cameras.push_back(cam);
+        }
+    }
+    return cameras;
 }

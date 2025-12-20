@@ -17,6 +17,10 @@ class GUIManager;
 class Camera;
 class Importer;
 
+enum EngineEditState {
+	EDITOR,
+	GAME
+};
 
 //class Physics;
 
@@ -49,6 +53,9 @@ public:
 	int GetFPS() {
 		return framesPerSecond;
 	}
+
+	EngineEditState GetState() const { return currentState; }
+	void SetState(EngineEditState state) { currentState = state; }
 
 private:
 
@@ -132,5 +139,7 @@ private:
 	int maxFrameDuration = 16;
 
 	std::string gameTitle = "Vroom-Engine";
+
+	EngineEditState currentState = EngineEditState::EDITOR;
 
 };

@@ -76,6 +76,7 @@ std::vector<GUIElement> GUIManager::LoadElements()
 	elements.push_back(GUIElement(ElementType::Hierarchy, this));
 	elements.push_back(GUIElement(ElementType::Inspector, this));
 	elements.push_back(GUIElement(ElementType::AssetsViewer, this));
+	elements.push_back(GUIElement(ElementType::GameViewport, this));
 	elements.push_back(GUIElement(ElementType::SceneViewport, this));
 
 	return elements;
@@ -120,21 +121,27 @@ bool GUIManager::Update(float dt)
 	ImGuiWindowFlags dockingSpaceFlags = ImGuiWindowFlags_MenuBar |
 		                                 ImGuiWindowFlags_NoDocking;
 
-	ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowSize(viewport->Size);
-	ImGui::SetNextWindowPos(viewport->Pos);
-	ImGui::SetNextWindowViewport(viewport->ID);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
 	dockingSpaceFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
 		               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | 
 		               ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->Pos);
+	ImGui::SetNextWindowSize(viewport->Size);
+	ImGui::SetNextWindowViewport(viewport->ID);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
 	ImGui::Begin("DockSpace", nullptr, dockingSpaceFlags);
 	ImGui::PopStyleVar(2);
 
 	if (!dockInitialized) InitDock();
+
+	static bool firstFrameFocus = true;
+	if (firstFrameFocus && dockInitialized) {
+		ImGui::SetWindowFocus("Scene");
+		firstFrameFocus = false;
+	}
 
 	//menu setup
 	Menu.ElementSetUp();
@@ -290,6 +297,7 @@ void GUIManager::AddToDeleteQueue(const std::shared_ptr<GameObject>& obj) {
 }
 
 void GUIManager::InitDock() {
+
 	//clear any existing layout
 	ImGuiID dockspaceID = ImGui::GetID("DockSpace");
 	ImGui::DockBuilderRemoveNode(dockspaceID);
@@ -309,10 +317,14 @@ void GUIManager::InitDock() {
 	ImGui::DockBuilderDockWindow("Inspector", dockRightID);
 	ImGui::DockBuilderDockWindow("Assets Viewer", dockRightDownID);
 
-	//dock scene in the middle
+	//dock scene and game in the middle
 	ImGui::DockBuilderDockWindow("Scene", dockMainID);
+	ImGui::DockBuilderDockWindow("Game", dockMainID);
 
 	ImGui::DockBuilderFinish(dockspaceID);
+
+	//make sure you start on scene
+	ImGui::SetWindowFocus("Scene");
 	//only do this once
 	dockInitialized = true;
 }
@@ -392,6 +404,7 @@ bool GUIManager::CleanUp()
 
 	return true;
 }
+
 
 
 //Model* GUIManager::FindGameObjectModel(const std::shared_ptr<GameObject>& obj) {
