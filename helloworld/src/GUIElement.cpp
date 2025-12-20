@@ -30,6 +30,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "ImGuizmo.h"
+#include "imgui_internal.h"
 
 #include <vector>
 
@@ -160,6 +161,27 @@ void GUIElement::MenuBarSetUp()
 				Application::GetInstance().guiManager.get()->showAboutPopup = true;
 			}
 			ImGui::EndMenu();
+		}
+
+		float barWidth = ImGui::GetWindowSize().x;
+		ImGui::SetCursorPosX(barWidth * 0.5f - 50.0f);
+
+		Application& app = Application::GetInstance();
+		if (app.GetState() == EngineEditState::EDITOR) {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.0f, 1.0f, 0.0f, 1.0f)); 
+			if (ImGui::MenuItem(" PLAY ")) {
+				app.SetState(EngineEditState::GAME);
+				ImGui::SetWindowFocus("Game");
+			}
+			ImGui::PopStyleColor();
+		}
+		else {
+			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.0f, 0.0f, 1.0f)); 
+			if (ImGui::MenuItem(" STOP ")) {
+				app.SetState(EngineEditState::EDITOR);
+				ImGui::SetWindowFocus("Scene");
+			}
+			ImGui::PopStyleColor();
 		}
 
 		ImGui::EndMenuBar();

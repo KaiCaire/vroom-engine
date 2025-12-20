@@ -121,16 +121,16 @@ bool GUIManager::Update(float dt)
 	ImGuiWindowFlags dockingSpaceFlags = ImGuiWindowFlags_MenuBar |
 		                                 ImGuiWindowFlags_NoDocking;
 
-	ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowSize(viewport->Size);
-	ImGui::SetNextWindowPos(viewport->Pos);
-	ImGui::SetNextWindowViewport(viewport->ID);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
 	dockingSpaceFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
 		               ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | 
 		               ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+
+	ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->Pos);
+	ImGui::SetNextWindowSize(viewport->Size);
+	ImGui::SetNextWindowViewport(viewport->ID);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
 	ImGui::Begin("DockSpace", nullptr, dockingSpaceFlags);
 	ImGui::PopStyleVar(2);
@@ -297,6 +297,7 @@ void GUIManager::AddToDeleteQueue(const std::shared_ptr<GameObject>& obj) {
 }
 
 void GUIManager::InitDock() {
+
 	//clear any existing layout
 	ImGuiID dockspaceID = ImGui::GetID("DockSpace");
 	ImGui::DockBuilderRemoveNode(dockspaceID);
@@ -403,6 +404,7 @@ bool GUIManager::CleanUp()
 
 	return true;
 }
+
 
 
 //Model* GUIManager::FindGameObjectModel(const std::shared_ptr<GameObject>& obj) {
