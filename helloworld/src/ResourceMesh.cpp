@@ -1,4 +1,4 @@
-﻿#include "ResourceMesh.h"
+#include "ResourceMesh.h"
 #include "OpenGL.h"
 #include "ResourceTexture.h"
 #include "Importer.h"
@@ -453,10 +453,17 @@ void ResourceMesh::SaveBin() {
     uint vertexCount = vertices.size();
     uint indexCount = indices.size();
 
+    //uint textureCount = textures.size();
+
+    //calculate size of bounding box
+    size_t minMaxAABBSize = sizeof(glm::vec3) * 2;
+
+
     // Calculate buffer size: Header (2 counts) + Vertices + Indices
     size_t bufferSize = sizeof(uint) * 2;
     bufferSize += vertexCount * sizeof(Vertex);
     bufferSize += indexCount * sizeof(unsigned int);
+    bufferSize += minMaxAABBSize;
 
     // Create buffer
     char* buffer = new char[bufferSize];
@@ -467,6 +474,12 @@ void ResourceMesh::SaveBin() {
     ptr += sizeof(uint);
     std::memcpy(ptr, &indexCount, sizeof(uint));
     ptr += sizeof(uint);
+
+    //write local aabb
+    std::memcpy(ptr, &minAABB, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
+    std::memcpy(ptr, &maxAABB, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
 
     // Write vertices
     std::memcpy(ptr, vertices.data(), vertexCount * sizeof(Vertex));
@@ -599,7 +612,15 @@ void ResourceMesh::LoadBin() {
     std::memcpy(&indexCount, ptr, sizeof(uint));
     ptr += sizeof(uint);
 
-    // 2. Read vertices
+
+    //read local aabb
+    std::memcpy(&minAABB, ptr, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
+    std::memcpy(&maxAABB, ptr, sizeof(glm::vec3));
+    ptr += sizeof(glm::vec3);
+
+    // Read vertices
+
     vertices.resize(vertexCount);
     std::memcpy(vertices.data(), ptr, vertexCount * sizeof(Vertex));
     ptr += vertexCount * sizeof(Vertex);
