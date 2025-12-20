@@ -8,6 +8,7 @@
 #include "Octree.h"
 
 class GameObject;
+class CameraComponent;
 
 class Scene : public Module {
 public:
@@ -53,6 +54,8 @@ public:
     std::shared_ptr<GameObject> FindGameObjectByName(const std::string name);
 
     std::string FindModelInAssetsFolder(std::string modelName);
+
+    std::vector<std::shared_ptr<CameraComponent>> GetCameras() const;
 
 
 private:

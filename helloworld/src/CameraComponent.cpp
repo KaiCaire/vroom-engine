@@ -1,10 +1,12 @@
 #include "CameraComponent.h"
 #include "GameObject.h"
+#include "Scene.h"
 #include "TransformComponent.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 CameraComponent::CameraComponent(std::shared_ptr<GameObject> owner)
     : Component(owner, ComponentType::CAMERA) {
+    SetAsPrimary();
 }
 
 glm::mat4 CameraComponent::GetViewMatrix() const {
@@ -19,6 +21,15 @@ glm::mat4 CameraComponent::GetProjectionMatrix(float aspectRatio) const {
     return glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
 }
 
+void CameraComponent::SetAsPrimary() {
+    auto cameras = GetOwner()->GetScene()->GetCameras();
+    for (auto& cam : cameras) {
+        cam->isPrimary = false;
+    }
+    this->isPrimary = true;
+}
+
 void CameraComponent::Update()
 {
 }
+

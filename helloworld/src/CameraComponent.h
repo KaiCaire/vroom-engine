@@ -18,4 +18,7 @@ public:
     //matrices
     glm::mat4 GetViewMatrix() const;
     glm::mat4 GetProjectionMatrix(float aspectRatio) const;
+
+    //set new camera as primary
+    void SetAsPrimary();
 };
