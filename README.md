@@ -83,7 +83,7 @@ Including an orbital camera and a basic editor for easier use, this version cons
   * -> Latest Release: opens the project's [Releases](https://github.com/KaiCaire/vroom-engine/releases) page
   * -> About: opens window with information about the program
 
-### Adiitional Actions
+### Additional Actions
 
 * Ctrl + S: Save the current scene
 * Ctrl + L: Load the most recent save
