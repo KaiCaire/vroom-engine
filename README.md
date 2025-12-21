@@ -67,6 +67,7 @@ Including an orbital camera and a basic editor for easier use, this version cons
       * Texture: shows game object's texture's path, width and height
     * Scene: Main editor camera view
        * Camera controls work while this window is selected
+       * Clicking on a game object will select it
        * When an object is selected, its Transform gizmo is displayed
           * Position gizmo is originally displayed
           * To switch between them:
@@ -81,6 +82,11 @@ Including an orbital camera and a basic editor for easier use, this version cons
   * -> Report a Bug: opens the project's [Issues](https://github.com/KaiCaire/vroom-engine/issues) page
   * -> Latest Release: opens the project's [Releases](https://github.com/KaiCaire/vroom-engine/releases) page
   * -> About: opens window with information about the program
+
+### Adiitional Actions
+
+* Ctrl + S: Save the current scene
+* Ctrl + L: Load the most recent save
 
 
 ## Additional Features
