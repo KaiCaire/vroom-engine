@@ -8,6 +8,10 @@
 #include <memory>
 #include <string>
 
+#define UUID_CUBE   100ULL
+#define UUID_PLANE  101ULL
+#define UUID_SPHERE 102ULL
+
 enum class ResourceType;
 
 enum class PrimitiveType {
@@ -17,6 +21,9 @@ enum class PrimitiveType {
     CYLINDER,
     NONE
 };
+
+
+
 
 class ResourceManager : public Module {
 public:
@@ -51,6 +58,7 @@ public:
     // Cleanup unused resources (refCount == 0)
     void DeleteUnusedLibraryFiles();
     void ReimportMissingFiles();
+    void InitializePrimitives();
 
     std::shared_ptr<ResourceMesh> CreateCubeMesh();
 
@@ -67,6 +75,8 @@ public:
     bool MoveAsset(VroomUUID uuid, const std::string& newAssetPath);
     bool LoadResourceToGPU(std::shared_ptr<Resource> resource);
     bool DeleteFileFromLibrary(const std::string filePath);
+    
+
 
     //DEFAULTS:
     std::string checkersTexDir;

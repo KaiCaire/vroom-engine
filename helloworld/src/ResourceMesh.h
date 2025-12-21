@@ -37,6 +37,7 @@ public:
     glm::vec3 maxAABB = glm::vec3(0.0f);
 
     AABBBounds GetBounds() const { return { minAABB, maxAABB }; }
+    void CalculateAABB();
     
     // OpenGL buffers
     unsigned int VAO, VBO, EBO;

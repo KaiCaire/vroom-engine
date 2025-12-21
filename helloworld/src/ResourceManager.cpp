@@ -43,7 +43,12 @@ bool ResourceManager::Start() {
    
     //scan assets for imgui hierarchy
     ScanAssetsFolder();
+
+    InitializePrimitives();
+
     Application::GetInstance().sceneManager->LoadDefaultScene();
+
+    
 
     return true;
 }
@@ -54,13 +59,34 @@ bool ResourceManager::CleanUp() {
     return true;
 }
 
+void ResourceManager::InitializePrimitives() {
+    // 1. Create the Cube
+    auto cube = CreateCubeMesh(); // Your existing internal vertex-gen function
+    cube->SetUUID(UUID_CUBE);
+    cube->AddReference();
+    cube->SetName("Primitive_Cube");
+    cube->CalculateAABB();
+    cube->CalculateNormals();
+    cube->LoadToGPU();
+    resources[UUID_CUBE] = cube;
+
+    LOG("Internal Primitives initialized (Cube: %d)", UUID_CUBE);
+}
+
 std::shared_ptr<Resource> ResourceManager::RequestResource(VroomUUID uuid, bool allowRetry) {
     // Check if already loaded
     auto it = resources.find(uuid);
     if (it != resources.end()) {
         LOG("Resource %llu already loaded (refCount: %d)", uuid, it->second->GetReferenceCount());
-        /*it->second->AddReference();*/
+
         return it->second;
+    }
+
+    //If it's a primitive UUID but NOT in the map (shouldn't happen), 
+    // force an initialization.
+    if (uuid == UUID_CUBE) {
+        LOG("RequestResource: UUID 100 detected. Calling GetPrimitiveMesh...");
+        return GetPrimitiveMesh(PrimitiveType::CUBE);
     }
 
     // Determine type from library file extension
@@ -411,6 +437,11 @@ void ResourceManager::DeleteUnusedLibraryFiles() {
 
     std::unordered_set<VroomUUID> validUUIDs;
 
+    // --- STEP 1: Register Internal Primitives as Valid ---
+    // This ensures they are never treated as "orphaned" by the system
+    validUUIDs.insert(UUID_CUBE);
+
+
     for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::ASSETS_DIR))) {
         if (!entry.is_regular_file()) continue;
 
@@ -477,6 +508,10 @@ void ResourceManager::DeleteUnusedLibraryFiles() {
 
             try {
                 VroomUUID uuid = std::stoull(filename);
+
+                if (uuid == UUID_CUBE || uuid == UUID_PLANE || uuid == UUID_SPHERE) {
+                    continue;
+                }
 
                 if (validUUIDs.find(uuid) == validUUIDs.end()) {
                     LOG("Deleting orphaned library file: %s", entry.path().stem().string().c_str());
@@ -560,13 +595,15 @@ bool ResourceManager::SaveResourceToLibrary(std::shared_ptr<Resource> resource) 
 
 std::shared_ptr<ResourceMesh> ResourceManager::GetPrimitiveMesh(PrimitiveType type) {
 
-    std::shared_ptr<ResourceMesh> mesh = nullptr;
+   
+    VroomUUID pUUID = 0;
 
     switch (type) {
     case PrimitiveType::CUBE:
-        mesh = CreateCubeMesh();
+        pUUID = UUID_CUBE;
         break;
     case PrimitiveType::NONE:
+        pUUID = UUIDGen::GenerateUUID();
         LOG("Invalid Primitive Type");
         return nullptr;
         break;
@@ -577,16 +614,15 @@ std::shared_ptr<ResourceMesh> ResourceManager::GetPrimitiveMesh(PrimitiveType ty
     }
 
 
+    auto res = GetResourceByUUID(pUUID);
 
+    std::shared_ptr<ResourceMesh> mesh = std::dynamic_pointer_cast<ResourceMesh>(res);
     if (mesh) {
-        mesh->SetUUID(UUIDGen::GenerateUUID());
-        RegisterResource(mesh);
-
-       
-        /*AddReference(mesh->GetUUID());*/ 
-        //we increase later, when adding the mesh renderer component
-
-        LOG("Created primitive (UUID: %llu, refCount: %d)", mesh->GetUUID(), mesh->GetReferenceCount());
+        // We log here just to confirm we retrieved the existing master mesh
+        LOG("Retrieved internal primitive (UUID: %llu, refCount: %d)", mesh->GetUUID(), mesh->GetReferenceCount());
+    }
+    else {
+        LOG("ERROR: Primitive with UUID %llu was not initialized!", pUUID);
     }
     
     return mesh;

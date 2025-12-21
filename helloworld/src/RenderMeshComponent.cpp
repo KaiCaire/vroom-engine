@@ -52,29 +52,22 @@ void RenderMeshComponent::SetMesh(std::shared_ptr<ResourceMesh> newMesh) {
 
 void RenderMeshComponent::Render(Shader* shader) {
     if (!mesh || !active || !shader) return;
-    
+
     auto owner = GetOwner();
     if (!owner) return;
-    // Get transform component to apply transformations
-    
+
     auto transform = std::dynamic_pointer_cast<TransformComponent>(owner->GetComponent(ComponentType::TRANSFORM));
-    if (!transform)
-        return;
+    if (!transform) return;
 
+    // 1. Get the material but DO NOT 'return' if it's null
     auto material = std::dynamic_pointer_cast<MaterialComponent>(owner->GetComponent(ComponentType::MATERIAL));
-    if (!material)
-        return;
-    
-    
-    // Apply transformation matrix
-    
-    glm::mat4 modelMatrix = transform->GetGlobalTransform();
-    
-    
 
-    // Set the model matrix in the shader
+    // 2. Apply transformations
+    glm::mat4 modelMatrix = transform->GetGlobalTransform();
     shader->setMat4("model", modelMatrix);
 
+    // 3. Pass the material (even if null) to the mesh
+    // ResourceMesh::Draw will use its own fallback logic if material is nullptr!
     mesh->Draw(*shader, material.get());
 }
 

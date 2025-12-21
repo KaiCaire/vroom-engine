@@ -224,45 +224,47 @@ std::shared_ptr<GameObject> SceneManager::CreateCube() {
         return nullptr;
     }
 
-
     ResourceManager* resourceManager = Application::GetInstance().resourceManager.get();
-    if (!resourceManager) {
-        LOG("FATAL ERROR: ResourceManager not available. Cannot create primitive.");
-        return nullptr;
-    }
+    if (!resourceManager) return nullptr;
 
-
+    //get mesh (already has UUID_CUBE assigned from InitializePrimitives)
     std::shared_ptr<ResourceMesh> cubeMesh = resourceManager->GetPrimitiveMesh(PrimitiveType::CUBE);
-    
-
     if (!cubeMesh) {
-        LOG("ERROR: Failed to retrieve or generate cube mesh resource from ResourceManager.");
+        LOG("ERROR: Primitive Cube mesh could not be found or initialized.");
         return nullptr;
     }
 
-    std::shared_ptr<GameObject> cubeGO = CreateEmptyGameObject("Cube", currentScene->GetRoot());
+    //Create GameObject
+    auto cubeGO = std::make_shared<GameObject>("Cube");
+    cubeGO->AddComponent(ComponentType::TRANSFORM);
+    cubeGO->SetParent(currentScene->GetRoot());
 
-    if (cubeGO) {
-        // Render Component
-        auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(cubeGO->AddComponent(ComponentType::MESH_RENDERER));
+    //setup mesh renderer
+    auto renderComp = std::dynamic_pointer_cast<RenderMeshComponent>(cubeGO->AddComponent(ComponentType::MESH_RENDERER));
+    if (renderComp) {
+        renderComp->SetMesh(cubeMesh);
 
-        if (renderComp) {
-            renderComp->SetMesh(cubeMesh); //set mesh adds a reference!!
-            VroomUUID meshUUID = cubeMesh->GetUUID();
-            if (meshUUID == 0) UUIDGen::GenerateUUID();
-            renderComp->SetMeshUUID(meshUUID);
-            /*resourceManager->AddReference(meshUUID);*/
+      
+        renderComp->SetMeshUUID(cubeMesh->GetUUID());
 
-            LOG("GameObject '%s' created and linked to cube mesh (UUID: %llu)", "Cube", meshUUID);
-        }
-
-        // Material Component
-        cubeGO->AddComponent(ComponentType::MATERIAL);
+        LOG("Cube Mesh linked with Persistent UUID: %llu", cubeMesh->GetUUID());
     }
 
+    // setup material
+    auto matComp = std::dynamic_pointer_cast<MaterialComponent>(cubeGO->AddComponent(ComponentType::MATERIAL));
+    if (matComp) {
+        std::string checkersDir = resourceManager->checkersTexDir;
+        auto tex = std::dynamic_pointer_cast<ResourceTexture>(resourceManager->RequestResource(checkersDir));
+        if (tex) {
+            matComp->SetDiffuseMap(tex);
+        }
+    }
+
+    //add to scene 
+    currentScene->AddGameObject(cubeGO);
+
+    LOG("GameObject 'Cube' successfully added to scene.");
     return cubeGO;
 }
-
-
 
 

@@ -66,19 +66,8 @@ std::shared_ptr<ResourceMesh> MeshImporter::Import(aiMesh* aiMesh, const aiScene
 
     //bounding box calculation
     if (!vertices.empty()) {
-        glm::vec3 min = vertices[0].Position;
-        glm::vec3 max = vertices[0].Position;
-
-        //iterate over all vertices to find the local space extremes
-        for (const auto& vertex : vertices) {
-            min = glm::min(min, vertex.Position);
-            max = glm::max(max, vertex.Position);
-        }
-
-        mesh->minAABB = min;
-        mesh->maxAABB = max;
-        LOG("Calculated Local AABB for %s: Min(%.2f, %.2f, %.2f) Max(%.2f, %.2f, %.2f)",
-            aiMesh->mName.C_Str(), min.x, min.y, min.z, max.x, max.y, max.z);
+        mesh->CalculateAABB();
+        LOG("Calculated Local AABB for %s:", aiMesh->mName.C_Str());
     }
 
     

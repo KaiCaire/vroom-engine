@@ -380,10 +380,14 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
         auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
 
         VroomUUID meshUUID = mr["meshUUID"];
+
+        
        
         // Request mesh from ResourceManager
         auto resMesh = Application::GetInstance().resourceManager.get()->RequestResource(meshUUID);
         renderer->SetMeshUUID(meshUUID);
+
+        
 
 
         //if (resMesh == nullptr) {
@@ -422,6 +426,11 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
         
         auto mesh = std::dynamic_pointer_cast<ResourceMesh>(resMesh);
         renderer->SetMesh(mesh);
+
+        if (mesh && meshUUID == UUID_CUBE) {
+            mesh->CalculateAABB();
+            GetOctree()->Insert(go);
+        }
 
         if (mesh && !mesh->isLoadedToGPU) {
             Application::GetInstance().resourceManager.get()->LoadResourceToGPU(mesh);
@@ -487,6 +496,7 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
             }
         }
     }
+
 
     return go;
 }

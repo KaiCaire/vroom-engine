@@ -1305,107 +1305,7 @@
             ]
         },
         {
-            "1.name": "BakerHouse",
-            "2.active": true,
-            "3.transform": {
-                "position": [
-                    0.0,
-                    0.0,
-                    -34.922306060791016
-                ],
-                "rotation": [
-                    1.0,
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "scale": [
-                    2.8499999046325684,
-                    2.8499999046325684,
-                    2.8499999046325684
-                ]
-            },
-            "6.children": [
-                {
-                    "1.name": "Chimney",
-                    "2.active": true,
-                    "3.transform": {
-                        "position": [
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "rotation": [
-                            1.0,
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "scale": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ]
-                    },
-                    "4.meshRenderer": {
-                        "meshUUID": 3632386476015877011
-                    },
-                    "5.material": {
-                        "diffuseColor": [
-                            0.800000011920929,
-                            0.800000011920929,
-                            0.800000011920929,
-                            1.0
-                        ],
-                        "diffuseMapUUID": 10970773077981847008,
-                        "metallic": 0.0,
-                        "roughness": 0.5,
-                        "shininess": 32.0
-                    },
-                    "6.children": []
-                },
-                {
-                    "1.name": "Baker_house",
-                    "2.active": true,
-                    "3.transform": {
-                        "position": [
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "rotation": [
-                            1.0,
-                            0.0,
-                            0.0,
-                            0.0
-                        ],
-                        "scale": [
-                            1.0,
-                            1.0,
-                            1.0
-                        ]
-                    },
-                    "4.meshRenderer": {
-                        "meshUUID": 3064601011641104716
-                    },
-                    "5.material": {
-                        "diffuseColor": [
-                            0.800000011920929,
-                            0.800000011920929,
-                            0.800000011920929,
-                            1.0
-                        ],
-                        "diffuseMapUUID": 10970773077981847008,
-                        "metallic": 0.0,
-                        "roughness": 0.5,
-                        "shininess": 32.0
-                    },
-                    "6.children": []
-                }
-            ]
-        },
-        {
-            "1.name": "Kodama_LOW",
+            "1.name": "Camera",
             "2.active": true,
             "3.transform": {
                 "position": [
@@ -1425,46 +1325,45 @@
                     1.0
                 ]
             },
-            "6.children": [
-                {
-                    "1.name": "Kadama",
-                    "2.active": true,
-                    "3.transform": {
-                        "position": [
-                            -32.99053955078125,
-                            0.0,
-                            0.0
-                        ],
-                        "rotation": [
-                            -0.6959903240203857,
-                            0.0,
-                            0.7180511355400085,
-                            0.0
-                        ],
-                        "scale": [
-                            0.9999970197677612,
-                            1.0,
-                            0.9999970197677612
-                        ]
-                    },
-                    "4.meshRenderer": {
-                        "meshUUID": 1337729547888551041
-                    },
-                    "5.material": {
-                        "diffuseColor": [
-                            0.5,
-                            0.5,
-                            0.5,
-                            1.0
-                        ],
-                        "diffuseMapUUID": 343693692080390649,
-                        "metallic": 0.0,
-                        "roughness": 0.5,
-                        "shininess": 2.0
-                    },
-                    "6.children": []
-                }
-            ]
+            "6.children": []
+        },
+        {
+            "1.name": "Cube",
+            "2.active": true,
+            "3.transform": {
+                "position": [
+                    -13.106245994567871,
+                    6.046813011169434,
+                    8.512816429138184
+                ],
+                "rotation": [
+                    1.0,
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    15.9031982421875,
+                    15.9031982421875,
+                    15.9031982421875
+                ]
+            },
+            "4.meshRenderer": {
+                "meshUUID": 100
+            },
+            "5.material": {
+                "diffuseColor": [
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0
+                ],
+                "diffuseMapUUID": 18115870054294036102,
+                "metallic": 0.0,
+                "roughness": 0.5,
+                "shininess": 32.0
+            },
+            "6.children": []
         }
     ]
 }

@@ -472,7 +472,7 @@ void Render::DrawActiveScene(Shader& shader) {
 		scene->GetOctree()->Query(camera->frustum, visibleObjects);
 	}
 	else {
-		// Fallback: If no Octree, render all objects
+		 //Fallback: If no Octree, render all objects
 		visibleObjects = scene->GetAllGameObjects();
 		LOG("WARNING: Octree not active. Rendering all %d GameObjects.", (int)visibleObjects.size());
 	}

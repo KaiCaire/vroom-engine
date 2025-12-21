@@ -294,13 +294,15 @@ void GUIManager::AddToDeleteQueue(const std::shared_ptr<GameObject>& obj) {
 
 
 
-	// Queue object for deletion in the scene
-	sceneManager->DestroyGameObject(obj);
+	
 	LOG("Queued object '%s' for deletion.", obj->GetName().c_str());
 
 	if (selectedObject == obj) {
 		selectedObject = nullptr;
 	}
+
+	// Queue object for deletion in the scene
+	sceneManager->DestroyGameObject(obj);
 }
 
 void GUIManager::InitDock() {
@@ -412,20 +414,3 @@ bool GUIManager::CleanUp()
 	return true;
 }
 
-
-
-//Model* GUIManager::FindGameObjectModel(const std::shared_ptr<GameObject>& obj) {
-//	//get all models
-//	auto& models = Application::GetInstance().openGL.get()->modelObjects;
-//
-//	//search for the model that contains a specific game object
-//	for (auto& model : models)
-//	{
-//		for (auto& o : model->gameObjects)
-//		{
-//			if (o == obj) return model;
-//		}
-//	}
-//	//if not found return nullptr
-//	return nullptr;
-//}
