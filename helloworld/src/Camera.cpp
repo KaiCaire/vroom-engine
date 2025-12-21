@@ -8,14 +8,44 @@
 #include "TransformComponent.h"
 #include "SceneManager.h"
 #include <glm/gtx/string_cast.hpp>
+#include "ImGuizmo.h"
 
-//helper function
+//helper functions
 void NormalizePlane(Plane& plane) {
 	float length = glm::length(plane.normal);
 	//safety check to prevent division by zero
 	if (length > 1e-6f) {
 		plane.normal /= length;
 		plane.distance /= length;
+	}
+}
+
+//AABB intersection
+bool RayIntersectsAABB(const glm::vec3& origin, const glm::vec3& dir, const glm::vec3& min, const glm::vec3& max, float& t) {
+	float t1 = (min.x - origin.x) / dir.x;
+	float t2 = (max.x - origin.x) / dir.x;
+	float t3 = (min.y - origin.y) / dir.y;
+	float t4 = (max.y - origin.y) / dir.y;
+	float t5 = (min.z - origin.z) / dir.z;
+	float t6 = (max.z - origin.z) / dir.z;
+
+	float tmin = glm::max(glm::max(glm::min(t1, t2), glm::min(t3, t4)), glm::min(t5, t6));
+	float tmax = glm::min(glm::min(glm::max(t1, t2), glm::max(t3, t4)), glm::max(t5, t6));
+
+	if (tmax < 0 || tmin > tmax) return false;
+	if (tmin < 0) t = tmax;
+	else t = tmin;
+	return true;
+}
+
+//AABB calculation helper
+void ComputeWorldAABB(std::shared_ptr<GameObject> go, glm::vec3& worldMin, glm::vec3& worldMax) {
+	auto transform = std::dynamic_pointer_cast<TransformComponent>(go->GetComponent(ComponentType::TRANSFORM));
+	auto meshComp = std::dynamic_pointer_cast<RenderMeshComponent>(go->GetComponent(ComponentType::MESH_RENDERER));
+
+	if (transform && meshComp && meshComp->GetMesh()) {
+		AABBBounds localBounds = meshComp->GetMesh()->GetBounds();
+		glm::mat4 model = transform->GetGlobalTransform();
 	}
 }
 
@@ -343,4 +373,40 @@ void Camera::ExtractFrustumPlanes() {
 	frustum.planes[PLANE_NEAR].normal.z = clip[2][3] + clip[2][2];
 	frustum.planes[PLANE_NEAR].distance = clip[3][3] + clip[3][2];
 	NormalizePlane(frustum.planes[PLANE_NEAR]);
+}
+
+void Camera::DoMousePicking(int localX, int localY, int vW, int vH) {
+	auto input = Application::GetInstance().input.get();
+	auto scene = Application::GetInstance().sceneManager->GetActiveScene();
+	auto gui = Application::GetInstance().guiManager.get();
+
+	if (!scene || !gui) return;
+
+	//ray
+	glm::vec3 rayDir = input->ViewportMouseRay(localX, localY, vW, vH, projectionMat, viewMat);
+	LOG("Ray Direction: %s", glm::to_string(rayDir).c_str());
+	glm::vec3 rayOrigin = cameraPos;
+
+	std::shared_ptr<GameObject> bestHit = nullptr;
+	float bestT = FLT_MAX;
+	
+	//find closest hit
+	for (auto& go : scene->GetAllGameObjects()) {
+		if (!go || !go->IsActive() || go->IsMarkedForDestroy()) continue;
+
+		if (go->GetComponent(ComponentType::MESH_RENDERER)) {
+			float t = 0.0f;
+			AABB worldBounds = GetGameObjectAABB(go);
+
+			if (RayIntersectsAABB(rayOrigin, rayDir, worldBounds.min, worldBounds.max, t)) {
+				if (t < bestT) {
+					bestT = t;
+					bestHit = go;
+				}
+			}
+		}
+	}
+	//select object
+	Application::GetInstance().guiManager->selectedObject = bestHit;
+	if (bestHit) LOG("Mouse Picked: %s", bestHit->GetName().c_str());
 }
