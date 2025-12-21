@@ -67,6 +67,11 @@ public:
     bool MoveAsset(VroomUUID uuid, const std::string& newAssetPath);
     bool LoadResourceToGPU(std::shared_ptr<Resource> resource);
     bool DeleteFileFromLibrary(const std::string filePath);
+
+    //DEFAULTS:
+    std::string checkersTexDir;
+    std::shared_ptr<ResourceTexture> whiteDefault;
+    std::shared_ptr<ResourceTexture> blackDefault;
     
 
 private:

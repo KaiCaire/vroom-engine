@@ -233,48 +233,26 @@ std::vector<std::shared_ptr<ResourceTexture>> MeshImporter::ProcessTextures(aiMe
         loadTextures(aiTextureType_AMBIENT_OCCLUSION, "texture_ao");
     }
 
-    // Assign default texture if none found
     if (textures.empty()) {
-        std::string defaultTexPath = Application::GetInstance().importer->defaultTexDir;
+        
+        auto rm = Application::GetInstance().resourceManager;
+        auto defaultTex = rm->whiteDefault;
+
+        if (defaultTex == nullptr) {
+            LOG("FATAL ERROR: whiteDefault is null! Did you initialize it in ResourceManager::Start?");
+            return textures;
+        }
 
         
+        textures.push_back(defaultTex);
 
-        // Check cache first
+        
         auto& textures_loaded = Application::GetInstance().importer->textures_loaded;
-        bool found = false;
-        for (auto& loadedTex : textures_loaded) {
-            if (loadedTex.get()->GetAssetFilePath() == defaultTexPath) {
-                textures.push_back(loadedTex);
-                found = true;
-                break;
-            }
+        if (std::find(textures_loaded.begin(), textures_loaded.end(), defaultTex) == textures_loaded.end()) {
+            textures_loaded.push_back(defaultTex);
         }
 
-        if (!found) {
-
-            /*std::string fullDefaultTexPath = defaultTexPath + fileName;*/
-            std::shared_ptr<ResourceTexture> defaultTex = Application::GetInstance().importer.get()->textureImporter->Import(defaultTexPath);
-            /*defaultTex.TextureFromFile(defaultTexPath, fileName.c_str());*/
-
-            if (defaultTex == nullptr) {
-                LOG("FATAL ERROR: Failed to load default texture! Skipping.");
-                // We cannot assign a default texture, so we return with no textures.
-                return textures;
-            }
-            
-            defaultTex.get()->mapType = "texture_diffuse";
-            defaultTex.get()->SetAssetFilePath(defaultTexPath);
-            std::string fileName = fs->GetFileFromPath(defaultTexPath.c_str());
-            defaultTex.get()->SetName(fileName);
-
-            if (std::find(textures_loaded.begin(), textures_loaded.end(), defaultTex) == textures_loaded.end()) {
-                textures_loaded.push_back(defaultTex);
-            }
-            textures.push_back(defaultTex);
-
-        }
-
-        LOG("MeshImporter: Assigned default texture");
+        LOG("MeshImporter: Assigned procedural White default texture.");
     }
 
     return textures;

@@ -445,8 +445,13 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
 
                 // If missing and we want a fallback (the checker texture, but only for diffuse)
                 if (!tex && useFallback) {
-                    std::string checkerPath = Application::GetInstance().importer->defaultTexDir;
-                    tex = std::dynamic_pointer_cast<ResourceTexture>(rm.RequestResource(checkerPath));
+                    std::string checkerPath = rm.checkersTexDir;
+                    
+                    /*tex = rm.whiteDefault;*/
+                    auto resTex = rm.RequestResource(checkerPath.c_str());
+                    tex = std::dynamic_pointer_cast<ResourceTexture>(resTex);
+
+
                     LOG("WARNING: Texture %s (UUID %llu) missing. Using fallback.", jsonKey.c_str(), id);
                 }
 

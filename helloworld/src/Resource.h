@@ -69,7 +69,8 @@ public:
     // Reference counting
     void AddReference() { referenceCount++; }
     void RemoveReference() {
-        if (referenceCount > 0) referenceCount--;
+        if (referenceCount > 0) 
+            referenceCount--;
     }
 
     bool isLoadedToRAM = false; // Is data loaded in RAM?

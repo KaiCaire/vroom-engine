@@ -30,15 +30,19 @@ bool ResourceManager::Start() {
     fs->CreateDir(Paths::MESH_LIB_DIR);
     fs->CreateDir(Paths::TEXTURE_LIB_DIR);
 
+    checkersTexDir = "../Assets/Textures/checkers.jpg";
+    whiteDefault = Application::GetInstance().importer.get()->textureImporter->CreateEmptyTexture(150, 150, 150, "DefaultWhite");
+    if (whiteDefault) RegisterResource(whiteDefault);
+    blackDefault = Application::GetInstance().importer.get()->textureImporter->CreateEmptyTexture(0, 0, 0, "DefaultBlack");
+    if (blackDefault) RegisterResource(blackDefault);
+    
+
     ReimportMissingFiles();
 
     /*DeleteUnusedLibraryFiles();*/
    
     //scan assets for imgui hierarchy
     ScanAssetsFolder();
-
-
-
     Application::GetInstance().sceneManager->LoadDefaultScene();
 
     return true;
@@ -213,9 +217,9 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
    
     auto resource = RequestResource(resUUID);
 
-    if (resource) {
+   /* if (resource) {
         resource->AddReference();
-    }
+    }*/
 
     return resource;
 }

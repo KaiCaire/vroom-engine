@@ -104,7 +104,7 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     // CLEANUP RAM
     stbi_image_free(data);
     texture->data = nullptr;
-    texture->isLoadedToRAM = false;
+    texture->isLoadedToRAM = false; 
 
     LOG("Texture Importer failed, returning nullptr");
     return nullptr; //really shouldn't happen but just in case
@@ -124,4 +124,49 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& dire
 
     // Call the main import function
     return Import(fullPath);
+}
+
+std::shared_ptr<ResourceTexture> TextureImporter::CreateEmptyTexture(
+    unsigned char r, unsigned char g, unsigned char b,
+    const std::string& name,
+    VroomUUID reservedUUID)
+{
+    auto rm = Application::GetInstance().resourceManager;
+
+    // 1. If a reserved UUID was provided, check if it's already in the system
+    if (reservedUUID != 0) {
+        auto existing = rm->GetResourceByUUID(reservedUUID);
+        if (existing) {
+            return std::dynamic_pointer_cast<ResourceTexture>(existing);
+        }
+    }
+
+    // Use the reserved uuid if provided, otherwise generate a new one
+    VroomUUID finalUUID = (reservedUUID != 0) ? reservedUUID : UUIDGen::GenerateUUID();
+
+   
+
+    unsigned char pixels[] = { r, g, b, r, g, b, r, g, b, r, g, b };
+
+    //create resource
+    auto resource = std::make_shared<ResourceTexture>();
+    resource->SetUUID(finalUUID);
+    resource->SetName(name);
+    resource->texW = 2;
+    resource->texH = 2;
+
+
+    glGenTextures(1, &resource->gpu_id);
+    glBindTexture(GL_TEXTURE_2D, resource->gpu_id);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    resource->isLoadedToGPU = true;
+
+    // 3. "Register" part: Put it in the map so the NEXT call finds it via GetResource
+    rm->RegisterResource(resource);
+
+    return resource;
 }

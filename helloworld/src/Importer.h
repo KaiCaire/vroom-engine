@@ -26,5 +26,5 @@ public:
 
 	
 	std::vector<std::shared_ptr<ResourceTexture>> textures_loaded;
-	std::string defaultTexDir = "../Assets/Textures/checkers.jpg";
+	
 };

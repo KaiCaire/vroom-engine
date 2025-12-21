@@ -225,11 +225,14 @@ void ResourceMesh::Draw(Shader& shader, MaterialComponent* material) {
 
     }
     else {
-        //USE CHECKERS AS FALLBACK
-        std::string defaultPath = Application::GetInstance().importer.get()->defaultTexDir;
+        //USE WHITE DEFAULT AS FALLBACK
+        std::string defaultPath = Application::GetInstance().resourceManager.get()->checkersTexDir;
         //should use a weakptr for better performance but don't have the time to waste on extra refactoring, if it works it works lol
         std::shared_ptr<Resource> defaultResource = Application::GetInstance().resourceManager->RequestResource(defaultPath);
         std::shared_ptr<ResourceTexture> defaultTex = std::dynamic_pointer_cast<ResourceTexture>(defaultResource);
+        if (!defaultTex) {
+            LOG("ERROR: White procedural texture not initialized, cannot assign default texture");
+        }
 
         //binds the default texture to the diffuse slot
         bindTex(defaultTex, "texture_diffuse1");

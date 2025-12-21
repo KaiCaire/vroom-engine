@@ -31,20 +31,25 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path, bool ad
 
     Assimp::Importer import;
     /*const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);*/
-    unsigned int flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_FlipUVs; // Flip for FBX, OBJ, everything.
+    unsigned int flags = aiProcess_Triangulate |
+        aiProcess_GenSmoothNormals |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_FlipUVs;
+
+    FileSystem* fs = Application::GetInstance().fileSystem.get();
+    fileExtension = fs->GetExtensionFromPath(path);
+    
+    if (fileExtension == "obj") {
+        flags &= ~aiProcess_FlipUVs;
+    }
 
     const aiScene* scene = import.ReadFile(path, flags);
-
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        LOG("ERROR::ASSIMP::%s", import.GetErrorString());
-        return nullptr;
-    }
 
     
     this->meshes.clear();
     this->meshMetaInfo.clear();
 
-    FileSystem* fs = Application::GetInstance().fileSystem.get();
+    
     fullPath = fs->NormalizePath(path);
     fileName = fs->GetFileNameFromPath(path);
     LOG("DEBUG: fileName extracted = '%s' from path = '%s'", fileName.c_str(), path);
@@ -121,17 +126,20 @@ ModelImporter::ModelImporter(std::shared_ptr<ResourceMesh> sharedMesh) {
     auto modelMat = static_cast<MaterialComponent*>(materialComp.get());
 
     //load and assign default material texture
-    string checkersTexDir = Application::GetInstance().importer.get()->defaultTexDir;
+    string checkersTexDir = Application::GetInstance().resourceManager.get()->checkersTexDir;
    
 
-    // 2. Use the Resource Manager to request it (this handles the cache and GPU)
+    //// 2. Use the Resource Manager to request it (this handles the cache and GPU)
     auto res = Application::GetInstance().resourceManager->RequestResource(checkersTexDir);
     auto defaultColorTex = std::dynamic_pointer_cast<ResourceTexture>(res);
 
     if (defaultColorTex) {
         // 3. Assign to the material
         modelMat->SetDiffuseMap(defaultColorTex);
-        modelMesh->GetMesh()->textures.push_back(defaultColorTex);
+        /*modelMesh->GetMesh()->textures.push_back(defaultColorTex);*/
+    }
+    else {
+        LOG("ERROR: Default white texture not initialized!");
     }
 
     LOG("  - Added Material component with default texture");
@@ -139,12 +147,7 @@ ModelImporter::ModelImporter(std::shared_ptr<ResourceMesh> sharedMesh) {
 }
 
 ModelImporter::ModelImporter() {
-    ////create root
-    //modelRootGO = std::make_shared<GameObject>(std::string("EmptyObject"));
-    //gameObjects.push_back(modelRootGO);
-    //modelRootGO->AddComponent(ComponentType::TRANSFORM);
 
-    //LOG("Empty Object created successfully");
 }
 
 void ModelImporter::Draw(Shader& shader) {
@@ -254,7 +257,7 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
             meshIndex = currentNode->mMeshes[i]; // The unique global index in the FBX
             aiMesh* aimesh = scene->mMeshes[meshIndex];
 
-            // 1. Create a user-friendly name for the Hierarchy
+            // Create a user-friendly name for the Hierarchy so that we don't have multiple meshes named the same 
             std::string friendlyName = std::string(aimesh->mName.C_Str());
             if (friendlyName.empty() || friendlyName == nodeName) {
                 friendlyName = nodeName + "_" + std::to_string(i);
@@ -390,14 +393,17 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         }
     }
 
-    // 3. FALLBACK TO CHECKERS IF NO TEXTURE WAS FOUND
+    //FALLBACK TO CHECKERS IF NO TEXTURE WAS FOUND
     if (!finalTexture) {
-        std::string defaultPath = Application::GetInstance().importer->defaultTexDir;
-        auto res = Application::GetInstance().resourceManager->RequestResource(defaultPath);
-        finalTexture = std::dynamic_pointer_cast<ResourceTexture>(res);
+        std::string checkersTex = Application::GetInstance().resourceManager.get()->checkersTexDir;
+        auto resTex = Application::GetInstance().resourceManager.get()->RequestResource(checkersTex.c_str());
+        finalTexture = std::dynamic_pointer_cast<ResourceTexture>(resTex);
+        if (!finalTexture) {
+            LOG("ERROR: Could not apply default white to final texture");
+        }
     }
 
-    // 4. FINAL ASSIGNMENT
+    //FINAL ASSIGNMENT
     if (finalTexture) {
         matComponent->SetDiffuseMap(finalTexture);
         // Note: No need to call LoadResourceToGPU here, 
