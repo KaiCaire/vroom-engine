@@ -29,11 +29,14 @@ bool SceneManager::Update(float dt) {
     bool ctrl = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LCTRL) || Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_RCTRL);
     bool s = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_S);
     bool l = Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_L);
-    std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/SampleScene.vroomscene";
+    std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + GetActiveScene()->GetName() + ".vroomscene";
 
-    if (ctrl && s) GetActiveScene()->SaveScene(scenesPath);
 
-    if (ctrl && l) GetActiveScene()->LoadScene(scenesPath);
+    if (ctrl && s) 
+        GetActiveScene()->SaveScene(scenesPath);
+
+    if (ctrl && l) 
+        GetActiveScene()->LoadScene(scenesPath);
 
     return true;
 }
@@ -43,39 +46,30 @@ bool SceneManager::CleanUp() {
     return true;
 }
 
-
+ 
 // In SceneManager.cpp
 
 void SceneManager::LoadDefaultScene() {
     LOG("SceneManager: Loading scenes");
 
-    // Load the default scene
     auto defaultScene = std::make_shared<Scene>("DefaultScene");
-
     scenes.push_back(defaultScene);
     SetActiveScene("DefaultScene");
 
-    std::string defaultSceneDir = std::string(Paths::SCENE_ASSETS_DIR) + "/DefaultScene.vroomscene";
-    std::string sampleSceneDir = std::string(Paths::SCENE_ASSETS_DIR) + "/SampleScene.vroomscene";
+    std::string defaultScenePath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + GetActiveScene()->GetName() + ".vroomscene";
 
-    if (!fs->Exists(Paths::LIB_DIR)
-        || (fs->IsFolderEmpty(Paths::MESH_LIB_DIR) && fs->IsFolderEmpty(Paths::TEXTURE_LIB_DIR))
-        || !fs->Exists(defaultSceneDir.c_str())) {
-
-        LOG("Importing Default Scene from scratch");
-
+   
+    if (!fs->Exists(defaultScenePath.c_str())) {
+        LOG("DefaultScene file missing. Importing street environment...");
         GetActiveScene()->ImportModel("../Assets/Models/Street/Street environment_V01.FBX");
-        GetActiveScene()->SaveScene(defaultSceneDir);
-        GetActiveScene()->SaveScene(sampleSceneDir);
-
+        GetActiveScene()->SaveScene(defaultScenePath);
     }
     else {
-        LOG("Loading Scene from Scene Assets file");
-        defaultScene->LoadScene(defaultSceneDir);
+        LOG("Loading Scene from persistent file: %s", defaultScenePath.c_str());
+        defaultScene->LoadScene(defaultScenePath);
     }
 
-    LOG("Successfully created DefaultScene");
-
+    LOG("Successfully initialized DefaultScene");
 }
 
 

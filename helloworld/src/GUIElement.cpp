@@ -92,7 +92,7 @@ void GUIElement::MenuBarSetUp()
 	if (ImGui::BeginMenuBar()) {
 		if (ImGui::BeginMenu("File")) {
 			auto activeScene = Application::GetInstance().sceneManager.get()->GetActiveScene();
-			std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/SampleScene.vroomscene";
+			std::string scenesPath = std::string(Paths::SCENE_ASSETS_DIR) + "/" + activeScene->GetName() + ".vroomscene";
 			if (ImGui::MenuItem("Save Scene (Ctrl + S)")) {
 				
 				activeScene->SaveScene(scenesPath);

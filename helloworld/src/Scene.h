@@ -12,7 +12,7 @@ class CameraComponent;
 
 class Scene : public Module {
 public:
-    Scene(const std::string& name = "SampleScene");
+    Scene(const std::string& name = "DefaultScene");
     ~Scene();
 
     // Scene file operations

@@ -39,7 +39,7 @@ bool ResourceManager::Start() {
 
     ReimportMissingFiles();
 
-    /*DeleteUnusedLibraryFiles();*/
+    DeleteUnusedLibraryFiles();
    
     //scan assets for imgui hierarchy
     ScanAssetsFolder();
@@ -418,6 +418,10 @@ void ResourceManager::DeleteUnusedLibraryFiles() {
         path = fs->NormalizePath(path.c_str());
 
         if (fs->GetExtensionFromPath(path.c_str()) != "meta") continue;
+        if (!fs->IsMetaValid(path.c_str())) {
+            LOG("ResourceManager: Skipping foreign/invalid meta: %s", path.c_str());
+            continue;
+        }
 
         // Add try-catch for JSON parsing
         try {
@@ -430,29 +434,21 @@ void ResourceManager::DeleteUnusedLibraryFiles() {
                 continue;
             }
 
+
+            if (meta.contains("uuid")) {
+                validUUIDs.insert(meta["uuid"].get<VroomUUID>());
+            }
+            
             // Collect UUIDs from MODEL metas
             if (meta.contains("meshes")) {
                 for (const auto& mesh : meta["meshes"]) {
                     if (mesh.contains("meshUUID")) {
                         validUUIDs.insert(mesh["meshUUID"].get<VroomUUID>());
                     }
-
-                    if (mesh.contains("meshTextures")) {
-                        for (const auto& tex : mesh["meshTextures"]) {
-                            if (tex.contains("texUUID")) {
-                                validUUIDs.insert(tex["texUUID"].get<VroomUUID>());
-                            }
-                        }
-                    }
                 }
             }
-            // Collect UUIDs from STANDALONE RESOURCE metas
-            else if (meta.contains("uuid")) {
-                validUUIDs.insert(meta["uuid"].get<VroomUUID>());
-            }
-            else {
-                LOG("WARNING: .meta file has no recognizable structure: %s", path.c_str());
-            }
+           
+            
 
         }
         catch (const nlohmann::json::parse_error& e) {
@@ -461,48 +457,41 @@ void ResourceManager::DeleteUnusedLibraryFiles() {
             LOG("Skipping this file...");
             continue;
         }
-        catch (const std::exception& e) {
-            LOG("ERROR: Exception while processing .meta file: %s", path.c_str());
-            LOG("Error: %s", e.what());
-            continue;
-        }
     }
 
     LOG("Found %zu valid UUIDs in Assets metas", validUUIDs.size());
 
     int deletedFiles = 0;
+    // Iterating specific subfolders instead of the root LIB_DIR to avoid deleting 
+    // files you might have manually placed in the root of Library.
+    std::vector<std::string> libFolders = { Paths::MESH_LIB_DIR, Paths::TEXTURE_LIB_DIR };
 
-    try {
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(std::string(Paths::LIB_DIR))) {
+    for (const auto& folder : libFolders) {
+        if (!fs->Exists(folder.c_str())) continue; //if either meshes nor textures folder exists, continue the search
+
+        //non recursive is safer, we do not have any subfolders inside lib-meshes or lib-textures
+        for (const auto& entry : std::filesystem::directory_iterator(folder)) { 
             if (!entry.is_regular_file()) continue;
 
             std::string filename = entry.path().stem().string();
-
-            // Add validation for filename
-            if (filename.empty()) {
-                LOG("WARNING: Empty filename in Library, skipping");
-                continue;
-            }
 
             try {
                 VroomUUID uuid = std::stoull(filename);
 
                 if (validUUIDs.find(uuid) == validUUIDs.end()) {
+                    LOG("Deleting orphaned library file: %s", entry.path().stem().string().c_str());
                     std::filesystem::remove(entry.path());
                     deletedFiles++;
-                    LOG("Deleted orphaned library file: %s", entry.path().string().c_str());
+                    
                 }
             }
-            catch (const std::exception& e) {
+            catch (const std::exception& e) { //found invalid UUID -> skip
                 LOG("WARNING: Invalid UUID filename in Library: %s", filename.c_str());
                 continue;
             }
         }
     }
-    catch (const std::exception& e) {
-        LOG("ERROR: Exception while cleaning Library: %s", e.what());
-    }
-
+    
     LOG("Unused Library Files Clean Up Complete: %d files deleted", deletedFiles);
 }
 

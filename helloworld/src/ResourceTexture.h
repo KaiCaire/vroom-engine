@@ -40,6 +40,8 @@ public:
     void SaveMeta() const override;
     void LoadMeta() override;
 
+    unsigned char* GetData() const { return data; }
+
     void FreeMemory();
 
     void LoadToGPU();

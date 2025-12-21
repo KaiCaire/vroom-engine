@@ -176,6 +176,12 @@ void ResourceTexture::FreeMemory() {
 
 void ResourceTexture::LoadToGPU() {
 
+  
+    if (isLoadedToGPU && gpu_id != 0) {
+        LOG("WARNING: Texture already loaded to GPU, skipping reupload");
+        return;
+    }
+
     if (!data) {
         LOG("ERROR: Cannot load texture to GPU - data is NULL!");
         return;

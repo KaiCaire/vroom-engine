@@ -43,10 +43,18 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     }
 
     //check resource registry to see if it's already loaded in RAM:
-    auto existing = rm->GetResourceByUUID(uuid);
-    if (existing) {
-        LOG("TextureImporter: Resource %llu already in RAM. Returning existing pointer.", uuid);
-        return std::dynamic_pointer_cast<ResourceTexture>(existing);
+    auto existingRes = rm->GetResourceByUUID(uuid);
+    if (existingRes) {
+        auto texRes = std::static_pointer_cast<ResourceTexture>(existingRes);
+
+        // If the resource exists but has no data, it's STILL a failed load! must return and reimport
+        if (texRes->GetData() != nullptr) {
+            LOG("TextureImporter: Resource %llu already in RAM and valid.", uuid);
+            return texRes;
+        }
+
+        LOG("TextureImporter: Resource %llu is in RAM but empty (NULL data). Forcing re-import...", uuid);
+       
     }
 
     //check library to see if it's already loaded on disk
@@ -65,13 +73,21 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
 
         //load & register
         texture->LoadBin();
-        texture->LoadToGPU();
-        rm->RegisterResource(texture);
 
-        return texture;
+        if (texture->GetData() != nullptr) {
+            LOG("TextureImporter: Successfully loaded binary from Library.");
+            texture->LoadToGPU();
+            rm->RegisterResource(texture);
+            return texture;
+        }
+        else {
+            //data is still null even after loadbin ! probably corrupted
+            LOG("WARNING: Library binary for %llu is corrupted/empty. Falling back to Source Import.", uuid);
+            
+        }
     }
     
-    // If we are here, the .vroomtex is MISSING. We must re-process the JPG/PNG.
+    // If we are here, the .vroomtex is MISSING. We must re-process the texture file.
     LOG("Re-importing texture from source...");
 
     unsigned char* data = nullptr;
