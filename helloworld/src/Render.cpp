@@ -94,7 +94,6 @@ bool Render::Start()
 	return true;
 }
 
-// Called each loop iteration
 bool Render::PreUpdate()
 {
 	SDL_RenderClear(renderer);
@@ -234,15 +233,27 @@ void Render::DrawGameView(Shader& shader) {
 	if (!scene) return;
 
 	std::shared_ptr<CameraComponent> mainCam = nullptr;
+	//to save camera in case no primary camera is found
+	std::shared_ptr<CameraComponent> lastCam = nullptr;
 
 	//find the camera component
+	int camCount = 0;
 	for (auto& go : scene->GetAllGameObjects()) {
 		if (!go) continue;
 		auto cam = std::dynamic_pointer_cast<CameraComponent>(go->GetComponent(ComponentType::CAMERA));
+		lastCam = cam;
+		if (cam) camCount++;
+		//only display the primary (most new) camera
 		if (cam && cam->isPrimary) {
 			mainCam = cam;
 			break;
 		}
+	}
+
+	//default to random camera to make sure game view works (specifically for load and save)
+	if (!mainCam && camCount != 0) {
+		mainCam = lastCam;
+		mainCam.get()->SetAsPrimary();
 	}
 
 	if (mainCam) {
@@ -484,7 +495,7 @@ void Render::DrawActiveScene(Shader& shader) {
 		LOG("Culling Stats: Drawn/Total = %d / %d. Culled: %d", drawnObjects, totalObjects, totalObjects - drawnObjects);
 	}*/
 
-	// Iterate through all GameObjects in the scene
+	// Iterate through all (visible) GameObjects in the scene
 	for (auto& gameObject : visibleObjects) {
 		if (!gameObject || !gameObject->IsActive() || gameObject->IsMarkedForDestroy()) {
 			continue;
@@ -492,13 +503,11 @@ void Render::DrawActiveScene(Shader& shader) {
 
 		DrawGameObject(gameObject, shader);
 
+		//handle drawing aabbs if applicable
 		if (guiManager->drawAABBs) {
 			AABB bounds = GetGameObjectAABB(gameObject);
-			if (bounds.min != bounds.max) {
-				DrawAABB(bounds, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-			}
+			if (bounds.min != bounds.max) DrawAABB(bounds, glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
 			shader.Use();
-			//Uniforms are local to a specific shader program! If you're using the depth buffer shader, you must reset them!
 		}
 	}
 }
@@ -518,7 +527,7 @@ void Render::DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader) {
 	auto renderer = std::dynamic_pointer_cast<RenderMeshComponent>(rendererComp);
 	if (!renderer) return;
 
-	// 3. Draw the mesh
+	// draw the mesh
 	renderer->Render(&shader);
 }
 
