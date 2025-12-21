@@ -20,6 +20,8 @@ struct AABB {
     void Recalculate(const glm::vec3& p);
 };
 
+AABB GetGameObjectAABB(const std::shared_ptr<GameObject>& obj);
+
 //octree node
 class OctreeNode {
 public:

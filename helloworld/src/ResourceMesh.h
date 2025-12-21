@@ -14,6 +14,11 @@ struct Vertex {
     glm::vec2 texCoord;
 };
 
+struct AABBBounds {
+    glm::vec3 min;
+    glm::vec3 max;
+};
+
 class ResourceTexture;
 
 class ResourceMesh : public Resource {
@@ -30,6 +35,8 @@ public:
     //bounding boxes
     glm::vec3 minAABB = glm::vec3(0.0f); 
     glm::vec3 maxAABB = glm::vec3(0.0f);
+
+    AABBBounds GetBounds() const { return { minAABB, maxAABB }; }
     
     // OpenGL buffers
     unsigned int VAO, VBO, EBO;

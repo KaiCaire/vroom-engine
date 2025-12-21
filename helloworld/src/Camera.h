@@ -72,6 +72,7 @@ public:
     void ProcessPan(float xoffset, float yoffset);
     void ProcessScrollZoom(float delta, bool isMouseScroll);
     void FocusObject(bool firstTime);
+    void DoMousePicking(int localX, int localY, int vW, int vH);
     glm::vec3 GetWorldPosition() const { return cameraPos; }
 
     //frustum culling

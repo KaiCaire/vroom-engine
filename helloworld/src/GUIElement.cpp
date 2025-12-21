@@ -936,6 +936,7 @@ void GUIElement::SceneViewportSetUp(bool* show) {
 		unsigned int sceneTextureID = render->sceneTextureID;
 		//LOG("Current Scene Texture ID: %u", sceneTextureID);
 		if (sceneTextureID != 0) {
+			ImVec2 imageStart = ImGui::GetCursorScreenPos();
 			ImGui::Image((ImTextureID)(intptr_t)sceneTextureID, viewportSize, ImVec2(0, 1), ImVec2(1, 0), ImVec4(1, 1, 1, 1), ImVec4(0, 0, 0, 0));
 
 			// show gizmo when an object is selected
@@ -1036,6 +1037,19 @@ void GUIElement::SceneViewportSetUp(bool* show) {
 							transform->SetScale(scale);
 						}
 					}
+				}
+			}
+
+			//mouse picking trigger
+			if (ImGui::IsMouseClicked(0) && !ImGuizmo::IsOver() && manager->sceneViewportIsHovered && Application::GetInstance().input.get()->GetKey(SDL_SCANCODE_LALT) != KEY_REPEAT) {
+				ImVec2 mousePos = ImGui::GetIO().MousePos;
+
+				int localX = (int)(mousePos.x - imageStart.x);
+				int localY = (int)(mousePos.y - imageStart.y);
+
+				if (localX >= 0 && localY >= 0 && localX < (int)viewportSize.x && localY < (int)viewportSize.y) {
+					LOG("Click within bounds at: %d, %d", localX, localY);
+					Application::GetInstance().camera->DoMousePicking(localX, localY, (int)viewportSize.x, (int)viewportSize.y);
 				}
 			}
 		}

@@ -526,6 +526,21 @@ glm::vec3 Input::MouseRay(int mouseX, int mouseY, const glm::mat4& projection, c
 
 }
 
+glm::vec3 Input::ViewportMouseRay(int mouseX, int mouseY, int viewportW, int viewportH, const glm::mat4& projection, const glm::mat4& view) {
+	float normalizedX = (2.0f * mouseX) / (float)viewportW - 1.0f;
+	float normalizedY = 1.0f - (2.0f * mouseY) / (float)viewportH;
+
+	glm::mat4 invVP = glm::inverse(projection * view);
+
+	glm::vec4 nearPoint = invVP * glm::vec4(normalizedX, normalizedY, -1.0f, 1.0f);
+	glm::vec4 farPoint = invVP * glm::vec4(normalizedX, normalizedY, 1.0f, 1.0f);
+
+	nearPoint /= nearPoint.w;
+	farPoint /= farPoint.w;
+
+	return glm::normalize(glm::vec3(farPoint) - glm::vec3(nearPoint));
+}
+
 
 SDL_FPoint Input::GetMousePosition()
 {

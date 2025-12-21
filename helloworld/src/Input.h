@@ -65,6 +65,8 @@ public:
 
 	glm::vec3 MouseRay(int mouseX, int mouseY, const glm::mat4& projection, const glm::mat4& view);
 
+	glm::vec3 ViewportMouseRay(int mouseX, int mouseY, int viewportW, int viewportH, const glm::mat4& projection, const glm::mat4& view);
+
 	// Check if a certain window event happened
 	bool GetWindowEvent(EventWindow ev);
 
