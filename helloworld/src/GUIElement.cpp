@@ -199,6 +199,7 @@ void GUIElement::AboutSetUp() {
 		ImGui::BulletText("Kai Caire");
 		ImGui::BulletText("Lara Guevara");
 		ImGui::BulletText("Bernat Loza");
+		ImGui::BulletText("Marti Mach");
 		ImGui::Separator();
 		ImGui::Text("Developed using:");
 		ImGui::BulletText("vcpkg");
@@ -206,6 +207,7 @@ void GUIElement::AboutSetUp() {
 		ImGui::BulletText("stb");
 		ImGui::BulletText("glm");
 		ImGui::BulletText("imgui");
+		ImGui::BulletText("imguizmo");
 		ImGui::BulletText("glad (for OpenGL)");
 		ImGui::BulletText("sdl-3 & sdl-3.image");
 		ImGui::NewLine();
