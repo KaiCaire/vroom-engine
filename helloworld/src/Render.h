@@ -24,6 +24,7 @@ public:
     void InitSceneFBO(int w, int h);
     void InitGameFBO(int w, int h);
 
+    // Draw the game (camera component) view
     void DrawGameView(Shader& shader);
 
     // 3D Rendering
@@ -32,7 +33,7 @@ public:
     void DrawGameObject(std::shared_ptr<GameObject> go, Shader& shader);
     void DrawGrid();
 
-    //aabb drawing
+    // AABB drawing
     void DrawAABB(const AABB& bounds, const glm::vec4& color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
     void DrawRay(const glm::vec3& origin, const glm::vec3& direction, const glm::vec4& color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
@@ -60,6 +61,7 @@ private:
 
     bool vsync;
 
+    // Drawing scene and game windows (for imgui)
     unsigned int sceneFBO = 0;
     unsigned int sceneRBO = 0;
 
