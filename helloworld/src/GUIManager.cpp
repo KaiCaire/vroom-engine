@@ -214,7 +214,10 @@ void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
 
 	// 1. Save OG
 	if (originalTextures.find(go) == originalTextures.end()) {
-		originalTextures[go] = materialComp->GetDiffuseMap();
+		if (materialComp->GetDiffuseMap()) {
+			originalTextures[go] = materialComp->GetDiffuseMap();
+		}
+		
 	}
 
 	// 2. Request Checker
@@ -224,7 +227,10 @@ void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
 	if (checkerTex) {
 		// ONLY change the component, NOT the mesh textures
 		materialComp->SetDiffuseMap(checkerTex);
-		originalTextures[go]->RemoveReference();
+		/*if (originalTextures[go]) {
+			originalTextures[go]->RemoveReference();
+		}*/
+		//Set diffusemap already handles derreferencing the old texture!
 	}
 }
 
@@ -246,7 +252,11 @@ void GUIManager::RestoreOGTexture(std::shared_ptr<GameObject> go) {
 		// ... (omitted existing LoadBin/LoadToGPU logic for brevity)
 
 		if (originalTex) {
-			materialComp->GetDiffuseMap()->RemoveReference();
+			if (materialComp->GetDiffuseMap()) {
+				/*materialComp->GetDiffuseMap()->RemoveReference();*/
+				//Set diffusemap already handles derreferencing the old texture!
+			}
+			
 			materialComp->SetDiffuseMap(originalTex);
 			LOG("Restored original texture for '%s' (UUID: %llu)", go->GetName().c_str(), originalTex->GetUUID());
 			
@@ -347,7 +357,7 @@ void GUIManager::HandleExternalFileDrop(const std::string& sourceOSPath) {
 	}
 	else {
 		LOG("Unrecognized file type, copying to general Assets/ folder");
-		targetDir == std::string(Paths::ASSETS_DIR);
+		targetDir = std::string(Paths::ASSETS_DIR);
 	}
 	
 	//build final path
@@ -358,9 +368,9 @@ void GUIManager::HandleExternalFileDrop(const std::string& sourceOSPath) {
 
 	Application::GetInstance().fileSystem->CreateDir(targetDir.c_str());
 
-	if (fs->CopyFile(sourcePath.c_str(), targetPath.c_str())) {
+	if (fs->CustomCopyFile(sourcePath.c_str(), targetPath.c_str())) {
 		/*std::string assetRelativePath = Paths::ASSETS_DIR + fileName; */
-		Application::GetInstance().resourceManager->RequestResource(targetPath);
+		Application::GetInstance().resourceManager->RequestResource(targetPath, sourcePath);
 		LOG("External file '%s' successfully copied to Assets/ and imported.", fileName.c_str());
 	}
 	else {

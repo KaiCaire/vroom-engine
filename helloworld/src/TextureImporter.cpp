@@ -7,7 +7,8 @@
 #include "stb_image.h"
 #include <iostream>
 #include "ResourceManager.h"
-
+#include <fstream>
+#include <vector>
 
 std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& filePath) {
     if (filePath.empty()) {
@@ -73,8 +74,38 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     // If we are here, the .vroomtex is MISSING. We must re-process the JPG/PNG.
     LOG("Re-importing texture from source...");
 
+    unsigned char* data = nullptr;
+
     int width, height, nChannels;
-    unsigned char* data = stbi_load(normalizedPath.c_str(), &width, &height, &nChannels, 0);
+
+    // for paths with accented characters!
+    try {
+        
+        std::filesystem::path p = std::filesystem::u8path(normalizedPath);
+
+        // Open file as binary
+        std::ifstream file(p, std::ios::binary | std::ios::ate);
+        if (!file.is_open()) {
+            LOG("ERROR: stbi_load_from_memory failed: Could not open file %s", normalizedPath.c_str());
+            return nullptr;
+        }
+
+        // Read file into buffer
+        std::streamsize size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        std::vector<char> buffer(size);
+
+        if (file.read(buffer.data(), size)) {
+            // Use STB to load from the memory buffer instead of the file path
+            data = stbi_load_from_memory((const unsigned char*)buffer.data(), (int)size, &width, &height, &nChannels, 0);
+        }
+    }
+    catch (const std::exception& e) {
+        LOG("ERROR: Exception while reading texture file: %s", e.what());
+        return nullptr;
+    }
+
+   /* unsigned char* data = stbi_load(normalizedPath.c_str(), &width, &height, &nChannels, 0);*/
 
     if (!data) {
         LOG("ERROR: stbi_load failed for: %s", normalizedPath.c_str());
@@ -101,13 +132,20 @@ std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& file
     texture->SaveMeta(); // This ensures the .meta file is synced
     rm->RegisterResource(texture);
 
+
+    if (texture->gpu_id == 0) {
+        LOG("ERROR: Texture created but failed to upload to GPU.");
+        return nullptr; 
+    }
+
     // CLEANUP RAM
     stbi_image_free(data);
     texture->data = nullptr;
     texture->isLoadedToRAM = false; 
 
-    LOG("Texture Importer failed, returning nullptr");
-    return nullptr; //really shouldn't happen but just in case
+    //return the successful texture
+    LOG("Texture Importer: Successfully imported '%s'", texture->GetName().c_str());
+    return texture;
 }
 
 std::shared_ptr<ResourceTexture> TextureImporter::Import(const std::string& directory, const char* filename) {

@@ -120,10 +120,11 @@ void Scene::CleanUpDestroyedObjects() {
 }
 
 
-std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath, nlohmann::json* modelMeta, bool addToScene) {
+std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath, const std::string& sourcePath, nlohmann::json* modelMeta, bool addToScene) {
     LOG("Scene: Importing model '%s'", modelPath.c_str());
 
     // Call SceneImporter (renamed from ModelImporter::ImportScene)
+
   
     
     std::shared_ptr<GameObject> sceneGO = Application::GetInstance().importer.get()->modelImporter->ImportScene(modelPath.c_str());

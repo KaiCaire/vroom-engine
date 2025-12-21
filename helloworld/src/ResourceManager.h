@@ -30,10 +30,10 @@ public:
     std::shared_ptr<Resource> RequestResource(VroomUUID uuid, bool allowRetry = true);
 
     // Request a resource by file path (checks cache, imports if needed)
-    std::shared_ptr<Resource> RequestResource(const std::string& assetsPath);
+    std::shared_ptr<Resource> RequestResource(const std::string& assetsPath, const std::string& sourcePath = "");
 
     // Import a new file from disk
-    VroomUUID ImportFile(const std::string& assetsPath, ResourceType type, bool addToScene = true);
+    VroomUUID ImportFile(const std::string& assetsPath, ResourceType type, const std::string& sourcePath = "", bool addToScene = true);
 
     // Create a new resource (used by importers)
     std::shared_ptr<Resource> CreateResource(ResourceType type, VroomUUID uuid = 0);

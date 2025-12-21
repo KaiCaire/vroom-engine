@@ -244,11 +244,32 @@ void ResourceMesh::Draw(Shader& shader, MaterialComponent* material) {
         shader.setVec4("lineColor", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f)); // Green
 
         glBegin(GL_LINES);
-        for (int i = 0; i < (int)indices.size(); i += 3) {
-            glm::vec3 start = vertices[indices[i]].Position;
-            glm::vec3 end = start + normals[indices[i]] * 0.2f;
-            glVertex3fv(glm::value_ptr(start));
-            glVertex3fv(glm::value_ptr(end));
+        // CRITICAL: We loop through INDICES because indices define triangles
+        for (int i = 0; i + 2 < (int)indices.size(); i += 3) {
+
+            // 1. Get the 3 vertex positions that form this triangle
+            glm::vec3 v0 = vertices[indices[i]].Position;
+            glm::vec3 v1 = vertices[indices[i + 1]].Position;
+            glm::vec3 v2 = vertices[indices[i + 2]].Position;
+
+            // 2. Calculate the surface normal (cross product)
+            glm::vec3 edge1 = v1 - v0;
+            glm::vec3 edge2 = v2 - v0;
+            glm::vec3 normalDir = glm::cross(edge1, edge2);
+
+            // 3. Safety: only draw if the triangle has actual area
+            if (glm::length(normalDir) > 0.0001f) {
+                normalDir = glm::normalize(normalDir);
+
+                // 4. Find the center of the triangle
+                glm::vec3 center = (v0 + v1 + v2) / 3.0f;
+
+                // 5. Calculate the end of the line
+                glm::vec3 end = center + normalDir * 0.2f;
+
+                glVertex3fv(glm::value_ptr(center));
+                glVertex3fv(glm::value_ptr(end));
+            }
         }
         glEnd();
         shader.setBool("useLineColor", false);
@@ -260,25 +281,23 @@ void ResourceMesh::Draw(Shader& shader, MaterialComponent* material) {
         shader.setVec4("lineColor", glm::vec4(0.0f, 0.9f, 1.0f, 1.0f)); // Blue
 
         glBegin(GL_LINES);
-        for (int i = 0; i < (int)vertices.size(); i += 3) {
-            if (i + 2 >= (int)indices.size()) break; // Safety check
+        
+        for (int i = 0; i < (int)vertices.size(); i++) {
 
-            glm::vec3 v0 = vertices[indices[i]].Position;
-            glm::vec3 v1 = vertices[indices[i + 1]].Position;
-            glm::vec3 v2 = vertices[indices[i + 2]].Position;
+            glm::vec3 start = vertices[i].Position;
 
-            glm::vec3 normalDir = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-            glm::vec3 center = (v0 + v1 + v2) / 3.0f;
-            glm::vec3 end = center + normalDir * 0.2f;
+            // Use the normal stored inside the vertex data structure
+            glm::vec3 normalDir = vertices[i].Normal;
 
-            glVertex3fv(glm::value_ptr(center));
-            glVertex3fv(glm::value_ptr(end));
+            glVertex3fv(glm::value_ptr(start));
+            glVertex3fv(glm::value_ptr(start + normalDir * 0.2f));
         }
         glEnd();
+    
         shader.setBool("useLineColor", false);
     }
 
-    // 4. MAIN GEOMETRY RENDER
+    //Main geometry render
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
@@ -316,10 +335,21 @@ void ResourceMesh::SetMeshData(const std::vector<Vertex>& verts, const std::vect
 
 
 void ResourceMesh::CalculateNormals() {
-    normals.resize(vertices.size(), glm::vec3(0.0f));
+
+    // Use assign to clear and resize (instead of just .resize())
+    normals.assign(vertices.size(), glm::vec3(0.0f)); 
 
 
-    for (int i = 0; i < indices.size(); i += 3) {
+    for (int i = 0; i + 2 < indices.size(); i += 3) {
+
+        
+       /* if (indices[i] >= vertices.size() ||
+            indices[i + 1] >= vertices.size() ||
+            indices[i + 2] >= vertices.size()) {
+            LOG("ERROR: Mesh index out of bounds during Normal calculation!");
+            continue;
+        }*/
+
         glm::vec3 v0 = vertices[indices[i]].Position;
         glm::vec3 v1 = vertices[indices[i + 1]].Position;
         glm::vec3 v2 = vertices[indices[i + 2]].Position;
@@ -327,21 +357,28 @@ void ResourceMesh::CalculateNormals() {
         //With just vertices[i] instead of vertices[indices[i]], you’d be assuming that every 3 consecutive vertices form a triangle.
         //However, that's not always the case, as most meshes reuse vertices between faces.
 
-        glm::vec3 normal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-        //compute cross product with v0->v1, v0->v2 
-        //both from the same point (v0), because the resulting perpendicular vector has to sit on a common vertex
+        // 2. check for degenerate triangles, which they have zero area, because either:
+        // -  two or more vertices are in the same position
+        // - all three vertices lie in a straight line
+        glm::vec3 edge1 = v1 - v0;
+        glm::vec3 edge2 = v2 - v0;
+        glm::vec3 cp = glm::cross(edge1, edge2); 
+        // if it's a degenerate, the cross product will be zero and therefore can't be normalized
 
-        //add normal vector on top of each vertex
-        normals[indices[i]] += normal;
-        normals[indices[i + 1]] += normal;
-        normals[indices[i + 2]] += normal;
+        if (glm::length(cp) > 0.00001f) { // Only normalize if it's not a zero vector
+            glm::vec3 normal = glm::normalize(cp);
+            normals[indices[i]] += normal;
+            normals[indices[i + 1]] += normal;
+            normals[indices[i + 2]] += normal;
+        }
 
     }
 
-    for (glm::vec3 normal : normals)
-    {
-        //since we added the normals to the indices, they aren't normalized anymore, so we do it again
-        normal = glm::normalize(normal);
+    //normalize again for smooth shading (since we added up the normals, they aren't normalized anymore)
+    for (size_t i = 0; i < normals.size(); ++i) {
+        if (glm::length(normals[i]) > 0.0f) {
+            normals[i] = glm::normalize(normals[i]);
+        }
     }
 
 }

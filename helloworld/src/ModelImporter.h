@@ -23,6 +23,9 @@ public:
     std::vector<std::shared_ptr<GameObject>> gameObjects;
     std::shared_ptr<GameObject> modelRootGO;
 
+    //for external file drops
+    static std::string lastExternalSourcePath;
+
     // Model metadata
     std::string fullPath;
     std::string fileName;
@@ -49,7 +52,7 @@ public:
     ~ModelImporter();
 
     // Import scene from file
-    std::shared_ptr<GameObject> ImportScene(const char* path, bool addToScene = true);
+    std::shared_ptr<GameObject> ImportScene(const char* path, const std::string& sourcePath = "", bool addToScene = true);
 
     // Rendering
     void Draw(Shader& shader);
@@ -72,7 +75,7 @@ public:
     std::vector<MeshMetaInfo> meshMetaInfo;
     //td::vector<TexMetaInfo> texMetaInfo; --> should be created for each meshEntry of meshMetaInfo
     
-
+    std::string ogSourcePath;
 
     void SaveModelMeta(const char* modelPath);
     nlohmann::json* LoadModelMeta(const char* modelPath);  

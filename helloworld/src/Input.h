@@ -61,7 +61,7 @@ public:
 		return mouseButtons[id - 1];
 	}
 
-	void ProcessDroppedFile(std::string sourcePath);
+	void ProcessDroppedFile(std::string assetsPath);
 
 	glm::vec3 MouseRay(int mouseX, int mouseY, const glm::mat4& projection, const glm::mat4& view);
 

@@ -28,7 +28,8 @@ public:
 	bool Exists(const char* path);
 	bool CreateDir(const char* path);
 
-	bool CopyFile(const char* src, const char* dest);
+	bool CustomCopyFile(const char* src, const char* dest);
+	//std::wstring ToWideString(const std::string& utf8Str);
 
 
 	//binary file handling (for resources)
@@ -49,7 +50,7 @@ public:
 	std::vector<FileEntry> GetDirectoryContents(const char* directory);
 	std::vector<std::string> IterateAssetsRecursive(const char* directory);
 	bool DeleteFile(const char* path);
-	//bool CopyFile(const char* src, const char* dest);
+	//bool CustomCopyFile(const char* src, const char* dest);
 	bool MoveFileToNewPath(const char* oldPath, const char* newPath);
 
 
