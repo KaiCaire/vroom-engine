@@ -456,19 +456,24 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
 
         // Load and Copy
         if (!textureToLoad.empty()) {
-            // If the file we found is EXTERNAL (not in Assets), copy it to Assets/Textures
-            if (textureToLoad.find(":") == std::string::npos) {
+            // 1. Check if the path is absolute (contains ':')
+            if (textureToLoad.find(":") != std::string::npos) {
                 std::string fileName = fs->GetFileFromPath(textureToLoad.c_str());
                 std::string destPath = std::string(Paths::TEXTURE_ASSETS_DIR) + "/" + fileName;
 
+                LOG("External texture detected. Ingesting to: %s", destPath.c_str());
+
+                // 2. Perform the copy to the internal project folder
                 if (fs->CustomCopyFile(textureToLoad.c_str(), destPath.c_str())) {
-                    textureToLoad = destPath; // Point to the new local version
+                    // CRITICAL: Update the variable to the new LOCAL project path
+                    textureToLoad = destPath;
                 }
             }
 
-            // Load the resource
+            // 3. Request the resource using the path (now internal if it was external)
             auto res = Application::GetInstance().resourceManager->RequestResource(textureToLoad.c_str());
             auto tex = std::dynamic_pointer_cast<ResourceTexture>(res);
+
             if (tex) {
                 finalTexture = tex;
                 LOG("Successfully applied texture: %s", textureToLoad.c_str());
