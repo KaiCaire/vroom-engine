@@ -89,6 +89,7 @@ Including an orbital camera and a basic editor for easier use, this version cons
 * Delete GameObjects
 * Textures with transparency
 * Shaders read from external files
+* Z-Buffer visualization
 
   
 ## Authors
