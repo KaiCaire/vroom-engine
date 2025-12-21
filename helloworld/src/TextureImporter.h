@@ -14,4 +14,7 @@ public:
     // Overload for compatibility with old API (directory + filename)
     static std::shared_ptr<ResourceTexture> Import(const std::string& directory, const char* filename);
 
+    std::shared_ptr<ResourceTexture> CreateEmptyTexture(unsigned char r, unsigned char g, unsigned char b, const std::string& name, VroomUUID reservedUUID = 0);
+
+
 };

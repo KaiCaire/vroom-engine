@@ -120,10 +120,11 @@ void Scene::CleanUpDestroyedObjects() {
 }
 
 
-std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath, nlohmann::json* modelMeta, bool addToScene) {
+std::shared_ptr<GameObject> Scene::ImportModel(const std::string& modelPath, const std::string& sourcePath, nlohmann::json* modelMeta, bool addToScene) {
     LOG("Scene: Importing model '%s'", modelPath.c_str());
 
     // Call SceneImporter (renamed from ModelImporter::ImportScene)
+
   
     
     std::shared_ptr<GameObject> sceneGO = Application::GetInstance().importer.get()->modelImporter->ImportScene(modelPath.c_str());
@@ -445,8 +446,13 @@ std::shared_ptr<GameObject> Scene::DeserializeGameObject(const nlohmann::json& g
 
                 // If missing and we want a fallback (the checker texture, but only for diffuse)
                 if (!tex && useFallback) {
-                    std::string checkerPath = Application::GetInstance().importer->defaultTexDir;
-                    tex = std::dynamic_pointer_cast<ResourceTexture>(rm.RequestResource(checkerPath));
+                    std::string checkerPath = rm.checkersTexDir;
+                    
+                    /*tex = rm.whiteDefault;*/
+                    auto resTex = rm.RequestResource(checkerPath.c_str());
+                    tex = std::dynamic_pointer_cast<ResourceTexture>(resTex);
+
+
                     LOG("WARNING: Texture %s (UUID %llu) missing. Using fallback.", jsonKey.c_str(), id);
                 }
 

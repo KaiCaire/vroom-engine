@@ -31,7 +31,12 @@ public:
 
     void SetDiffuseMap(std::shared_ptr<ResourceTexture> tex) 
     { 
-        // 1. Decrement reference count for the OLD texture, if one exists
+
+        if (this->diffuseMap == tex) 
+            return; // just in case we assign the texture to itself
+
+
+        //Decrement reference count for the OLD texture, if one exists
         if (diffuseMap) {
             diffuseMap->RemoveReference();
         }

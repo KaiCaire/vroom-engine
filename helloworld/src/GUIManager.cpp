@@ -188,7 +188,7 @@ bool GUIManager::Update(float dt)
 }
 
 VroomUUID GUIManager::GetCheckerTextureUUID() {
-	std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
+	std::string checkerPath = Application::GetInstance().resourceManager.get()->checkersTexDir;
 	std::string checkerMetaPath = checkerPath + ".meta";
 
 	// Attempt to load the meta file to get the UUID
@@ -214,18 +214,23 @@ void GUIManager::ShowCheckerTexture(std::shared_ptr<GameObject> go) {
 
 	// 1. Save OG
 	if (originalTextures.find(go) == originalTextures.end()) {
-		originalTextures[go] = materialComp->GetDiffuseMap();
+		if (materialComp->GetDiffuseMap()) {
+			originalTextures[go] = materialComp->GetDiffuseMap();
+		}
+		
 	}
 
 	// 2. Request Checker
-	std::string checkerPath = Application::GetInstance().importer.get()->defaultTexDir;
-	auto checkerTex = std::static_pointer_cast<ResourceTexture>(
-		Application::GetInstance().resourceManager->RequestResource(checkerPath.c_str())
-	);
+	std::string checkerPath = Application::GetInstance().resourceManager.get()->checkersTexDir;
+	auto checkerTex = std::static_pointer_cast<ResourceTexture>(Application::GetInstance().resourceManager->RequestResource(checkerPath.c_str()));
 
 	if (checkerTex) {
 		// ONLY change the component, NOT the mesh textures
 		materialComp->SetDiffuseMap(checkerTex);
+		/*if (originalTextures[go]) {
+			originalTextures[go]->RemoveReference();
+		}*/
+		//Set diffusemap already handles derreferencing the old texture!
 	}
 }
 
@@ -247,18 +252,20 @@ void GUIManager::RestoreOGTexture(std::shared_ptr<GameObject> go) {
 		// ... (omitted existing LoadBin/LoadToGPU logic for brevity)
 
 		if (originalTex) {
+			if (materialComp->GetDiffuseMap()) {
+				/*materialComp->GetDiffuseMap()->RemoveReference();*/
+				//Set diffusemap already handles derreferencing the old texture!
+			}
+			
 			materialComp->SetDiffuseMap(originalTex);
-			LOG("Restored original texture for '%s' (UUID: %llu)",
-				go->GetName().c_str(), originalTex->GetUUID());
+			LOG("Restored original texture for '%s' (UUID: %llu)", go->GetName().c_str(), originalTex->GetUUID());
+			
 		}
 
 		// 3. Remove from map (MUST HAPPEN)
 		originalTextures.erase(it);
 	}
 	else if (materialComp->GetDiffuseMap() && materialComp->GetDiffuseMap()->GetUUID() == GetCheckerTextureUUID()) {
-		// 4. FIX: Handle the "stuck" state (e.g., Titan imported with checker)
-		// If we are NOT tracking an original texture, but the current texture IS the checker texture,
-		// the user's action to UNCHECK the box means they want to remove the checker texture.
 
 		// Assign nullptr to clear the map. The user can now drag/drop a new texture.
 		materialComp->SetDiffuseMap(nullptr);
@@ -350,7 +357,7 @@ void GUIManager::HandleExternalFileDrop(const std::string& sourceOSPath) {
 	}
 	else {
 		LOG("Unrecognized file type, copying to general Assets/ folder");
-		targetDir == std::string(Paths::ASSETS_DIR);
+		targetDir = std::string(Paths::ASSETS_DIR);
 	}
 	
 	//build final path
@@ -361,9 +368,9 @@ void GUIManager::HandleExternalFileDrop(const std::string& sourceOSPath) {
 
 	Application::GetInstance().fileSystem->CreateDir(targetDir.c_str());
 
-	if (fs->CopyFile(sourcePath.c_str(), targetPath.c_str())) {
+	if (fs->CustomCopyFile(sourcePath.c_str(), targetPath.c_str())) {
 		/*std::string assetRelativePath = Paths::ASSETS_DIR + fileName; */
-		Application::GetInstance().resourceManager->RequestResource(targetPath);
+		Application::GetInstance().resourceManager->RequestResource(targetPath, sourcePath);
 		LOG("External file '%s' successfully copied to Assets/ and imported.", fileName.c_str());
 	}
 	else {

@@ -246,13 +246,13 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 			finalDestPath = path;
 		}
 
-		Application::GetInstance().sceneManager.get()->GetActiveScene()->ImportModel(finalDestPath);
+		Application::GetInstance().sceneManager.get()->GetActiveScene()->ImportModel(finalDestPath, sourcePath);
 	}
 	// Handle texture files (PNG, JPG, TGA, DDS)
 	else if (fileExtension == "png" || fileExtension == "jpg" || fileExtension == "tga" || fileExtension == "dds") {
 		if (isExternalFile) {
 			//external -> copy
-			destPath = std::string(Paths::MODEL_ASSETS_DIR) + "/" + file;
+			destPath = std::string(Paths::TEXTURE_ASSETS_DIR) + "/" + file;
 			finalDestPath = CopyFileToAssets(path, destPath.c_str(), file);
 		}
 		else {
@@ -275,7 +275,7 @@ void Input::ProcessDroppedFile(std::string sourcePath) {
 std::string Input::CopyFileToAssets(const std::string sourcePath, const char* destPath, const std::string file)
 {
 	if (!fs->ExistsInSubDirectories(destPath, file.c_str())) {
-		fs->CopyFile(sourcePath.c_str(), destPath);
+		fs->CustomCopyFile(sourcePath.c_str(), destPath);
 		return destPath;
 	}
 	else {
@@ -288,7 +288,7 @@ std::string Input::CopyToTexFolder(const std::string sourcePath, const std::stri
 {
 	std::string destPath = std::string(Paths::TEXTURE_ASSETS_DIR) + "/" + file;
 	if (!fs->ExistsInSubDirectories(destPath.c_str(), file.c_str())) {
-		fs->CopyFile(sourcePath.c_str(), destPath.c_str());
+		fs->CustomCopyFile(sourcePath.c_str(), destPath.c_str());
 		return destPath;
 	}
 	else {

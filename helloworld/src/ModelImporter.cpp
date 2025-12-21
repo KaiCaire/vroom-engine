@@ -25,26 +25,41 @@
 
 
 using namespace std;
+std::string ModelImporter::lastExternalSourcePath = "";
 
-
-std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path, bool addToScene) {
+std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path, const std::string& sourcePath, bool addToScene) {
 
     Assimp::Importer import;
     /*const aiScene* scene = import.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);*/
-    unsigned int flags = aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices | aiProcess_FlipUVs; // Flip for FBX, OBJ, everything.
+    unsigned int flags = aiProcess_Triangulate |
+        aiProcess_GenSmoothNormals |
+        aiProcess_LimitBoneWeights |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_FlipUVs;
 
-    const aiScene* scene = import.ReadFile(path, flags);
-
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-        LOG("ERROR::ASSIMP::%s", import.GetErrorString());
-        return nullptr;
+    FileSystem* fs = Application::GetInstance().fileSystem.get();
+    fileExtension = fs->GetExtensionFromPath(path);
+    
+    if (fileExtension == "obj") {
+        flags &= ~aiProcess_FlipUVs;
     }
+    import.SetPropertyBool(AI_CONFIG_IMPORT_FBX_READ_WEIGHTS, false); //some models with complex rigs are blowing up on import, so adding this
+    const aiScene* scene = import.ReadFile(path, flags);
 
     
     this->meshes.clear();
     this->meshMetaInfo.clear();
 
-    FileSystem* fs = Application::GetInstance().fileSystem.get();
+    
+    // If it's an external path, remember it forever!
+    if (sourcePath.find(":") != std::string::npos) {
+        lastExternalSourcePath = fs->GetDirFromPath(sourcePath.c_str());
+        /*this->ogSourcePath = sourcePath;*/
+    }
+    // storing it to use it later in createComponentsForMesh instead of passing it down thru signature
+    // (I'm not modifying the method signatures for the millionth time istg)
+    
+    
     fullPath = fs->NormalizePath(path);
     fileName = fs->GetFileNameFromPath(path);
     LOG("DEBUG: fileName extracted = '%s' from path = '%s'", fileName.c_str(), path);
@@ -52,14 +67,18 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path, bool ad
     modelRootGO = std::make_shared<GameObject>(fileName);  
     //gameObjects.push_back(modelRootGO); 
 
-    // Try to load model meta for caching
+
     nlohmann::json* modelMeta = LoadModelMeta(path);
+    
+   
 
     if (modelMeta) {
         LOG("Reimporting model, using cached uuids");
     }
-    else 
+    else {
         LOG("Importing model from scratch");
+    }
+        
      
      
     fileExtension = fs->GetExtensionFromPath(fullPath.c_str());
@@ -73,6 +92,10 @@ std::shared_ptr<GameObject> ModelImporter::ImportScene(const char* path, bool ad
 
     // Save/update model meta
     SaveModelMeta(path);
+
+    //Clearing it after creating everything to avoid stale data
+    ogSourcePath = "";
+    
 
     LOG("=== MODEL LOADING SUMMARY ===");
     LOG("Total GameObjects created: %d", (int)gameObjects.size());
@@ -121,17 +144,20 @@ ModelImporter::ModelImporter(std::shared_ptr<ResourceMesh> sharedMesh) {
     auto modelMat = static_cast<MaterialComponent*>(materialComp.get());
 
     //load and assign default material texture
-    string checkersTexDir = Application::GetInstance().importer.get()->defaultTexDir;
+    string checkersTexDir = Application::GetInstance().resourceManager.get()->checkersTexDir;
    
 
-    // 2. Use the Resource Manager to request it (this handles the cache and GPU)
+    //// 2. Use the Resource Manager to request it (this handles the cache and GPU)
     auto res = Application::GetInstance().resourceManager->RequestResource(checkersTexDir);
     auto defaultColorTex = std::dynamic_pointer_cast<ResourceTexture>(res);
 
     if (defaultColorTex) {
         // 3. Assign to the material
         modelMat->SetDiffuseMap(defaultColorTex);
-        modelMesh->GetMesh()->textures.push_back(defaultColorTex);
+        /*modelMesh->GetMesh()->textures.push_back(defaultColorTex);*/
+    }
+    else {
+        LOG("ERROR: Default white texture not initialized!");
     }
 
     LOG("  - Added Material component with default texture");
@@ -139,12 +165,7 @@ ModelImporter::ModelImporter(std::shared_ptr<ResourceMesh> sharedMesh) {
 }
 
 ModelImporter::ModelImporter() {
-    ////create root
-    //modelRootGO = std::make_shared<GameObject>(std::string("EmptyObject"));
-    //gameObjects.push_back(modelRootGO);
-    //modelRootGO->AddComponent(ComponentType::TRANSFORM);
 
-    //LOG("Empty Object created successfully");
 }
 
 void ModelImporter::Draw(Shader& shader) {
@@ -254,7 +275,7 @@ void ModelImporter::processNodeWithGameObjects(const aiNode* node, const aiScene
             meshIndex = currentNode->mMeshes[i]; // The unique global index in the FBX
             aiMesh* aimesh = scene->mMeshes[meshIndex];
 
-            // 1. Create a user-friendly name for the Hierarchy
+            // Create a user-friendly name for the Hierarchy so that we don't have multiple meshes named the same 
             std::string friendlyName = std::string(aimesh->mName.C_Str());
             if (friendlyName.empty() || friendlyName == nodeName) {
                 friendlyName = nodeName + "_" + std::to_string(i);
@@ -302,7 +323,7 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
             }
         }
     }
-    
+
     // Pass the cached UUID if we have one
     auto mesh = Application::GetInstance().importer->meshImporter->Import(aiMesh, scene, fullPath, existingUUID);
 
@@ -314,14 +335,7 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
     // register resource
     Application::GetInstance().resourceManager->RegisterResource(mesh);
 
-    //std::vector<TexMetaInfo> texMetaInfo;
-
-    //for (auto tex : mesh->textures) {
-    //    texMetaInfo.push_back({ tex->GetName(), tex->GetUUID(), tex->mapType });
-    //}
-
-    // Store mesh info for model meta
-    meshMetaInfo.push_back({aiMesh->mName.C_Str(), mesh->GetUUID(), currentMeshIndex});
+    meshMetaInfo.push_back({ aiMesh->mName.C_Str(), mesh->GetUUID(), currentMeshIndex });
 
 
     // Store the mesh in the model
@@ -342,7 +356,7 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         return;
     }
 
-    // Set the mesh directly
+
     renderer->SetMesh(mesh);
     // Verify mesh was added properly
     auto verifyMesh = renderer->GetMesh();
@@ -361,24 +375,110 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
     auto matComponent = std::dynamic_pointer_cast<MaterialComponent>(materialComp);
     if (!matComponent) return;
 
-    std::shared_ptr<ResourceTexture> finalTexture = nullptr;
+    //----- TEXTURE SEARCH ------
 
-    // 1. ATTEMPT TO FIND TEXTURE IN ASSIMP
+    // 1. Initial Default to avoid null texture scenario from the start
+    std::string checkersTex = Application::GetInstance().resourceManager->checkersTexDir;
+    auto resTex = Application::GetInstance().resourceManager->RequestResource(checkersTex.c_str());
+    std::shared_ptr<ResourceTexture> finalTexture = std::dynamic_pointer_cast<ResourceTexture>(resTex);
+    
+
     if (aiMesh->mMaterialIndex >= 0) {
         aiMaterial* aiMat = scene->mMaterials[aiMesh->mMaterialIndex];
         aiString str;
+        std::string textureToLoad = "";
+        std::string textureFileName = "";
+        std::string modelName = fs->GetFileNameFromPath(fullPath.c_str());
 
+        //TRY THE ASSIMP EMBEDDED NAME FIRST (High Accuracy)
         if (aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &str) == AI_SUCCESS) {
-            std::string relativePath = fs->GetFileFromPath(str.C_Str());
-            std::string modelDirectory = fs->GetDirFromPath(fullPath.c_str());
-            std::string absolutePath = fs->NormalizePath((modelDirectory + "/" + relativePath).c_str());
+            textureFileName = fs->GetFileFromPath(str.C_Str());
+            LOG("[Texture Search] Assimp found embedded name: %s", textureFileName.c_str());
 
-            // FIX: Use ResourceManager instead of private GetOrLoadTexture
-            auto res = Application::GetInstance().resourceManager->RequestResource(absolutePath);
-            finalTexture = std::dynamic_pointer_cast<ResourceTexture>(res);
+        }
+        //Guess based on model name
+        else {
+            // We don't know the extension, so we'll have to try them in the loop below
+            LOG("[Texture Search] No embedded name. Guessing for: %s_diffuse", modelName.c_str());
         }
 
-        // 2. LOAD MATERIAL PROPERTIES (Keep your original logic!)
+        // different paths where we'll look for the file
+        std::vector<std::string> searchDirs;
+        // If external drop, look at the external folders
+        if (!lastExternalSourcePath.empty()) {
+            std::string sourceDir = lastExternalSourcePath;
+            searchDirs.push_back(sourceDir);
+            searchDirs.push_back(sourceDir + "/textures");
+            searchDirs.push_back(sourceDir + "/../textures");
+        }
+        // Always look in the local project folders (Assets/Models/ or Assets/Textures/)
+
+        searchDirs.push_back(fs->GetDirFromPath(fullPath.c_str()));
+        searchDirs.push_back(std::string(Paths::TEXTURE_ASSETS_DIR));
+
+        //if we have a textureFileNameFromAssimp:
+        if (!textureFileName.empty()) {
+            for (const auto& dir : searchDirs) {
+                std::string testPath = fs->NormalizePath((dir + "/" + textureFileName).c_str());
+                LOG("Searching for texture in %s", testPath.c_str());
+                if (fs->Exists(testPath.c_str())) {
+                    textureToLoad = testPath;
+                    break;
+                }
+            }
+        }
+        
+        //try naming convention (it might have found a texture in assimp, 
+        // but it could have been renamed to match the convention)
+        if(textureToLoad.empty() || !fs->Exists(textureToLoad.c_str())){
+            
+            LOG("[Texture Search] Assimp search failed. Trying Naming Convention for: %s_diffuse", modelName.c_str());
+            std::vector<std::string> extensions = { ".png", ".jpg", ".tga", ".dds" };
+            for (const auto& dir : searchDirs) {
+                if (!textureToLoad.empty()) {
+                    break;
+                }
+                
+                for (const auto& ext : extensions) {
+                    std::string testPath = fs->NormalizePath((dir + "/" + modelName + "_diffuse" + ext).c_str());
+                
+                    LOG("Checking for texture at: %s", testPath.c_str());
+                    
+                    if (fs->Exists(testPath.c_str())) {
+                        textureToLoad = testPath;
+
+                        LOG("[Texture Search] Found via naming convention: %s", testPath.c_str());
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Load and Copy
+        if (!textureToLoad.empty()) {
+            // If the file we found is EXTERNAL (not in Assets), copy it to Assets/Textures
+            if (textureToLoad.find(":") == std::string::npos) {
+                std::string fileName = fs->GetFileFromPath(textureToLoad.c_str());
+                std::string destPath = std::string(Paths::TEXTURE_ASSETS_DIR) + "/" + fileName;
+
+                if (fs->CustomCopyFile(textureToLoad.c_str(), destPath.c_str())) {
+                    textureToLoad = destPath; // Point to the new local version
+                }
+            }
+
+            // Load the resource
+            auto res = Application::GetInstance().resourceManager->RequestResource(textureToLoad.c_str());
+            auto tex = std::dynamic_pointer_cast<ResourceTexture>(res);
+            if (tex) {
+                finalTexture = tex;
+                LOG("Successfully applied texture: %s", textureToLoad.c_str());
+            }
+        }
+        else {
+            LOG("No texture found for mesh, defaulting to checkers.");
+        }
+
+        // 2. LOAD MATERIAL PROPERTIES 
         aiColor4D color;
         if (AI_SUCCESS == aiGetMaterialColor(aiMat, AI_MATKEY_COLOR_DIFFUSE, &color)) {
             matComponent->SetDiffuseColor(glm::vec4(color.r, color.g, color.b, color.a));
@@ -388,20 +488,11 @@ void ModelImporter::createComponentsForMesh(std::shared_ptr<GameObject> gameObje
         if (AI_SUCCESS == aiGetMaterialFloat(aiMat, AI_MATKEY_SHININESS, &shininess)) {
             matComponent->SetShininess(shininess);
         }
-    }
 
-    // 3. FALLBACK TO CHECKERS IF NO TEXTURE WAS FOUND
-    if (!finalTexture) {
-        std::string defaultPath = Application::GetInstance().importer->defaultTexDir;
-        auto res = Application::GetInstance().resourceManager->RequestResource(defaultPath);
-        finalTexture = std::dynamic_pointer_cast<ResourceTexture>(res);
-    }
-
-    // 4. FINAL ASSIGNMENT
-    if (finalTexture) {
-        matComponent->SetDiffuseMap(finalTexture);
-        // Note: No need to call LoadResourceToGPU here, 
-        // RequestResource already handled it!
+        //FINAL ASSIGNMENT
+        if (finalTexture) {
+            matComponent->SetDiffuseMap(finalTexture);
+        }
     }
 
     LOG("=== createComponentsForMesh END ===\n");
@@ -412,53 +503,6 @@ ModelImporter::~ModelImporter() {
    
 }
 
-
-
-//std::shared_ptr<ResourceTexture> ModelImporter::GetOrLoadTexture(const std::string& fullPath, const std::string& fileName, const std::string& typeName) {
-//
-//    auto& textures_loaded = Application::GetInstance().importer.get()->textures_loaded;
-//    // Check if already loaded
-//    for (auto& loadedTex : textures_loaded) {
-//        if (loadedTex.get()->GetAssetFilePath() == fullPath) {
-//            return loadedTex; // Return the cached texture
-//        }
-//    }
-//
-//    // Not found, load new texture
-//    std::shared_ptr<ResourceTexture> texture = Application::GetInstance().importer.get()->textureImporter->Import(fullPath);
-//    /*texture.TextureFromFile(fullPath, fileName.c_str());*/
-//
-//    if (texture == nullptr) {
-//        LOG("WARNING: GetOrLoadTexture failed to load texture from path: %s. Returning default texture or nullptr.", fullPath.c_str());
-//        return nullptr;
-//    }
-//    
-//    texture.get()->mapType = typeName;
-//    texture.get()->SetAssetFilePath(fullPath);
-//    texture.get()->SetName(fileName);
-//    textures_loaded.push_back(texture);
-//
-//    return texture;
-//}
-
-//void ModelImporter::AssignDefaultTexture(std::vector<std::shared_ptr<ResourceTexture>>& textures) {
-//    string fullPath = Application::GetInstance().importer.get()->defaultTexDir;
-//    
-//    string fileName = Application::GetInstance().fileSystem.get()->GetFileNameFromPath(fullPath.c_str());
-//    string directory = Application::GetInstance().fileSystem.get()->GetDirFromPath(fullPath.c_str());
-//
-//    LOG("AssignDefaultTexture: fullPath=%s, fileName=%s", fullPath.c_str(), fileName.c_str());
-//
-//    std::shared_ptr<ResourceTexture> defaultTex = GetOrLoadTexture(fullPath, fileName, "texture_diffuse");
-//
-//    if (defaultTex && defaultTex->GetUUID() != 0) {
-//       /* textures.push_back(defaultTex);*/
-//        LOG("  -> Default texture assigned (UUID: %llu), (GPU_ID: %u)", defaultTex.get()->GetUUID(), defaultTex->gpu_id);
-//    }
-//    else {
-//        LOG("  -> ERROR: Failed to assign default texture!");
-//    }
-//}
 
 void ModelImporter::SaveModelMeta(const char* modelPath) {
     FileSystem* fs = Application::GetInstance().fileSystem.get();

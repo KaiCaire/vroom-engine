@@ -1,6 +1,7 @@
 #include "FileSystem.h"
 
 
+
 FileSystem::FileSystem() {
 
 }
@@ -78,7 +79,8 @@ void FileSystem::SaveJSON(const char* path, const nlohmann::json& json_to_save) 
 
 	}
 
-	std::ofstream outputFile(path);
+	// this completely clears the file before writing, ensuring no corrupted data remains from previous attempts.
+	std::ofstream outputFile(std::filesystem::u8path(path), std::ios::out | std::ios::trunc);
 	if (!outputFile) {
 		LOG("Failed to open .json file at %s", path);
 		return;
@@ -91,21 +93,42 @@ void FileSystem::SaveJSON(const char* path, const nlohmann::json& json_to_save) 
 
 }
 
-bool FileSystem::CopyFile(const char* src, const char* dest)
+bool FileSystem::CustomCopyFile(const char* src, const char* dest)
 {
-	try
-	{
-		/*std::filesystem::create_directories(std::filesystem::path(dest).parent_path());*/
+	//must convert strings to system::path objects, otherwise it won't detect accented characters properly!
+	try {
+		std::filesystem::path srcPath = std::filesystem::u8path(src);
+		std::filesystem::path dstPath = std::filesystem::u8path(dest);
 
-		std::filesystem::copy_file(src, dest);
-		return true;
+		// Ensure directory exists
+		if (dstPath.has_parent_path()) {
+			std::filesystem::create_directories(dstPath.parent_path());
+		}
+
+		//check source file exists (just in case ig)
+		if (!std::filesystem::exists(srcPath)) {
+			// This LOG will likely still show garbage because the console 
+			// doesn't support UTF-8, but the check should now PASS.
+			LOG("ERROR: Source file not found even with UTF8 parsing.");
+			return false;
+		}
+
+		return std::filesystem::copy_file(srcPath, dstPath, std::filesystem::copy_options::overwrite_existing);
 	}
-	catch (const std::filesystem::filesystem_error& e)
-	{
-		LOG("Copy failed: %s (%s -> %s)", e.what(), src, dest);
+	catch (const std::filesystem::filesystem_error& e) {
+		LOG("Copy failed: %s", e.what());
 		return false;
 	}
 }
+
+////helper to properly detect accented characters and all that stuff
+//std::wstring FileSystem::ToWideString(const std::string& utf8Str) {
+//	if (utf8Str.empty()) return L"";
+//	int size_needed = MultiByteToWideChar(CP_UTF8, 0, &utf8Str[0], (int)utf8Str.size(), NULL, 0);
+//	std::wstring wstrTo(size_needed, 0);
+//	MultiByteToWideChar(CP_UTF8, 0, &utf8Str[0], (int)utf8Str.size(), &wstrTo[0], size_needed);
+//	return wstrTo;
+//}
 
 std::string FileSystem::GetDirFromPath(const char* path) {
 
@@ -115,13 +138,23 @@ std::string FileSystem::GetDirFromPath(const char* path) {
 }
 
 std::string FileSystem::GetFileNameFromPath(const char* path) {
-
 	std::string filePath = NormalizePath(path);
 
-	std::string fileName = filePath.substr(filePath.find_last_of('/') + 1);
-	fileName = fileName.substr(0, fileName.find_first_of('.'));
-	//remember the file is "[name].fbx.meta", not "[name].fbx"!
-	//will return the name, WITHOUT the extension
+	// 1. Get the part after the last slash (e.g., "BakerHouse.fbx")
+	size_t lastSlash = filePath.find_last_of('/');
+	std::string fileName = (lastSlash == std::string::npos) ? filePath : filePath.substr(lastSlash + 1);
+
+	// 2. Find the LAST dot to strip the extension (e.g., "BakerHouse.fbx" -> "BakerHouse")
+	size_t lastDot = fileName.find_last_of('.');
+	if (lastDot != std::string::npos) {
+		fileName = fileName.substr(0, lastDot);
+	}
+
+	//Special case for meta files: "modelName.fbx.meta"
+	size_t metaCheck = fileName.find_last_of('.');
+	if (metaCheck != std::string::npos) {
+		fileName = fileName.substr(0, metaCheck);
+	}
 
 	return fileName;
 }
@@ -151,9 +184,16 @@ std::string FileSystem::GetExtensionFromPath(const char* path) {
 
 
 std::string FileSystem::NormalizePath(const char* path) {
-	std::string normalizedPath = path;
-	std::replace(normalizedPath.begin(), normalizedPath.end(), '\\', '/');
-	return normalizedPath;
+	if (path == nullptr || strlen(path) == 0) return "";
+
+	// 1. Create a filesystem path object (UTF-8 safe)
+	std::filesystem::path p = std::filesystem::u8path(path);
+
+	// 2. Use lexically_normal() to resolve ".." and "." without checking if the file exists
+	// 3. Use generic_string() to ensure forward slashes '/' on all platforms
+	std::string normalized = p.lexically_normal().generic_string();
+
+	return normalized;
 }
 
 VroomUUID FileSystem::GetUUIDFromMeta(const char* metaPath) {
@@ -210,20 +250,17 @@ nlohmann::json FileSystem::LoadJSON(const char* path) {
 }
 
 bool FileSystem::Exists(const char* path) {
-	/*bool ret = false;
+	if (path == nullptr || strlen(path) == 0) return false;
 
-	std::string filePath = path;
-	std::replace(filePath.begin(), filePath.end(), '\\', '/');
-	std::string libraryDir = filePath.substr(0, filePath.find_last_of("/"));
-	for (const auto& entry : std::filesystem::directory_iterator(libraryDir)) {
-		if (entry.is_regular_file()){
-			if(entry.path().filename.string() == fileName) { return true; }
-		}
+	try {
+		// We create a path object from the UTF-8 string handle accented characters (à, ó, etc.)
+		std::filesystem::path p = std::filesystem::u8path(path);
+		return std::filesystem::exists(p);
 	}
-
-	return ret;*/
-
-	return std::filesystem::exists(path); //lol just one line
+	catch (const std::exception& e) {
+		// Just in case of weird permission issues or illegal characters
+		return false;
+	}
 }
 
 bool FileSystem::CreateDir(const char* path) {
@@ -261,15 +298,28 @@ void FileSystem::CreateMeta(const char* filePath, const VroomUUID uuid, uint siz
 }
 
 bool FileSystem::IsMetaValid(const char* metaPath) {
-	nlohmann::json meta = LoadJSON(metaPath);
+	// Read the first few characters of the file as a raw string just to check if it's valid
+	std::ifstream file(metaPath);
+	if (!file.is_open()) return false;
 
-	if (!meta.contains("uuid") || !meta.contains("modTime")) {
+	std::string line;
+	std::getline(file, line);
+	file.close();
+
+	// Unity metas usually start with "fileFormatVersion:" 
+	// Vroom metas (JSON) must start with '{'
+	if (line.find("{") == std::string::npos) {
+		LOG("Ignoring Unity meta file: %s", metaPath);
+		return false;
+	}
+
+	nlohmann::json meta = LoadJSON(metaPath);
+	if (meta.is_null() || !meta.contains("uuid") || !meta.contains("modTime")) {
 		return false;
 	}
 
 	return true;
 }
-
 bool FileSystem::NeedsReimport(const char* metaPath, const char* sourceFilePath) {
 	nlohmann::json meta = LoadJSON(metaPath);
 	if (!IsMetaValid(metaPath)) return false;

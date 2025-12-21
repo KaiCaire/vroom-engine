@@ -30,15 +30,19 @@ bool ResourceManager::Start() {
     fs->CreateDir(Paths::MESH_LIB_DIR);
     fs->CreateDir(Paths::TEXTURE_LIB_DIR);
 
+    checkersTexDir = "../Assets/Textures/checkers.jpg";
+    whiteDefault = Application::GetInstance().importer.get()->textureImporter->CreateEmptyTexture(150, 150, 150, "DefaultWhite");
+    if (whiteDefault) RegisterResource(whiteDefault);
+    blackDefault = Application::GetInstance().importer.get()->textureImporter->CreateEmptyTexture(0, 0, 0, "DefaultBlack");
+    if (blackDefault) RegisterResource(blackDefault);
+    
+
     ReimportMissingFiles();
 
     /*DeleteUnusedLibraryFiles();*/
    
     //scan assets for imgui hierarchy
     ScanAssetsFolder();
-
-
-
     Application::GetInstance().sceneManager->LoadDefaultScene();
 
     return true;
@@ -148,7 +152,7 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
                         LOG("Found Mesh UUID %llu inside model: %s", uuid, path.c_str());
                        
                         //reimport 
-                        Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(path, &meta, false);
+                        Application::GetInstance().sceneManager->GetActiveScene()->ImportModel(path, "", &meta, false);
                         outType = ResourceType::MESH;
                         return true;
                     }
@@ -185,7 +189,7 @@ bool ResourceManager::TryReimportResource(VroomUUID uuid, ResourceType& outType)
     return false;
 }
 
-std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& assetsPath) {
+std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& assetsPath, const std::string& sourcePath) {
 
     std::string normalizedPath = fs->NormalizePath(assetsPath.c_str());
     std::string metaPath = normalizedPath + ".meta";
@@ -201,7 +205,7 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
         LOG("No .meta file found for %s, importing fresh.", normalizedPath.c_str());
 
         ResourceType type = DetermineResourceType(normalizedPath);
-        resUUID = ImportFile(normalizedPath, type); // ImportFile returns the new UUID
+        resUUID = ImportFile(normalizedPath, type, sourcePath); // ImportFile returns the new UUID
     }
 
     // Handle import failure
@@ -213,14 +217,14 @@ std::shared_ptr<Resource> ResourceManager::RequestResource(const std::string& as
    
     auto resource = RequestResource(resUUID);
 
-    if (resource) {
+   /* if (resource) {
         resource->AddReference();
-    }
+    }*/
 
     return resource;
 }
 
-VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type, bool addToScene) {
+VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceType type, const std::string& sourcePath, bool addToScene) {
     LOG("ResourceManager: Importing file '%s' (type: %d)", assetsPath.c_str(), (int)type);
 
     //No UUIDs should be generated here!!
@@ -237,7 +241,7 @@ VroomUUID ResourceManager::ImportFile(const std::string& assetsPath, ResourceTyp
     }
     case ResourceType::SCENE:
        
-        Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str(), addToScene);
+        Application::GetInstance().importer.get()->modelImporter->ImportScene(assetsPath.c_str(), sourcePath, addToScene);
         
         break;
 
@@ -388,7 +392,7 @@ void ResourceManager::ReimportMissingFiles() {
             }
             else if (resType == ResourceType::SCENE) {
                 // ModelImporter should also be updated to check meta first
-                Application::GetInstance().importer->modelImporter->ImportScene(assetPath.c_str(), false);
+                Application::GetInstance().importer->modelImporter->ImportScene(assetPath.c_str(), "", false);
             }
         }
         
